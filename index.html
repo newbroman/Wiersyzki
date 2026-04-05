@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wierszyki – Polish Nursery Rhymes</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:#1a1208}
+    .noscroll::-webkit-scrollbar{display:none}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useCallback, useEffect, useMemo, useRef } = React;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════════════
+
+const rhymes = [
+  {
+    id:1, emoji:"🐱", difficulty:"Easy",
+    title:"Wlazł kotek na płotek",
+    english_title:"The Kitten Climbed the Fence",
+    lines:[
+      {pl:"Wlazł kotek na płotek",en:"A kitten climbed the fence"},
+      {pl:"i mruga,",en:"and blinked,"},
+      {pl:"ładna to piosenka,",en:"what a pretty little song,"},
+      {pl:"niedługa.",en:"and it's not long."},
+      {pl:"Raz, dwa, trzy,",en:"One, two, three,"},
+      {pl:"wlazł kotek na płotek",en:"the kitten climbed the fence"},
+      {pl:"i mruga!",en:"and blinked!"},
+    ],
+    vocab:[
+      {word:"kotek",meaning:"kitten (diminutive of kot)"},
+      {word:"płotek",meaning:"little fence (diminutive of płot)"},
+      {word:"mruga",meaning:"blinks, winks"},
+      {word:"ładna",meaning:"pretty, nice"},
+      {word:"piosenka",meaning:"song"},
+      {word:"niedługa",meaning:"not long, short"},
+    ],
+    grammar:[
+      {point:"Diminutives",note:"Polish loves diminutives — suffixes that make words smaller and cuter. 'Kot' (cat) → 'kotek' (little cat/kitten). 'Płot' (fence) → 'płotek' (little fence). The suffix '-ek' is one of the most common masculine diminutive endings."},
+      {point:"Verb position",note:"'Wlazł' (climbed/crept) opens the sentence — Polish word order is flexible. The verb doesn't have to come second as in English. Here the verb leads for rhythmic effect."},
+      {point:"Negation with 'nie'",note:"'Niedługa' = 'nie' (not) + 'długa' (long, feminine form). Polish often fuses 'nie' directly onto adjectives. The feminine ending '-a' on 'długa' agrees with 'piosenka' (song), which is a feminine noun."},
+    ],
+    questions:[
+      {lineIndex:0,hint:"_____ kotek na płotek",answer:"Wlazł",choices:["Wlazł","Skoczył","Biegł","Siedział"]},
+      {lineIndex:2,hint:"ładna to _____,",answer:"piosenka",choices:["piosenka","zagadka","historia","bajka"]},
+      {lineIndex:1,hint:"i _____,",answer:"mruga",choices:["mruga","śpiewa","płacze","skacze"]},
+      {lineIndex:3,hint:"_____.",answer:"niedługa",choices:["niedługa","wesoła","krótka","prosta"]},
+    ],
+  },
+  {
+    id:2, emoji:"🌙", difficulty:"Medium",
+    title:"Idzie niebo ciemną nocą",
+    english_title:"The Sky Walks the Dark Night",
+    lines:[
+      {pl:"Idzie niebo ciemną nocą,",en:"The sky walks through the dark night,"},
+      {pl:"gwiazdy srebrne za nim skoczą,",en:"silver stars leap after it,"},
+      {pl:"księżyc błyszczy jak latarnia,",en:"the moon shines like a lantern,"},
+      {pl:"a na ziemi cisza czarna.",en:"and on the earth, black silence."},
+    ],
+    vocab:[
+      {word:"niebo",meaning:"sky, heaven"},
+      {word:"ciemną nocą",meaning:"in the dark night"},
+      {word:"gwiazdy",meaning:"stars"},
+      {word:"srebrne",meaning:"silver (adj.)"},
+      {word:"księżyc",meaning:"moon"},
+      {word:"błyszczy",meaning:"shines, gleams"},
+      {word:"latarnia",meaning:"lantern, streetlamp"},
+      {word:"cisza",meaning:"silence, stillness"},
+    ],
+    grammar:[
+      {point:"Instrumental case: 'nocą'",note:"'Nocą' is the instrumental case of 'noc' (night). In Polish the instrumental case is used for time expressions meaning 'at/during' — 'nocą' means 'at night, during the night'. Similarly: 'rano' → 'rano' (in the morning), 'wieczorem' (in the evening)."},
+      {point:"Adjective agreement: 'ciemną'",note:"'Ciemną' is the feminine accusative form of 'ciemny' (dark). It agrees with 'noc' (night), which is feminine. Polish adjectives must match the noun in gender, number and case."},
+      {point:"Future tense: 'skoczą'",note:"'Skoczą' is third-person plural future of 'skoczyć' (to leap). It gives the image a sense of destiny — the stars will leap. Polish perfective verbs in third-person plural future end in '-ą'."},
+    ],
+    questions:[
+      {lineIndex:2,hint:"księżyc błyszczy jak _____,",answer:"latarnia",choices:["latarnia","słońce","świeca","gwiazda"]},
+      {lineIndex:1,hint:"gwiazdy _____ za nim skoczą,",answer:"srebrne",choices:["srebrne","złote","czarne","białe"]},
+      {lineIndex:3,hint:"a na ziemi cisza _____.",answer:"czarna",choices:["czarna","biała","cicha","ciemna"]},
+      {lineIndex:0,hint:"Idzie _____ ciemną nocą,",answer:"niebo",choices:["niebo","słońce","wiatr","księżyc"]},
+    ],
+  },
+  {
+    id:3, emoji:"🚂", difficulty:"Easy",
+    title:"Jedzie pociąg z daleka",
+    english_title:"The Train Comes from Afar",
+    lines:[
+      {pl:"Jedzie pociąg z daleka,",en:"The train comes from far away,"},
+      {pl:"na nikogo nie czeka,",en:"it waits for no one,"},
+      {pl:"konduktor woła: wsiadać!",en:"the conductor calls: all aboard!"},
+      {pl:"Kto chce jechać – ten musi wsiadać.",en:"Whoever wants to ride must get on."},
+    ],
+    vocab:[
+      {word:"pociąg",meaning:"train"},
+      {word:"z daleka",meaning:"from afar, from far away"},
+      {word:"czeka",meaning:"waits"},
+      {word:"konduktor",meaning:"conductor, ticket inspector"},
+      {word:"woła",meaning:"calls out, shouts"},
+      {word:"wsiadać",meaning:"to board, to get on"},
+      {word:"jechać",meaning:"to travel (by vehicle)"},
+    ],
+    grammar:[
+      {point:"Genitive of negation",note:"'Na nikogo nie czeka' — 'nikogo' is the genitive of 'nikt' (nobody). In Polish, negation triggers the genitive case on the object. 'Czekać na kogoś' (wait for someone) becomes 'nie czekać na nikogo' (not wait for anyone). Notice also the double negative — standard in Polish."},
+      {point:"Infinitive as command: 'wsiadać!'",note:"In Polish, infinitives can function as public commands or announcements — much like 'All aboard!' The conductor shouts 'wsiadać!' (to board!) rather than a conjugated verb. This is common in official or public contexts."},
+      {point:"Relative pronoun 'kto'",note:"'Kto chce jechać' — 'kto' means 'whoever / who'. It introduces a relative clause. Note that 'ten' (that one / he) appears in the main clause as a correlative pronoun — a pattern common in Polish: 'kto… ten…' (whoever… that person…)."},
+    ],
+    questions:[
+      {lineIndex:1,hint:"na nikogo nie _____,",answer:"czeka",choices:["czeka","patrzy","biegnie","wraca"]},
+      {lineIndex:0,hint:"Jedzie _____ z daleka,",answer:"pociąg",choices:["pociąg","autobus","tramwaj","statek"]},
+      {lineIndex:2,hint:"konduktor _____: wsiadać!",answer:"woła",choices:["woła","krzyczy","śpiewa","mówi"]},
+      {lineIndex:3,hint:"Kto chce _____ – ten musi wsiadać.",answer:"jechać",choices:["jechać","wsiąść","pojechać","wrócić"]},
+    ],
+  },
+  {
+    id:4, emoji:"🐻", difficulty:"Medium",
+    title:"Stary niedźwiedź mocno śpi",
+    english_title:"The Old Bear Sleeps Soundly",
+    lines:[
+      {pl:"Stary niedźwiedź mocno śpi,",en:"The old bear sleeps soundly,"},
+      {pl:"stary niedźwiedź mocno śpi,",en:"the old bear sleeps soundly,"},
+      {pl:"my się go boimy,",en:"we are afraid of him,"},
+      {pl:"na palcach chodzimy,",en:"we walk on tiptoe,"},
+      {pl:"jak się niedźwiedź zbudzi,",en:"when the bear wakes up,"},
+      {pl:"to nas wszystkich zje!",en:"he will eat us all!"},
+    ],
+    vocab:[
+      {word:"niedźwiedź",meaning:"bear"},
+      {word:"mocno",meaning:"soundly, strongly"},
+      {word:"śpi",meaning:"sleeps"},
+      {word:"boimy się",meaning:"we are afraid"},
+      {word:"palcach",meaning:"toes / fingers (palec)"},
+      {word:"zbudzi",meaning:"wakes up"},
+      {word:"zje",meaning:"will eat"},
+    ],
+    grammar:[
+      {point:"Reflexive verb: 'boimy się'",note:"'Bać się' (to be afraid) is a reflexive verb — it always takes the reflexive particle 'się'. 'My się go boimy' = we are afraid of him. 'Go' is the genitive of 'on' (he). Fear verbs in Polish take the genitive: 'boję się psa' (I'm afraid of the dog)."},
+      {point:"Locative case: 'na palcach'",note:"'Palcach' is the locative plural of 'palec' (finger/toe). 'Na palcach' = on tiptoe (literally 'on fingers/toes'). The preposition 'na' meaning 'on' triggers the locative case."},
+      {point:"Perfective future: 'zbudzi się' / 'zje'",note:"'Zbudzi' (will wake up) and 'zje' (will eat) are perfective future forms — they describe a completed future action. Polish has two aspects: imperfective (ongoing) and perfective (completed). The prefix 'z-' often marks perfective aspect."},
+    ],
+    questions:[
+      {lineIndex:3,hint:"na _____ chodzimy,",answer:"palcach",choices:["palcach","nogach","rękach","krokach"]},
+      {lineIndex:0,hint:"Stary niedźwiedź mocno _____,",answer:"śpi",choices:["śpi","je","ryczy","chodzi"]},
+      {lineIndex:5,hint:"to nas wszystkich _____!",answer:"zje",choices:["zje","znajdzie","dopadnie","przestraszy"]},
+      {lineIndex:4,hint:"jak się niedźwiedź _____,",answer:"zbudzi",choices:["zbudzi","obudzi","wstanie","ruszy"]},
+    ],
+  },
+  {
+    id:5, emoji:"🌧️", difficulty:"Easy",
+    title:"Pada deszcz",
+    english_title:"It is Raining",
+    lines:[
+      {pl:"Pada deszcz, pada deszcz,",en:"It is raining, it is raining,"},
+      {pl:"pada deszcz w ogrodzie,",en:"it is raining in the garden,"},
+      {pl:"żabki się kąpią",en:"little frogs are bathing"},
+      {pl:"w czystej zimnej wodzie.",en:"in the cold clean water."},
+    ],
+    vocab:[
+      {word:"pada",meaning:"falls, it is raining"},
+      {word:"deszcz",meaning:"rain"},
+      {word:"ogród / ogrodzie",meaning:"garden (locative: in the garden)"},
+      {word:"żabki",meaning:"little frogs (diminutive of żaby)"},
+      {word:"kąpią się",meaning:"bathe, take a bath"},
+      {word:"czysta",meaning:"clean, pure"},
+      {word:"zimna",meaning:"cold"},
+      {word:"woda / wodzie",meaning:"water (locative: in the water)"},
+    ],
+    grammar:[
+      {point:"Impersonal 'pada'",note:"'Pada deszcz' literally means 'rain falls'. 'Pada' (falls) is used impersonally for weather — 'pada deszcz' (it rains), 'pada śnieg' (it snows). There is no dummy subject like English 'it' — the noun just follows the verb."},
+      {point:"Locative: 'w ogrodzie' / 'w wodzie'",note:"The preposition 'w' (in) always takes the locative case. 'Ogród' → 'ogrodzie'; 'woda' → 'wodzie'. This is one of the most frequent case patterns in Polish — location 'in' something always uses locative."},
+      {point:"Adjective stacking",note:"'W czystej zimnej wodzie' — two adjectives before the noun, both in the locative feminine: 'czysta' → 'czystej', 'zimna' → 'zimnej'. All adjectives must agree with the noun they modify in gender, number and case."},
+    ],
+    questions:[
+      {lineIndex:2,hint:"_____ się kąpią",answer:"żabki",choices:["żabki","rybki","ptaki","dzieci"]},
+      {lineIndex:1,hint:"pada deszcz w _____,",answer:"ogrodzie",choices:["ogrodzie","lesie","parku","domu"]},
+      {lineIndex:3,hint:"w czystej _____ wodzie.",answer:"zimnej",choices:["zimnej","ciepłej","głębokiej","czystej"]},
+      {lineIndex:0,hint:"Pada _____, pada deszcz,",answer:"deszcz",choices:["deszcz","śnieg","grad","wiatr"]},
+    ],
+  },
+  {
+    id:6, emoji:"🐸", difficulty:"Easy",
+    title:"Siedzi żabka na liściu",
+    english_title:"The Frog Sits on a Leaf",
+    lines:[
+      {pl:"Siedzi żabka na liściu,",en:"A little frog sits on a leaf,"},
+      {pl:"nogi zwisa w dół,",en:"its legs dangling down,"},
+      {pl:"patrzy żabka na wodę,",en:"the frog looks at the water,"},
+      {pl:"robi: kum, kum, kum.",en:"and goes: croak, croak, croak."},
+    ],
+    vocab:[
+      {word:"siedzi",meaning:"sits"},
+      {word:"żabka",meaning:"little frog"},
+      {word:"liść / liściu",meaning:"leaf (locative: on a leaf)"},
+      {word:"nogi",meaning:"legs"},
+      {word:"zwisa",meaning:"hangs, dangles"},
+      {word:"patrzy",meaning:"looks, watches"},
+      {word:"woda / wodę",meaning:"water (accusative)"},
+      {word:"kum",meaning:"croak (sound a frog makes)"},
+    ],
+    grammar:[
+      {point:"Verb-subject order",note:"'Siedzi żabka' — the verb 'siedzi' (sits) comes before the subject 'żabka' (little frog). This is perfectly normal in Polish. Placing the verb first can emphasise the action or simply create a better rhythm in verse."},
+      {point:"Accusative after 'na' (direction)",note:"'Patrzy na wodę' — 'patrzyć na' (to look at) uses the accusative. 'Woda' → 'wodę'. Compare: 'na liściu' (locative, on the leaf, static position) vs 'na wodę' (accusative, looking toward the water, directed). 'Na' switches case depending on movement vs. position."},
+      {point:"Onomatopoeia: 'kum'",note:"Polish frogs say 'kum kum' rather than 'ribbit'. Polish has rich onomatopoeia: dogs say 'hau hau', cats 'miau', cows 'mu'. These vary by language — a fun reminder that even animal sounds are culturally learned."},
+    ],
+    questions:[
+      {lineIndex:0,hint:"Siedzi żabka na _____,",answer:"liściu",choices:["liściu","gałęzi","kamieniu","trawie"]},
+      {lineIndex:1,hint:"nogi _____ w dół,",answer:"zwisa",choices:["zwisa","wisi","spada","leci"]},
+      {lineIndex:2,hint:"_____ żabka na wodę,",answer:"patrzy",choices:["patrzy","skacze","pływa","śpiewa"]},
+      {lineIndex:3,hint:"robi: kum, kum, _____.",answer:"kum",choices:["kum","bum","hum","zum"]},
+    ],
+  },
+  {
+    id:7, emoji:"⭐", difficulty:"Medium",
+    title:"Gwiazdeczko mała",
+    english_title:"Little Star",
+    lines:[
+      {pl:"Gwiazdeczko mała, gwiazdeczko złota,",en:"Little star, little golden star,"},
+      {pl:"co ty robisz tak wysoko?",en:"what are you doing so high up?"},
+      {pl:"Świecę dzieciom, świecę ptakom,",en:"I shine for children, I shine for birds,"},
+      {pl:"świecę wszędzie, gdzie jest ciemno.",en:"I shine everywhere it is dark."},
+    ],
+    vocab:[
+      {word:"gwiazdeczka",meaning:"little star (diminutive of gwiazda)"},
+      {word:"złota",meaning:"golden"},
+      {word:"robisz",meaning:"you do, you are doing"},
+      {word:"wysoko",meaning:"high up"},
+      {word:"świecę",meaning:"I shine"},
+      {word:"dzieci / dzieciom",meaning:"children (dative: for children)"},
+      {word:"wszędzie",meaning:"everywhere"},
+      {word:"ciemno",meaning:"dark (adverb)"},
+    ],
+    grammar:[
+      {point:"Vocative case: 'Gwiazdeczko'",note:"'Gwiazdeczko' is the vocative case of 'gwiazdeczka' — used when directly addressing someone or something. Feminine nouns ending in '-a' take '-o' in the vocative. This case is alive and well in Polish, unlike in many other languages."},
+      {point:"Dative case: 'dzieciom', 'ptakom'",note:"'Świecę dzieciom' = I shine for children. 'Dzieciom' is the dative plural of 'dzieci' (children). The dative case marks the indirect object — the recipient of an action. 'Świecę ptakom' = I shine for birds ('ptakom' = dative plural of 'ptaki')."},
+      {point:"Interrogative 'co' with 'ty'",note:"'Co ty robisz?' = What are you doing? 'Co' (what) is the interrogative pronoun. Adding 'ty' (you) here is optional — Polish verbs already encode person — but it adds emphasis or surprise, as if the speaker can't believe what the star is up to."},
+    ],
+    questions:[
+      {lineIndex:2,hint:"Świecę dzieciom, świecę _____,",answer:"ptakom",choices:["ptakom","ludziom","kwiatom","rybom"]},
+      {lineIndex:0,hint:"Gwiazdeczko mała, gwiazdeczko _____,",answer:"złota",choices:["złota","mała","biała","jasna"]},
+      {lineIndex:3,hint:"świecę wszędzie, gdzie jest _____.",answer:"ciemno",choices:["ciemno","zimno","smutno","pusto"]},
+      {lineIndex:1,hint:"co ty robisz tak _____?",answer:"wysoko",choices:["wysoko","daleko","pięknie","cicho"]},
+    ],
+  },
+  {
+    id:8, emoji:"🐝", difficulty:"Hard",
+    title:"Pszczółka Maja",
+    english_title:"The Little Bee Maya",
+    lines:[
+      {pl:"Leć, pszczółko, leć,",en:"Fly, little bee, fly,"},
+      {pl:"zbieraj miód z kwiatów,",en:"gather honey from flowers,"},
+      {pl:"wróć do ula,",en:"come back to the hive,"},
+      {pl:"zanim przyjdzie noc.",en:"before the night comes."},
+    ],
+    vocab:[
+      {word:"pszczółka",meaning:"little bee (diminutive of pszczoła)"},
+      {word:"leć",meaning:"fly! (imperative)"},
+      {word:"zbieraj",meaning:"gather, collect (imperative)"},
+      {word:"miód",meaning:"honey"},
+      {word:"kwiaty / kwiatów",meaning:"flowers (genitive: from flowers)"},
+      {word:"wróć",meaning:"come back (imperative)"},
+      {word:"ul / ula",meaning:"beehive (genitive: to the hive)"},
+      {word:"noc",meaning:"night"},
+    ],
+    grammar:[
+      {point:"Imperative mood",note:"This rhyme is full of imperatives: 'leć!' (fly!), 'zbieraj!' (gather!), 'wróć!' (come back!). Polish imperatives are formed differently for imperfective ('zbieraj' — keep gathering) vs. perfective ('wróć' — go back and be done). The mix here implies ongoing collection but a single return home."},
+      {point:"Genitive of source: 'z kwiatów'",note:"'Zbieraj miód z kwiatów' — 'z kwiatów' = from flowers. The preposition 'z' (from, out of) takes the genitive case. 'Kwiaty' → 'kwiatów' (genitive plural). This is the genitive of source or origin — where something comes from."},
+      {point:"Temporal clause: 'zanim'",note:"'Zanim przyjdzie noc' = before the night comes. 'Zanim' (before) introduces a temporal clause. Note 'przyjdzie' is the perfective future of 'przyjść' (to come/arrive) — night will arrive as a completed event. 'Zanim' clauses always use the future or present tense, never past."},
+    ],
+    questions:[
+      {lineIndex:1,hint:"zbieraj _____ z kwiatów,",answer:"miód",choices:["miód","nektar","wodę","pyłek"]},
+      {lineIndex:2,hint:"wróć do _____,",answer:"ula",choices:["ula","domu","lasu","ogrodu"]},
+      {lineIndex:3,hint:"zanim przyjdzie _____.",answer:"noc",choices:["noc","deszcz","zima","burza"]},
+      {lineIndex:0,hint:"Leć, _____, leć,",answer:"pszczółko",choices:["pszczółko","motylku","biedronko","mrówko"]},
+    ],
+  },
+];
+
+const sayings = [
+  {
+    id:1,
+    pl:"Bez pracy nie ma kołaczy.",
+    en:"Without work there are no rolls.",
+    meaning:"Nothing comes for free — you have to earn what you want.",
+    explanation:"The equivalent of 'no pain, no gain'. Kołacze (sweet rolls) represent rewards — they don't appear unless someone works for them.",
+    theme:"Work & Effort",
+    wrongChoices:[
+      "Haste makes waste — rushing a task ruins the result.",
+      "A bird in the hand is worth two in the bush.",
+      "Every cloud has a silver lining.",
+    ],
+  },
+  {
+    id:2,
+    pl:"Co nagle, to po diable.",
+    en:"What is done in haste is the devil's work.",
+    meaning:"Rushing leads to poor results. Take your time.",
+    explanation:"'Nagle' means suddenly or hastily. The devil is blamed for anything botched through impatience — a vivid way of saying slow down.",
+    theme:"Patience",
+    wrongChoices:[
+      "You reap what you sow — consequences follow actions directly.",
+      "Don't judge a book by its cover.",
+      "Too many cooks spoil the broth.",
+    ],
+  },
+  {
+    id:3,
+    pl:"Nie ma tego złego, co by na dobre nie wyszło.",
+    en:"There is no bad that does not turn out for good.",
+    meaning:"Every cloud has a silver lining.",
+    explanation:"An optimistic proverb urging patience after misfortune. The double negative ('nie ma… co by nie') is standard Polish grammar, not a mistake.",
+    theme:"Optimism",
+    wrongChoices:[
+      "Without effort there is no reward — hard work is always necessary.",
+      "Whoever digs a pit for another falls into it himself.",
+      "Appearances deceive — what glitters is not always gold.",
+    ],
+  },
+  {
+    id:4,
+    pl:"Mądry Polak po szkodzie.",
+    en:"A Pole is wise after the damage is done.",
+    meaning:"People often learn only after making mistakes — hindsight wisdom.",
+    explanation:"A self-deprecating Polish proverb. 'Szkoda' means damage or loss. It gently mocks the tendency to understand a problem only once it's too late to fix it.",
+    theme:"Wisdom",
+    wrongChoices:[
+      "Every cloud has a silver lining — bad things lead to good.",
+      "Haste is the devil's work — slow down and think first.",
+      "Hard work is the only path to reward.",
+    ],
+  },
+  {
+    id:5,
+    pl:"Kto pod kim dołki kopie, sam w nie wpada.",
+    en:"Whoever digs a pit for another falls into it himself.",
+    meaning:"Plotting against others tends to backfire on the plotter.",
+    explanation:"'Dołki kopie' means 'digs little pits'. The image is vivid: traps set for enemies catch the trapper. The Polish equivalent of 'what goes around comes around'.",
+    theme:"Karma",
+    wrongChoices:[
+      "You only grow wise after suffering a loss yourself.",
+      "A sparrow in the hand is worth more than a pigeon on the roof.",
+      "Too many decision-makers lead to chaos and inaction.",
+    ],
+  },
+  {
+    id:6,
+    pl:"Nie wszystko złoto, co się świeci.",
+    en:"Not all that glitters is gold.",
+    meaning:"Appearances can be deceptive — things are not always as good as they look.",
+    explanation:"'Świeci się' means shines or glitters. Shared across many European languages, this proverb warns against being dazzled by surface appearances.",
+    theme:"Appearances",
+    wrongChoices:[
+      "Rushing a job hands the result to the devil.",
+      "The wise person learns only after suffering a loss.",
+      "You praise the foreign while ignoring what you have at home.",
+    ],
+  },
+  {
+    id:7,
+    pl:"Jak sobie pościelesz, tak się wyśpisz.",
+    en:"As you make your bed, so you will sleep in it.",
+    meaning:"You live with the consequences of your own choices and actions.",
+    explanation:"'Pościelesz' = you make (the bed); 'wyśpisz się' = you will sleep. A domestic image that says: the quality of your preparation determines the quality of your rest — and your life.",
+    theme:"Consequences",
+    wrongChoices:[
+      "Without work there is no reward — effort must precede gain.",
+      "Bad luck always turns to good if you wait long enough.",
+      "Foreigners' ways always seem better than your own.",
+    ],
+  },
+  {
+    id:8,
+    pl:"Lepszy wróbel w garści niż gołąb na dachu.",
+    en:"Better a sparrow in the hand than a pigeon on the roof.",
+    meaning:"A certain small gain is worth more than a large but uncertain one.",
+    explanation:"'Wróbel' = sparrow; 'garść' = handful/fist; 'gołąb' = pigeon; 'dach' = roof. Poland's version of 'a bird in the hand is worth two in the bush' — with characteristically Polish birds.",
+    theme:"Practicality",
+    wrongChoices:[
+      "Whoever plots against others ends up trapped by their own scheme.",
+      "Not everything that shines is valuable — appearances mislead.",
+      "You only become wise after you have already made the mistake.",
+    ],
+  },
+  {
+    id:9,
+    pl:"Cudze chwalicie, swego nie znacie.",
+    en:"You praise what is foreign, you do not know your own.",
+    meaning:"People idealise foreign things while overlooking the value of what they have at home.",
+    explanation:"'Cudze' = foreign/other people's; 'swego' = your own. A reproach against those who assume anything from abroad must be better. Still very much in use today.",
+    theme:"Appreciation",
+    wrongChoices:[
+      "As you prepare your bed, so shall you sleep — consequences follow choices.",
+      "A sparrow held is worth more than a pigeon out of reach.",
+      "No bad outcome exists that cannot eventually turn into something good.",
+    ],
+  },
+  {
+    id:10,
+    pl:"Gdzie kucharek sześć, tam nie ma co jeść.",
+    en:"Where there are six cooks, there is nothing to eat.",
+    meaning:"Too many people in charge leads to chaos and nothing getting done.",
+    explanation:"'Kucharek' = (female) cooks; 'sześć' = six; 'jeść' = to eat. Poland's 'too many cooks spoil the broth' — but with the additional dark implication that you end up with no food at all.",
+    theme:"Leadership",
+    wrongChoices:[
+      "Hard work alone produces reward — laziness produces nothing.",
+      "Whoever rushes their work delivers it to the devil.",
+      "Plotting against others ultimately harms the plotter most.",
+    ],
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PERSISTENCE — localStorage helpers
+// ═══════════════════════════════════════════════════════════════════════════
+
+const LS = {
+  get(k, def) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch { return def; } },
+  set(k, v)   { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+
+// wrongLog: { "rhymeId-qIndex": count }
+// bookmarks: { rhymes: [id,...], sayings: [id,...] }
+// history: [ { date, rhymeId, score, total } ]
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "pl-PL"; u.rate = 0.85;
+  window.speechSynthesis.speak(u);
+}
+
+function useIsMobile() {
+  const [m, setM] = useState(window.innerWidth < 640);
+  useEffect(() => {
+    const h = () => setM(window.innerWidth < 640);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
+  return m;
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function buildGlobalPool(wrongLog) {
+  const pool = [];
+  rhymes.forEach(r => {
+    r.questions.forEach((q, qi) => {
+      const key = `${r.id}-${qi}`;
+      const wrongCount = wrongLog[key] || 0;
+      const copies = 1 + wrongCount; // wrong answers get extra copies = higher probability
+      for (let i = 0; i < copies; i++) {
+        pool.push({ ...q, rhymeId:r.id, rhymeTitle:r.title, rhymeEmoji:r.emoji, lines:r.lines, vocab:r.vocab, qKey:key });
+      }
+    });
+  });
+  return shuffle(pool).slice(0, 24); // cap at 24 for global quiz
+}
+
+const DIFF_COLORS = { Easy:"#4a8a4a", Medium:"#8a6a20", Hard:"#8a3a3a" };
+const DIFF_BG     = { Easy:"rgba(80,160,80,0.1)", Medium:"rgba(200,160,40,0.1)", Hard:"rgba(160,60,60,0.1)" };
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QUIZ ENGINE
+// ═══════════════════════════════════════════════════════════════════════════
+
+function QuizEngine({ questions, onComplete, rhyme, onWrong }) {
+  const [qi, setQi] = useState(0);
+  const [answer, setAnswer] = useState(null);
+  const [result, setResult] = useState(null);
+  const [score, setScore] = useState(0);
+
+  const q = questions[qi];
+  const total = questions.length;
+  const lines = q.lines || rhyme?.lines || [];
+  const vocab = q.vocab || rhyme?.vocab || [];
+
+  const handleChoice = (choice) => {
+    if (result) return;
+    const correct = choice === q.answer;
+    setAnswer(choice);
+    setResult(correct ? "correct" : "wrong");
+    if (correct) setScore(s => s+1);
+    else if (onWrong && q.qKey) onWrong(q.qKey);
+  };
+
+  const next = () => {
+    const newScore = score + (result === "correct" ? 1 : 0);
+    if (qi+1 >= total) { onComplete(newScore, total); return; }
+    setQi(i => i+1); setAnswer(null); setResult(null);
+  };
+
+  return (
+    <div style={s.card}>
+      {/* Progress */}
+      <div style={s.progressRow}>
+        <span style={s.progressLabel}>Question {qi+1} of {total}</span>
+        {q.rhymeTitle && <span style={s.progressSource}>{q.rhymeEmoji} {q.rhymeTitle}</span>}
+        <div style={s.progressTrack}>
+          {questions.map((_,i) => (
+            <div key={i} style={{...s.progressDot,...(i<qi?s.dotDone:{}),...(i===qi?s.dotCurrent:{})}}/>
+          ))}
+        </div>
+      </div>
+      {/* Rhyme context */}
+      <div style={s.quizBlock}>
+        {lines.map((line,i) => (
+          <p key={i} style={{...s.quizLine,...(i===q.lineIndex?s.quizLineHL:{})}}>
+            {i===q.lineIndex ? (
+              <>
+                {q.hint.split("_____")[0]}
+                <span style={{...s.quizBlank,...(result==="correct"?s.blankOk:{}),...(result==="wrong"?s.blankBad:{})}}>
+                  {answer||"_____"}
+                </span>
+                {q.hint.split("_____")[1]}
+              </>
+            ) : line.pl}
+          </p>
+        ))}
+      </div>
+      {/* Choices */}
+      {!result && (
+        <div style={s.choicesGrid}>
+          {q.choices.map(c => <button key={c} onClick={()=>handleChoice(c)} style={s.choiceBtn}>{c}</button>)}
+        </div>
+      )}
+      {/* Result */}
+      {result && (
+        <div style={{...s.resultBox,...(result==="correct"?s.resultOk:s.resultBad)}}>
+          <span style={s.resultIcon}>{result==="correct"?"✓":"✗"}</span>
+          <div style={{flex:1}}>
+            {result==="correct"
+              ? <><strong>Dobrze!</strong><br/></>
+              : <><strong>Nie całkiem.</strong> The answer was <em>{q.answer}</em>.<br/></>}
+            <span style={s.resultDetail}>{vocab.find(v=>v.word===q.answer)?.meaning}</span>
+          </div>
+          <button onClick={next} style={s.nextBtn}>{qi+1>=total?"See results":"Next →"}</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SAYINGS QUIZ
+// ═══════════════════════════════════════════════════════════════════════════
+
+function SayingsQuiz({ onExit }) {
+  const pool = useMemo(() => shuffle(sayings), []);
+  const [qi, setQi] = useState(0);
+  const [answer, setAnswer] = useState(null);
+  const [result, setResult] = useState(null);
+  const [score, setScore] = useState(0);
+  const [done, setDone] = useState(false);
+
+  const q = pool[qi];
+  const total = pool.length;
+
+  // Build 4 choices: correct meaning+explanation + 3 wrong ones shuffled
+  const choices = useMemo(() => {
+    const correct = q.meaning + " " + q.explanation;
+    const wrongs = q.wrongChoices.map((m,i) => {
+      // Find the actual wrong saying's explanation if available
+      return m;
+    });
+    return shuffle([correct, ...wrongs.slice(0,3)]);
+  }, [qi]);
+
+  const correctFull = q.meaning + " " + q.explanation;
+
+  const handleChoice = (choice) => {
+    if (result) return;
+    const ok = choice === correctFull;
+    setAnswer(choice); setResult(ok?"correct":"wrong");
+    if (ok) setScore(s=>s+1);
+  };
+
+  const next = () => {
+    if (qi+1>=total) { setDone(true); return; }
+    setQi(i=>i+1); setAnswer(null); setResult(null);
+  };
+
+  if (done) return (
+    <div style={s.globalIntroCard}>
+      <div style={{fontSize:40,marginBottom:8}}>{score===total?"🏆":score>=total*0.7?"⭐":"📚"}</div>
+      <h2 style={s.completionTitle}>{score}/{total} correct</h2>
+      <p style={s.completionText}>
+        {score===total?"Doskonale! You know all the sayings!"
+         :score>=total*0.7?"Bardzo dobrze! Keep studying the ones you missed."
+         :"Dobry początek! Read the sayings again and try once more."}
+      </p>
+      <div style={{...s.scoreBar,maxWidth:240,margin:"0 auto 20px"}}>
+        <div style={{...s.scoreBarFill,width:`${(score/total)*100}%`}}/>
+      </div>
+      <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
+        <button onClick={()=>{setQi(0);setAnswer(null);setResult(null);setScore(0);setDone(false);}} style={s.startBtn}>Try again</button>
+        <button onClick={onExit} style={s.secondaryBtn}>Back to Sayings</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={s.card}>
+      <div style={s.progressRow}>
+        <span style={s.progressLabel}>Saying {qi+1} of {total}</span>
+        <div style={s.progressTrack}>
+          {pool.map((_,i)=>(
+            <div key={i} style={{...s.progressDot,...(i<qi?s.dotDone:{}),...(i===qi?s.dotCurrent:{})}}/>
+          ))}
+        </div>
+      </div>
+      <div style={s.sayingQuizPrompt}>
+        <div style={{fontSize:11,letterSpacing:"0.1em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:8}}>What does this saying mean?</div>
+        <div style={s.sayingQuizPl}>{q.pl}</div>
+        <button onClick={()=>speak(q.pl)} style={{...s.vocabSpeak,fontSize:16,marginTop:6}}>🔊</button>
+      </div>
+      {!result && (
+        <div style={{display:"flex",flexDirection:"column",gap:9,marginTop:16}}>
+          {choices.map((c,i)=>(
+            <button key={i} onClick={()=>handleChoice(c)} style={s.sayingChoiceBtn}>{c}</button>
+          ))}
+        </div>
+      )}
+      {result && (
+        <div style={{...s.resultBox,...(result==="correct"?s.resultOk:s.resultBad),marginTop:16}}>
+          <span style={s.resultIcon}>{result==="correct"?"✓":"✗"}</span>
+          <div style={{flex:1}}>
+            {result==="correct"
+              ? <><strong>Świetnie!</strong><br/></>
+              : <><strong>Nie tym razem.</strong><br/><span style={s.resultDetail}>{correctFull}</span></>}
+          </div>
+          <button onClick={next} style={s.nextBtn}>{qi+1>=total?"See results":"Next →"}</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SAYINGS PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+
+function SayingsPanel({ isMobile }) {
+  const [expandedId, setExpandedId] = useState(null);
+  const [quizMode, setQuizMode] = useState(false);
+  const [bookmarks, setBookmarks] = useState(() => LS.get("bookmarks", {rhymes:[],sayings:[]}));
+  const [showBookmarked, setShowBookmarked] = useState(false);
+
+  const toggleBookmark = (id) => {
+    setBookmarks(prev => {
+      const ids = prev.sayings || [];
+      const next = ids.includes(id) ? ids.filter(x=>x!==id) : [...ids, id];
+      const updated = {...prev, sayings:next};
+      LS.set("bookmarks", updated);
+      return updated;
+    });
+  };
+
+  const bookmarkedIds = bookmarks.sayings || [];
+  const displayed = showBookmarked ? sayings.filter(s=>bookmarkedIds.includes(s.id)) : sayings;
+
+  if (quizMode) return (
+    <div style={isMobile?s.layoutMobile:s.layoutDesktop}>
+      <div style={s.main}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+          <button onClick={()=>setQuizMode(false)} style={s.secondaryBtn}>← Back</button>
+          <h3 style={{margin:0,color:"#f5e6a0",fontSize:16,fontStyle:"italic"}}>Sayings Quiz</h3>
+        </div>
+        <SayingsQuiz onExit={()=>setQuizMode(false)}/>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={isMobile?s.layoutMobile:s.layoutDesktop}>
+      <div style={s.main}>
+        <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap",alignItems:"center"}}>
+          <button onClick={()=>setQuizMode(true)} style={s.startBtn}>🎯 Take Sayings Quiz</button>
+          <button onClick={()=>setShowBookmarked(v=>!v)}
+            style={{...s.secondaryBtn,...(showBookmarked?{borderColor:"#f5c842",color:"#f5c842"}:{})}}>
+            {showBookmarked?"★ Bookmarked":"☆ Bookmarked"}
+          </button>
+        </div>
+        {displayed.length===0 && <p style={s.vocabIntro}>No bookmarked sayings yet — tap ☆ on any saying to save it.</p>}
+        <div style={s.sayingsList}>
+          {displayed.map(saying=>{
+            const open = expandedId===saying.id;
+            const starred = bookmarkedIds.includes(saying.id);
+            return (
+              <div key={saying.id} style={{...s.sayingCard,...(open?s.sayingCardOpen:{})}}
+                onClick={()=>setExpandedId(open?null:saying.id)}>
+                <div style={s.sayingTop}>
+                  <div style={{flex:1}}>
+                    <div style={s.sayingPl}>{saying.pl}</div>
+                    <div style={s.sayingEn}>{saying.en}</div>
+                  </div>
+                  <div style={s.sayingMeta}>
+                    <span style={s.sayingTheme}>{saying.theme}</span>
+                    <button onClick={e=>{e.stopPropagation();speak(saying.pl);}} style={s.sayingSpeak}>🔊</button>
+                    <button onClick={e=>{e.stopPropagation();toggleBookmark(saying.id);}}
+                      style={{...s.sayingSpeak,color:starred?"#f5c842":"#6a5a3a",fontSize:17}}>
+                      {starred?"★":"☆"}
+                    </button>
+                    <span style={s.sayingChevron}>{open?"▲":"▼"}</span>
+                  </div>
+                </div>
+                {open && (
+                  <div style={s.sayingMeaning}>
+                    <strong>{saying.meaning}</strong><br/>{saying.explanation}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GLOBAL QUIZ PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+
+function GlobalQuizPanel({ isMobile }) {
+  const [wrongLog, setWrongLog] = useState(()=>LS.get("wrongLog",{}));
+  const [pool, setPool] = useState(null);
+  const [done, setDone] = useState(false);
+  const [finalScore, setFinalScore] = useState(0);
+  const [finalTotal, setFinalTotal] = useState(0);
+
+  const totalWrong = Object.values(wrongLog).reduce((a,b)=>a+b,0);
+
+  const start = () => {
+    const wl = LS.get("wrongLog",{});
+    setWrongLog(wl);
+    setPool(buildGlobalPool(wl));
+    setDone(false);
+  };
+
+  const handleWrong = (qKey) => {
+    setWrongLog(prev => {
+      const updated = {...prev, [qKey]:(prev[qKey]||0)+1};
+      LS.set("wrongLog", updated);
+      return updated;
+    });
+  };
+
+  const handleComplete = (score, total) => {
+    setFinalScore(score); setFinalTotal(total); setDone(true);
+  };
+
+  const clearLog = () => {
+    LS.set("wrongLog",{});
+    setWrongLog({});
+  };
+
+  // Show which rhymes have wrong answers
+  const wrongByRhyme = useMemo(()=>{
+    const byRhyme = {};
+    Object.entries(wrongLog).forEach(([key,count])=>{
+      const rhymeId = parseInt(key.split("-")[0]);
+      byRhyme[rhymeId] = (byRhyme[rhymeId]||0)+count;
+    });
+    return byRhyme;
+  },[wrongLog]);
+
+  return (
+    <div style={isMobile?s.layoutMobile:s.layoutDesktop}>
+      <div style={s.main}>
+        {!pool && (
+          <div style={s.globalIntroCard}>
+            <div style={{fontSize:40,marginBottom:8}}>🌍</div>
+            <h2 style={s.globalIntroTitle}>Global Quiz</h2>
+            <p style={s.globalIntroText}>
+              All {rhymes.reduce((n,r)=>n+r.questions.length,0)} questions from {rhymes.length} rhymes, shuffled.
+              Questions you've answered wrongly before appear more often.
+            </p>
+            {totalWrong > 0 && (
+              <div style={s.wrongSummary}>
+                <div style={{fontSize:13,color:"#e0a0a0",marginBottom:8}}>
+                  ⚠ You have <strong>{totalWrong}</strong> logged wrong answer{totalWrong!==1?"s":""} — these will appear more often.
+                </div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center",marginBottom:8}}>
+                  {rhymes.filter(r=>wrongByRhyme[r.id]).map(r=>(
+                    <span key={r.id} style={s.wrongBadge}>{r.emoji} {r.title} ×{wrongByRhyme[r.id]}</span>
+                  ))}
+                </div>
+                <button onClick={clearLog} style={{...s.secondaryBtn,fontSize:11,padding:"4px 12px"}}>Clear wrong-answer log</button>
+              </div>
+            )}
+            <button onClick={start} style={s.startBtn}>Start Quiz</button>
+          </div>
+        )}
+        {pool && !done && (
+          <QuizEngine questions={pool} onComplete={handleComplete} onWrong={handleWrong}/>
+        )}
+        {done && (
+          <div style={s.globalIntroCard}>
+            <div style={{fontSize:40,marginBottom:8}}>{finalScore===finalTotal?"🏆":finalScore>=finalTotal*0.7?"⭐":"📚"}</div>
+            <h2 style={s.completionTitle}>{finalScore}/{finalTotal} correct</h2>
+            <p style={s.completionText}>
+              {finalScore===finalTotal?"Doskonale! Perfect score!"
+               :finalScore>=finalTotal*0.7?"Bardzo dobrze! Great work."
+               :"Dobry początek! Keep practising."}
+            </p>
+            <div style={{...s.scoreBar,maxWidth:240,margin:"0 auto 20px"}}>
+              <div style={{...s.scoreBarFill,width:`${(finalScore/finalTotal)*100}%`}}/>
+            </div>
+            <button onClick={start} style={s.startBtn}>Try again</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RHYMES PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+
+const rhymeTabs = ["Rhyme","Vocabulary","Grammar","Quiz"];
+
+function RhymesPanel({ isMobile }) {
+  const [selectedId, setSelectedId] = useState(1);
+  const [tab, setTab] = useState("Rhyme");
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [quizDone, setQuizDone] = useState(false);
+  const [quizScore, setQuizScore] = useState(0);
+  const [quizTotal, setQuizTotal] = useState(0);
+  const [quizKey, setQuizKey] = useState(0);
+  const [bookmarks, setBookmarks] = useState(()=>LS.get("bookmarks",{rhymes:[],sayings:[]}));
+  const [diffFilter, setDiffFilter] = useState("All");
+  const [showBookmarked, setShowBookmarked] = useState(false);
+  const [wrongLog, setWrongLog] = useState(()=>LS.get("wrongLog",{}));
+  const [history, setHistory] = useState(()=>LS.get("history",[]));
+
+  const rhyme = rhymes.find(r=>r.id===selectedId);
+  const bookmarkedIds = bookmarks.rhymes || [];
+
+  const displayed = useMemo(()=>{
+    let list = rhymes;
+    if (showBookmarked) list = list.filter(r=>bookmarkedIds.includes(r.id));
+    if (diffFilter!=="All") list = list.filter(r=>r.difficulty===diffFilter);
+    return list;
+  },[showBookmarked,diffFilter,bookmarkedIds]);
+
+  const toggleBookmark = (id) => {
+    setBookmarks(prev=>{
+      const ids = prev.rhymes||[];
+      const next = ids.includes(id)?ids.filter(x=>x!==id):[...ids,id];
+      const updated = {...prev,rhymes:next};
+      LS.set("bookmarks",updated);
+      return updated;
+    });
+  };
+
+  const selectRhyme = useCallback((id)=>{
+    setSelectedId(id); setTab("Rhyme");
+    setShowTranslation(false); setQuizDone(false); setQuizKey(k=>k+1);
+  },[]);
+
+  const handleQuizComplete = (score,total)=>{
+    setQuizScore(score); setQuizTotal(total); setQuizDone(true);
+    const entry = {date:new Date().toISOString(),rhymeId:selectedId,score,total};
+    setHistory(prev=>{
+      const updated = [entry,...prev].slice(0,100);
+      LS.set("history",updated);
+      return updated;
+    });
+  };
+
+  const handleWrong = (qKey) => {
+    setWrongLog(prev=>{
+      const updated = {...prev,[qKey]:(prev[qKey]||0)+1};
+      LS.set("wrongLog",updated);
+      return updated;
+    });
+  };
+
+  const retryQuiz = ()=>{ setQuizDone(false); setQuizKey(k=>k+1); };
+
+  // Per-rhyme history
+  const rhymeHistory = history.filter(h=>h.rhymeId===selectedId).slice(0,5);
+  const starred = bookmarkedIds.includes(selectedId);
+
+  // Count wrong answers for this rhyme
+  const rhymeWrong = Object.entries(wrongLog)
+    .filter(([k])=>k.startsWith(`${selectedId}-`))
+    .reduce((a,[,v])=>a+v,0);
+
+  return (
+    <>
+      {/* Filter bar */}
+      <div style={s.filterBar}>
+        <div style={s.filterGroup}>
+          {["All","Easy","Medium","Hard"].map(d=>(
+            <button key={d} onClick={()=>setDiffFilter(d)}
+              style={{...s.filterBtn,...(diffFilter===d?{
+                background:d==="All"?"rgba(245,200,66,0.12)":DIFF_BG[d],
+                borderColor:d==="All"?"#f5c842":DIFF_COLORS[d],
+                color:d==="All"?"#f5c842":DIFF_COLORS[d],
+              }:{})}}>
+              {d}
+            </button>
+          ))}
+        </div>
+        <button onClick={()=>setShowBookmarked(v=>!v)}
+          style={{...s.filterBtn,...(showBookmarked?{borderColor:"#f5c842",color:"#f5c842"}:{})}}>
+          {showBookmarked?"★ Saved":"☆ Saved"}
+        </button>
+      </div>
+
+      {/* Rhyme picker strip */}
+      <div className="noscroll" style={s.pickerStrip}>
+        {displayed.length===0
+          ? <span style={{color:"#6a5a3a",fontSize:13,padding:"0 4px",alignSelf:"center"}}>No rhymes match this filter.</span>
+          : displayed.map(r=>(
+          <button key={r.id} onClick={()=>selectRhyme(r.id)}
+            style={{...s.pickerBtn,...(selectedId===r.id?s.pickerBtnActive:{})}}>
+            <span style={s.pickerEmoji}>{r.emoji}</span>
+            <span style={s.pickerBtnTitle}>{r.title}</span>
+            <div style={{display:"flex",gap:4,alignItems:"center",justifyContent:"center",marginTop:2}}>
+              <span style={{...s.diffPill,color:DIFF_COLORS[r.difficulty],borderColor:DIFF_COLORS[r.difficulty]}}>
+                {r.difficulty}
+              </span>
+              {(bookmarks.rhymes||[]).includes(r.id) && <span style={{fontSize:10,color:"#f5c842"}}>★</span>}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <div style={isMobile?s.layoutMobile:s.layoutDesktop}>
+        {/* Desktop sidebar */}
+        {!isMobile && (
+          <aside style={s.sidebar}>
+            <p style={s.sidebarLabel}>Choose a rhyme</p>
+            {displayed.map(r=>(
+              <button key={r.id} onClick={()=>selectRhyme(r.id)}
+                style={{...s.sidebarBtn,...(selectedId===r.id?s.sidebarBtnActive:{})}}>
+                <span style={s.sidebarEmoji}>{r.emoji}</span>
+                <div style={{flex:1,minWidth:0}}>
+                  <span style={s.sidebarBtnTitle}>{r.title}</span>
+                  <div style={{display:"flex",gap:6,marginTop:3,alignItems:"center"}}>
+                    <span style={{...s.diffPill,fontSize:9,color:DIFF_COLORS[r.difficulty],borderColor:DIFF_COLORS[r.difficulty]}}>
+                      {r.difficulty}
+                    </span>
+                    {(bookmarks.rhymes||[]).includes(r.id) && <span style={{fontSize:11,color:"#f5c842"}}>★</span>}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </aside>
+        )}
+
+        <main style={s.main}>
+          {/* Rhyme header */}
+          <div style={s.rhymeHeader}>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+                <h2 style={s.rhymeTitle}>{rhyme.emoji} {rhyme.title}</h2>
+                <span style={{...s.diffPill,fontSize:11,color:DIFF_COLORS[rhyme.difficulty],borderColor:DIFF_COLORS[rhyme.difficulty]}}>
+                  {rhyme.difficulty}
+                </span>
+              </div>
+              <p style={s.rhymeSubtitle}>{rhyme.english_title}</p>
+            </div>
+            <div style={{display:"flex",gap:8,flexShrink:0,alignItems:"flex-start"}}>
+              <button onClick={()=>toggleBookmark(selectedId)}
+                style={{...s.speakBtn,color:starred?"#f5c842":"#6a5a3a",borderColor:starred?"#7a6020":"#3a2a14",fontSize:18}}>
+                {starred?"★":"☆"}
+              </button>
+              {!isMobile && (
+                <button onClick={()=>speak(rhyme.lines.map(l=>l.pl).join(" "))} style={s.speakBtn}>
+                  🔊 Listen
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Wrong-answer alert */}
+          {rhymeWrong > 0 && (
+            <div style={s.wrongAlert}>
+              ⚠ You've missed <strong>{rhymeWrong}</strong> question{rhymeWrong!==1?"s":""} from this rhyme in the global quiz. Extra practice recommended!
+            </div>
+          )}
+
+          {/* Tabs */}
+          <div style={s.tabs}>
+            {rhymeTabs.map(t=>(
+              <button key={t} onClick={()=>{setTab(t);retryQuiz();}}
+                style={{...s.tabBtn,...(tab===t?s.tabBtnActive:{})}}>
+                {t}
+              </button>
+            ))}
+          </div>
+
+          {/* RHYME TAB */}
+          {tab==="Rhyme" && (
+            <div style={s.card}>
+              <div style={{display:"flex",gap:8,marginBottom:18,flexWrap:"wrap"}}>
+                <button onClick={()=>setShowTranslation(v=>!v)} style={s.toggleBtn}>
+                  {showTranslation?"Hide":"Show"} translation
+                </button>
+                {isMobile && (
+                  <button onClick={()=>speak(rhyme.lines.map(l=>l.pl).join(" "))}
+                    style={{...s.toggleBtn,flex:"none"}}>🔊 Listen</button>
+                )}
+              </div>
+              <div style={s.linesContainer}>
+                {rhyme.lines.map((line,i)=>(
+                  <div key={i} style={s.lineRow}>
+                    <button onClick={()=>speak(line.pl)} style={s.miniSpeakBtn}>🔊</button>
+                    <div style={s.lineText}>
+                      <span style={s.linePl}>{line.pl}</span>
+                      {showTranslation && <span style={s.lineEn}>{line.en}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* VOCABULARY TAB */}
+          {tab==="Vocabulary" && (
+            <div style={s.card}>
+              <p style={s.vocabIntro}>Key words from <em>{rhyme.title}</em></p>
+              <div style={s.vocabGrid}>
+                {rhyme.vocab.map((v,i)=>(
+                  <div key={i} style={s.vocabCard}>
+                    <div style={s.vocabWord}>
+                      <span>{v.word}</span>
+                      <button onClick={()=>speak(v.word)} style={s.vocabSpeak}>🔊</button>
+                    </div>
+                    <div style={s.vocabMeaning}>{v.meaning}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* GRAMMAR TAB */}
+          {tab==="Grammar" && (
+            <div style={s.card}>
+              <p style={s.vocabIntro}>Grammar notes for <em>{rhyme.title}</em></p>
+              <div style={{display:"flex",flexDirection:"column",gap:14}}>
+                {rhyme.grammar.map((g,i)=>(
+                  <div key={i} style={s.grammarCard}>
+                    <div style={s.grammarPoint}>{g.point}</div>
+                    <div style={s.grammarNote}>{g.note}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* QUIZ TAB */}
+          {tab==="Quiz" && !quizDone && (
+            <QuizEngine key={quizKey} questions={rhyme.questions} rhyme={rhyme}
+              onComplete={handleQuizComplete} onWrong={handleWrong}/>
+          )}
+
+          {tab==="Quiz" && quizDone && (
+            <div style={s.card}>
+              <div style={{textAlign:"center",padding:"16px 0 8px"}}>
+                <div style={{fontSize:40,marginBottom:8}}>
+                  {quizScore===quizTotal?"🏆":quizScore>=quizTotal*0.6?"⭐":"📚"}
+                </div>
+                <h3 style={s.completionTitle}>{quizScore}/{quizTotal} correct</h3>
+                <p style={s.completionText}>
+                  {quizScore===quizTotal?"Doskonale! You aced this rhyme."
+                   :quizScore>=quizTotal*0.6?"Dobrze! Try again to get them all."
+                   :"Dobry początek! Read the rhyme again then retry."}
+                </p>
+                <div style={{...s.scoreBar,maxWidth:200,margin:"0 auto 8px"}}>
+                  <div style={{...s.scoreBarFill,width:`${(quizScore/quizTotal)*100}%`}}/>
+                </div>
+                {/* History */}
+                {rhymeHistory.length>0 && (
+                  <div style={s.historyBox}>
+                    <div style={{fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:"#6a5a3a",marginBottom:8}}>Past attempts</div>
+                    {rhymeHistory.map((h,i)=>(
+                      <div key={i} style={s.historyRow}>
+                        <span style={{color:"#7a6a4a",fontSize:11}}>{new Date(h.date).toLocaleDateString()}</span>
+                        <div style={{...s.scoreBar,flex:1,height:6}}>
+                          <div style={{...s.scoreBarFill,width:`${(h.score/h.total)*100}%`}}/>
+                        </div>
+                        <span style={{color:"#f5c842",fontSize:12,fontWeight:700}}>{h.score}/{h.total}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div style={{display:"flex",gap:10,justifyContent:"center",marginTop:16,flexWrap:"wrap"}}>
+                  <button onClick={retryQuiz} style={s.startBtn}>Try again</button>
+                  <button onClick={()=>setTab("Rhyme")} style={s.secondaryBtn}>Read rhyme</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// APP SHELL
+// ═══════════════════════════════════════════════════════════════════════════
+
+function App() {
+  const [mode, setMode] = useState("rhymes");
+  const isMobile = useIsMobile();
+  return (
+    <div style={s.app}>
+      <div style={s.grain}/>
+      <header style={s.header}>
+        <div style={s.headerInner}>
+          <span style={s.headerIcon}>🪺</span>
+          <div style={{flex:1,minWidth:0}}>
+            <h1 style={s.headerTitle}>Wierszyki</h1>
+            <p style={s.headerSub}>Polish for Learners</p>
+          </div>
+        </div>
+      </header>
+      <nav style={s.modeBar}>
+        {[["rhymes","📖","Rhymes"],["sayings","💬","Sayings"],["global","🌍","Quiz"]].map(([m,ico,lbl])=>(
+          <button key={m} onClick={()=>setMode(m)}
+            style={{...s.modeBarBtn,...(mode===m?s.modeBarBtnActive:{})}}>
+            <span style={{fontSize:16,lineHeight:1}}>{ico}</span>
+            <span>{lbl}</span>
+          </button>
+        ))}
+      </nav>
+      {mode==="rhymes"  && <RhymesPanel isMobile={isMobile}/>}
+      {mode==="sayings" && <SayingsPanel isMobile={isMobile}/>}
+      {mode==="global"  && <GlobalQuizPanel isMobile={isMobile}/>}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STYLES
+// ═══════════════════════════════════════════════════════════════════════════
+
+const s = {
+  app:{minHeight:"100vh",background:"#1a1208",backgroundImage:"radial-gradient(ellipse at 20% 10%,#2d1f08 0%,transparent 50%),radial-gradient(ellipse at 80% 90%,#0d1a0a 0%,transparent 50%)",fontFamily:"'Playfair Display','Palatino Linotype',Georgia,serif",color:"#e8dcc8",position:"relative",overflowX:"hidden"},
+  grain:{position:"fixed",inset:0,backgroundImage:"url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E\")",pointerEvents:"none",zIndex:0,opacity:0.6},
+  header:{borderBottom:"1px solid #3a2a14",padding:"10px 16px",background:"rgba(26,18,8,0.95)",backdropFilter:"blur(8px)",position:"sticky",top:0,zIndex:20},
+  headerInner:{display:"flex",alignItems:"center",gap:10,maxWidth:1100,margin:"0 auto"},
+  headerIcon:{fontSize:24,flexShrink:0},
+  headerTitle:{margin:0,fontSize:19,fontWeight:700,letterSpacing:"0.04em",color:"#f5c842",whiteSpace:"nowrap"},
+  headerSub:{margin:0,fontSize:10,color:"#7a6a4a",letterSpacing:"0.1em",textTransform:"uppercase",whiteSpace:"nowrap"},
+  // Mode bar (below header)
+  modeBar:{display:"flex",borderBottom:"1px solid #3a2a14",background:"rgba(26,18,8,0.95)",backdropFilter:"blur(8px)",position:"sticky",top:53,zIndex:19},
+  modeBarBtn:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"transparent",border:"none",borderBottom:"2px solid transparent",color:"#6a5a3a",fontSize:12,padding:"8px 4px",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:-1,transition:"all 0.15s"},
+  modeBarBtnActive:{color:"#f5c842",borderBottomColor:"#f5c842"},
+  // kept for legacy, unused
+  modeSwitcher:{display:"none"},
+  modeBtn:{display:"none"},
+  modeBtnActive:{},
+  // Filter bar
+  filterBar:{display:"flex",gap:8,padding:"10px 14px",borderBottom:"1px solid #3a2a14",background:"rgba(26,18,8,0.6)",flexWrap:"wrap",alignItems:"center",position:"sticky",top:106,zIndex:16},
+  filterGroup:{display:"flex",gap:5},
+  filterBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:6,color:"#6a5a3a",fontSize:11,padding:"4px 10px",cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"},
+  diffPill:{fontSize:10,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid",borderRadius:4,padding:"1px 5px",whiteSpace:"nowrap"},
+  pickerStrip:{display:"flex",overflowX:"auto",gap:8,padding:"10px 14px",borderBottom:"1px solid #3a2a14",background:"rgba(26,18,8,0.7)",WebkitOverflowScrolling:"touch",scrollbarWidth:"none",position:"sticky",top:149,zIndex:15},
+  pickerBtn:{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"transparent",border:"1px solid #3a2a14",borderRadius:10,padding:"8px 12px",cursor:"pointer",color:"#9a8a6a",minWidth:110,maxWidth:140,textAlign:"center",transition:"all 0.15s"},
+  pickerBtnActive:{background:"rgba(245,200,66,0.08)",borderColor:"#f5c842",color:"#f5e6a0"},
+  pickerEmoji:{fontSize:20},
+  pickerBtnTitle:{fontSize:11,fontWeight:600,fontStyle:"italic",lineHeight:1.2,wordBreak:"break-word"},
+  layoutDesktop:{display:"flex",maxWidth:1100,margin:"0 auto",padding:"28px 24px",gap:24,alignItems:"flex-start",position:"relative",zIndex:1},
+  layoutMobile:{display:"flex",flexDirection:"column",padding:"14px 12px 32px",position:"relative",zIndex:1},
+  sidebar:{width:220,flexShrink:0},
+  sidebarLabel:{fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",color:"#6a5a3a",marginBottom:10,marginTop:0},
+  sidebarBtn:{display:"flex",alignItems:"center",gap:10,width:"100%",background:"transparent",border:"1px solid #3a2a14",borderRadius:8,padding:"10px 12px",marginBottom:7,cursor:"pointer",textAlign:"left",color:"#b0a080",transition:"all 0.15s"},
+  sidebarBtnActive:{background:"rgba(245,200,66,0.08)",borderColor:"#f5c842",color:"#f5e6a0"},
+  sidebarEmoji:{fontSize:20,flexShrink:0},
+  sidebarBtnTitle:{display:"block",fontSize:13,fontWeight:600,fontStyle:"italic",marginBottom:2},
+  main:{flex:1,minWidth:0},
+  rhymeHeader:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10,gap:8},
+  rhymeTitle:{margin:0,fontSize:"clamp(17px,5vw,26px)",fontWeight:700,fontStyle:"italic",color:"#f5e6a0",lineHeight:1.2,wordBreak:"break-word"},
+  rhymeSubtitle:{margin:"4px 0 0",fontSize:12,color:"#7a6a4a",letterSpacing:"0.04em"},
+  speakBtn:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:8,color:"#f5c842",padding:"7px 13px",fontSize:13,cursor:"pointer",fontFamily:"inherit",flexShrink:0},
+  wrongAlert:{background:"rgba(160,60,60,0.08)",border:"1px solid #6a3a3a",borderRadius:8,padding:"9px 12px",fontSize:12,color:"#e0a0a0",marginBottom:12,lineHeight:1.5},
+  tabs:{display:"flex",marginBottom:14,borderBottom:"1px solid #3a2a14"},
+  tabBtn:{flex:1,background:"transparent",border:"none",borderBottom:"2px solid transparent",color:"#6a5a3a",fontSize:"clamp(10px,2.5vw,13px)",letterSpacing:"0.04em",padding:"10px 2px",cursor:"pointer",fontFamily:"inherit",textTransform:"uppercase",marginBottom:-1,transition:"all 0.15s"},
+  tabBtnActive:{color:"#f5c842",borderBottomColor:"#f5c842"},
+  card:{background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:12,padding:"18px 14px"},
+  toggleBtn:{background:"transparent",border:"1px solid #4a3520",borderRadius:6,color:"#9a8060",fontSize:12,padding:"7px 14px",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em",flex:1,textAlign:"center"},
+  linesContainer:{display:"flex",flexDirection:"column",gap:14},
+  lineRow:{display:"flex",alignItems:"flex-start",gap:10},
+  miniSpeakBtn:{background:"rgba(245,200,66,0.08)",border:"1px solid #4a3520",borderRadius:6,fontSize:15,cursor:"pointer",padding:"5px 8px",lineHeight:1,flexShrink:0,marginTop:3},
+  lineText:{display:"flex",flexDirection:"column",gap:3,flex:1},
+  linePl:{fontSize:"clamp(15px,4.5vw,21px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.35},
+  lineEn:{fontSize:12,color:"#7a6a4a",letterSpacing:"0.02em"},
+  vocabIntro:{fontSize:13,color:"#7a6a4a",marginTop:0,marginBottom:14,fontStyle:"italic"},
+  vocabGrid:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:9},
+  vocabCard:{background:"rgba(245,200,66,0.05)",border:"1px solid #3a2a14",borderRadius:8,padding:"10px 12px"},
+  vocabWord:{fontSize:16,fontWeight:700,fontStyle:"italic",color:"#f5c842",marginBottom:5,display:"flex",alignItems:"center",gap:7},
+  vocabSpeak:{background:"transparent",border:"none",fontSize:12,cursor:"pointer",opacity:0.55,padding:0,lineHeight:1},
+  vocabMeaning:{fontSize:12,color:"#9a8060",lineHeight:1.4},
+  // Grammar
+  grammarCard:{background:"rgba(245,200,66,0.04)",border:"1px solid #3a2a14",borderRadius:8,padding:"14px"},
+  grammarPoint:{fontSize:14,fontWeight:700,color:"#f5c842",marginBottom:7,fontStyle:"italic"},
+  grammarNote:{fontSize:13,color:"#c0a878",lineHeight:1.65},
+  // Progress
+  progressRow:{display:"flex",alignItems:"center",gap:10,marginBottom:16,flexWrap:"wrap"},
+  progressLabel:{fontSize:11,color:"#7a6a4a",letterSpacing:"0.06em",textTransform:"uppercase",flexShrink:0},
+  progressSource:{fontSize:11,color:"#9a8060",fontStyle:"italic",flex:1,minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"},
+  progressTrack:{display:"flex",gap:5,flexShrink:0,flexWrap:"wrap"},
+  progressDot:{width:8,height:8,borderRadius:"50%",background:"#3a2a14",transition:"all 0.2s"},
+  dotDone:{background:"#6fcf6f"},
+  dotCurrent:{background:"#f5c842",transform:"scale(1.3)"},
+  // Quiz
+  quizBlock:{background:"rgba(0,0,0,0.22)",borderRadius:8,padding:"12px 14px",marginBottom:18},
+  quizLine:{fontSize:"clamp(13px,4vw,17px)",fontStyle:"italic",color:"#6a5a3a",margin:"5px 0",lineHeight:1.4},
+  quizLineHL:{color:"#f0e0b0",fontSize:"clamp(14px,4.5vw,19px)"},
+  quizBlank:{display:"inline-block",minWidth:65,borderBottom:"2px solid #f5c842",color:"#f5c842",textAlign:"center",padding:"0 5px",fontStyle:"normal",letterSpacing:"0.05em",transition:"all 0.2s"},
+  blankOk:{color:"#6fcf6f",borderBottomColor:"#6fcf6f"},
+  blankBad:{color:"#cf6f6f",borderBottomColor:"#cf6f6f"},
+  choicesGrid:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10},
+  choiceBtn:{background:"rgba(245,200,66,0.06)",border:"1px solid #5a4020",borderRadius:10,color:"#f0e0b0",fontSize:"clamp(13px,4vw,17px)",fontStyle:"italic",fontFamily:"inherit",padding:"13px 8px",cursor:"pointer",transition:"all 0.15s",textAlign:"center",minHeight:50},
+  resultBox:{borderRadius:10,padding:"14px",display:"flex",alignItems:"flex-start",gap:10,fontSize:14,border:"1px solid",lineHeight:1.5,flexWrap:"wrap"},
+  resultOk:{background:"rgba(80,160,80,0.1)",borderColor:"#4a8a4a",color:"#a0e0a0"},
+  resultBad:{background:"rgba(160,60,60,0.1)",borderColor:"#8a3a3a",color:"#e0a0a0"},
+  resultIcon:{fontSize:20,flexShrink:0,marginTop:1},
+  resultDetail:{fontSize:12,opacity:0.8},
+  nextBtn:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:6,color:"#f5c842",fontSize:13,padding:"7px 14px",cursor:"pointer",fontFamily:"inherit",flexShrink:0,alignSelf:"center"},
+  // Completion & history
+  completionTitle:{margin:"0 0 8px",fontSize:22,color:"#f5c842",fontWeight:700},
+  completionText:{fontSize:13,color:"#9a8060",lineHeight:1.6,margin:"0 0 12px"},
+  scoreBar:{height:8,background:"#2a1a08",borderRadius:4,overflow:"hidden"},
+  scoreBarFill:{height:"100%",background:"linear-gradient(90deg,#7a6020,#f5c842)",borderRadius:4,transition:"width 0.6s ease"},
+  historyBox:{background:"rgba(0,0,0,0.2)",borderRadius:8,padding:"12px",margin:"12px 0",textAlign:"left"},
+  historyRow:{display:"flex",alignItems:"center",gap:8,marginBottom:6},
+  startBtn:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:8,color:"#f5c842",fontSize:13,padding:"9px 22px",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em"},
+  secondaryBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:8,color:"#9a8060",fontSize:13,padding:"9px 22px",cursor:"pointer",fontFamily:"inherit"},
+  globalIntroCard:{background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:12,padding:"36px 24px",textAlign:"center",maxWidth:480,margin:"0 auto"},
+  globalIntroTitle:{margin:"0 0 12px",fontSize:24,color:"#f5e6a0",fontWeight:700,fontStyle:"italic"},
+  globalIntroText:{fontSize:14,color:"#9a8060",lineHeight:1.7,margin:"0 0 16px"},
+  wrongSummary:{background:"rgba(160,60,60,0.07)",border:"1px solid #6a3a3a",borderRadius:8,padding:"12px",marginBottom:16},
+  wrongBadge:{fontSize:11,color:"#e0a0a0",background:"rgba(160,60,60,0.12)",border:"1px solid #6a3a3a",borderRadius:4,padding:"2px 7px"},
+  // Sayings
+  sayingsIntro:{fontSize:13,color:"#7a6a4a",fontStyle:"italic",marginTop:0,marginBottom:16},
+  sayingsList:{display:"flex",flexDirection:"column",gap:10},
+  sayingCard:{background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:12,padding:"16px",cursor:"pointer",transition:"border-color 0.15s"},
+  sayingCardOpen:{borderColor:"#7a6020",background:"rgba(245,200,66,0.04)"},
+  sayingTop:{display:"flex",gap:12,alignItems:"flex-start"},
+  sayingPl:{fontSize:"clamp(14px,4vw,18px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.3,marginBottom:5},
+  sayingEn:{fontSize:12,color:"#7a6a4a",lineHeight:1.4},
+  sayingMeta:{display:"flex",alignItems:"center",gap:8,flexShrink:0},
+  sayingTheme:{fontSize:10,letterSpacing:"0.08em",textTransform:"uppercase",color:"#6a5a3a",background:"rgba(245,200,66,0.08)",border:"1px solid #3a2a14",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap"},
+  sayingSpeak:{background:"transparent",border:"none",fontSize:15,cursor:"pointer",opacity:0.6,padding:0,lineHeight:1,color:"inherit"},
+  sayingChevron:{fontSize:10,color:"#7a6a4a",userSelect:"none"},
+  sayingMeaning:{marginTop:12,paddingTop:12,borderTop:"1px solid #3a2a14",fontSize:13,color:"#c0a878",lineHeight:1.65},
+  // Sayings quiz
+  sayingQuizPrompt:{background:"rgba(0,0,0,0.22)",borderRadius:8,padding:"16px",textAlign:"center"},
+  sayingQuizPl:{fontSize:"clamp(16px,4.5vw,22px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.4},
+  sayingChoiceBtn:{background:"rgba(245,200,66,0.04)",border:"1px solid #3a2a14",borderRadius:10,color:"#c0a878",fontSize:"clamp(12px,3.5vw,14px)",fontFamily:"inherit",padding:"12px 14px",cursor:"pointer",textAlign:"left",lineHeight:1.5,transition:"all 0.15s"},
+};
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App/>);
+</script>
+</body>
+</html>
