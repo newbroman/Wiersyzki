@@ -106,6 +106,8 @@ When you change content:
 
 ## Troubleshooting
 
+**"Microphone doesn't work in the APK / Practice tab is blank"** — The Practice tab uses your phone's built-in speech recognition, which requires (a) microphone permission and (b) an active internet connection on most devices (Polish recognition runs on cloud servers — Google's on Android, Apple's on iOS). On first use, Android will pop up a microphone permission prompt: tap "Allow". If you accidentally denied it, go to Settings → Apps → Wierszyki → Permissions → Microphone → Allow. The feature gracefully tells you when speech recognition isn't supported (e.g. on Firefox).
+
 **"Web Speech API doesn't work in the APK"** — The TTS depends on the device having a Polish voice installed. On Android: Settings → System → Languages & input → Text-to-speech output → install Polish.
 
 **"App shows 'Failed to fetch' on first load"** — The PWA needs to be loaded once while online to cache its assets. After that it works offline.

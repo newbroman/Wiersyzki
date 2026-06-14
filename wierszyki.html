@@ -12,6 +12,10 @@
     *,*::before,*::after{box-sizing:border-box}
     html,body{margin:0;padding:0;background:#1a1208}
     .noscroll::-webkit-scrollbar{display:none}
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(207, 80, 80, 0.5); }
+      50% { box-shadow: 0 0 0 8px rgba(207, 80, 80, 0); }
+    }
   </style>
 </head>
 <body>
@@ -2882,6 +2886,275 @@ function WordTooltip({ data, anchorRect, onDismiss }) {
   );
 }
 
+// ─── SPEECH RECOGNITION ─────────────────────────────────────────────────────
+
+// Browser feature detection
+const SpeechRecognitionImpl =
+  typeof window !== "undefined" &&
+  (window.SpeechRecognition || window.webkitSpeechRecognition);
+
+const RECOGNITION_AVAILABLE = !!SpeechRecognitionImpl;
+
+// Normalise text for comparison: lowercase, strip punctuation, fold Polish diacritics
+function normaliseForMatch(text) {
+  return text
+    .toLowerCase()
+    .replace(/[„""'„".,!?:;()\-—–]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Polish diacritic folding (for fuzzy matching)
+function foldDiacritics(s) {
+  return s
+    .replace(/ą/g, "a").replace(/ć/g, "c").replace(/ę/g, "e")
+    .replace(/ł/g, "l").replace(/ń/g, "n").replace(/ó/g, "o")
+    .replace(/ś/g, "s").replace(/ź/g, "z").replace(/ż/g, "z");
+}
+
+// Levenshtein distance for fuzzy word matching
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  const m = a.length, n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp = new Array(n + 1);
+  for (let j = 0; j <= n; j++) dp[j] = j;
+  for (let i = 1; i <= m; i++) {
+    let prev = dp[0];
+    dp[0] = i;
+    for (let j = 1; j <= n; j++) {
+      const temp = dp[j];
+      dp[j] = a[i - 1] === b[j - 1]
+        ? prev
+        : 1 + Math.min(prev, dp[j], dp[j - 1]);
+      prev = temp;
+    }
+  }
+  return dp[n];
+}
+
+// Classify a single word match: exact / close / wrong / missing
+// Returns {status: "exact"|"close"|"wrong"|"missing", heardWord?: string}
+function classifyWord(expected, heardWord) {
+  if (!heardWord) return { status: "missing" };
+  const e = normaliseForMatch(expected);
+  const h = normaliseForMatch(heardWord);
+  if (!e || !h) return { status: "missing", heardWord };
+  if (e === h) return { status: "exact", heardWord };
+  // Try diacritic-folded comparison
+  if (foldDiacritics(e) === foldDiacritics(h)) return { status: "exact", heardWord };
+  // Levenshtein distance — allow 1 edit for words >=4 chars, 2 edits for >=7
+  const dist = levenshtein(foldDiacritics(e), foldDiacritics(h));
+  const maxLen = Math.max(e.length, h.length);
+  if (maxLen >= 7 && dist <= 2) return { status: "close", heardWord };
+  if (maxLen >= 4 && dist <= 1) return { status: "close", heardWord };
+  return { status: "wrong", heardWord };
+}
+
+// Compare expected text vs heard text. Returns a per-word breakdown.
+// Uses a greedy left-to-right alignment that handles inserted/missed words.
+function compareText(expected, heard) {
+  const expectedWords = expected.match(/[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+/g) || [];
+  const heardWords = (heard || "").match(/[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+/g) || [];
+
+  // Build a fuzzy alignment. For each expected word, try to find a matching
+  // heard word within a small window.
+  const results = [];
+  let heardIdx = 0;
+  for (let i = 0; i < expectedWords.length; i++) {
+    const exp = expectedWords[i];
+    let bestMatch = null;
+    let bestStatus = "missing";
+    let bestHeardIdx = -1;
+    // Look at next few heard words (window of 3) for a match
+    for (let j = heardIdx; j < Math.min(heardIdx + 3, heardWords.length); j++) {
+      const cls = classifyWord(exp, heardWords[j]);
+      if (cls.status === "exact") {
+        bestMatch = cls; bestStatus = "exact"; bestHeardIdx = j;
+        break; // can't do better
+      }
+      if (cls.status === "close" && bestStatus !== "close") {
+        bestMatch = cls; bestStatus = "close"; bestHeardIdx = j;
+      }
+    }
+    if (bestMatch) {
+      results.push({ expected: exp, ...bestMatch });
+      heardIdx = bestHeardIdx + 1;
+    } else {
+      results.push({ expected: exp, status: "missing" });
+    }
+  }
+
+  const exactCount = results.filter(r => r.status === "exact").length;
+  const closeCount = results.filter(r => r.status === "close").length;
+  const total = results.length || 1;
+  // Score: exact = 1.0, close = 0.5, others = 0
+  const score = (exactCount + closeCount * 0.5) / total;
+  return {
+    words: results,
+    score: Math.round(score * 100),
+    exactCount,
+    closeCount,
+    total,
+  };
+}
+
+// Start a recognition session. Returns a controller {stop}.
+// onResult is called with the final transcript (string).
+// onError is called with a short error message.
+function startRecognition({ onResult, onError, onStart }) {
+  if (!RECOGNITION_AVAILABLE) {
+    onError && onError("Speech recognition is not supported in this browser. Try Chrome, Edge or Safari.");
+    return { stop: () => {} };
+  }
+  let recog;
+  try {
+    recog = new SpeechRecognitionImpl();
+  } catch (e) {
+    onError && onError("Could not initialise speech recognition.");
+    return { stop: () => {} };
+  }
+  recog.lang = "pl-PL";
+  recog.interimResults = false;
+  recog.continuous = false;
+  recog.maxAlternatives = 1;
+
+  let finalTranscript = "";
+  let finished = false;
+
+  recog.onstart = () => { onStart && onStart(); };
+  recog.onresult = (event) => {
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const r = event.results[i];
+      if (r.isFinal) finalTranscript += r[0].transcript;
+    }
+  };
+  recog.onerror = (event) => {
+    if (finished) return;
+    finished = true;
+    let msg = "Recognition error";
+    if (event.error === "no-speech") msg = "I didn't hear anything — try again.";
+    else if (event.error === "audio-capture") msg = "No microphone detected.";
+    else if (event.error === "not-allowed") msg = "Microphone permission denied. Please allow access in your browser settings.";
+    else if (event.error === "network") msg = "Network error — speech recognition needs an internet connection.";
+    else if (event.error === "language-not-supported") msg = "Polish recognition isn't available on this device.";
+    onError && onError(msg);
+  };
+  recog.onend = () => {
+    if (finished) return;
+    finished = true;
+    if (finalTranscript.trim()) {
+      onResult && onResult(finalTranscript.trim());
+    } else {
+      onError && onError("No speech detected. Try again.");
+    }
+  };
+
+  try {
+    recog.start();
+  } catch (e) {
+    onError && onError("Could not start the microphone.");
+  }
+
+  return {
+    stop: () => {
+      try { recog.stop(); } catch (e) {}
+    }
+  };
+}
+
+// Mic button — initiates a recognition session, returns the comparison result
+function MicButton({ expected, onResult, size = "small" }) {
+  const [listening, setListening] = useState(false);
+  const [error, setError] = useState(null);
+  const ctrlRef = useRef(null);
+
+  const start = () => {
+    setError(null);
+    if (!RECOGNITION_AVAILABLE) {
+      setError("Not supported in this browser");
+      return;
+    }
+    // Stop the synthesizer first — can't listen while speaking
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    setListening(true);
+    ctrlRef.current = startRecognition({
+      onResult: (heard) => {
+        setListening(false);
+        const result = compareText(expected, heard);
+        onResult && onResult({ heard, ...result });
+      },
+      onError: (msg) => {
+        setListening(false);
+        setError(msg);
+        setTimeout(() => setError(null), 4000);
+      },
+    });
+  };
+
+  const stop = () => {
+    if (ctrlRef.current) ctrlRef.current.stop();
+    setListening(false);
+  };
+
+  const baseStyle = size === "large" ? s.micBtnLarge : s.micBtn;
+  return (
+    <span style={{ position: "relative", display: "inline-flex" }}>
+      <button
+        onClick={listening ? stop : start}
+        style={{
+          ...baseStyle,
+          ...(listening ? s.micBtnActive : {}),
+          ...(error ? s.micBtnError : {})
+        }}
+        title={listening ? "Tap to stop" : "Tap and read this line aloud"}
+        aria-label={listening ? "Stop recording" : "Start recording"}
+      >
+        {listening ? "⏺" : "🎤"}
+      </button>
+      {error && <span style={s.micError}>{error}</span>}
+    </span>
+  );
+}
+
+// Inline display of recognition result — coloured word-by-word feedback
+function RecognitionResult({ result, onReset }) {
+  if (!result) return null;
+  const scoreColor = result.score >= 80 ? "#6fcf6f" : result.score >= 50 ? "#f5c842" : "#cf6f6f";
+  return (
+    <div style={s.recogResult}>
+      <div style={s.recogScoreRow}>
+        <span style={{ ...s.recogScore, color: scoreColor }}>{result.score}%</span>
+        <span style={s.recogScoreLabel}>
+          {result.exactCount} exact · {result.closeCount} close · {result.total - result.exactCount - result.closeCount} missed
+        </span>
+        <button onClick={onReset} style={s.recogResetBtn}>×</button>
+      </div>
+      <div style={s.recogWords}>
+        {result.words.map((w, i) => (
+          <span key={i} style={{
+            ...s.recogWord,
+            ...(w.status === "exact" ? s.recogWordExact :
+                w.status === "close" ? s.recogWordClose :
+                s.recogWordMissing)
+          }}>
+            {w.expected}
+            {w.status === "close" && w.heardWord && (
+              <sub style={s.recogHeard}>({w.heardWord})</sub>
+            )}
+          </span>
+        ))}
+      </div>
+      {result.heard && (
+        <div style={s.recogHeardLine}>
+          <strong>You said:</strong> <em>{result.heard}</em>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function speak(text) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
@@ -3425,7 +3698,165 @@ function GlobalQuizPanel({ isMobile }) {
 // RHYMES PANEL
 // ═══════════════════════════════════════════════════════════════════════════
 
-const rhymeTabs = ["Rhyme","Vocabulary","Grammar","Quiz"];
+// ─── LINE WITH INLINE MIC ───────────────────────────────────────────────────
+
+function LineWithMic({ line, vocab, showTranslation, onWordTap }) {
+  const [result, setResult] = useState(null);
+  return (
+    <div>
+      <div style={s.lineRow}>
+        <button onClick={() => speak(line.pl)} style={s.miniSpeakBtn} title="Listen">🔊</button>
+        {RECOGNITION_AVAILABLE && (
+          <MicButton expected={line.pl} onResult={setResult} size="small"/>
+        )}
+        <div style={s.lineText}>
+          <span style={s.linePl}>
+            <ClickablePolish text={line.pl} vocab={vocab} onWordTap={onWordTap}/>
+          </span>
+          {showTranslation && <span style={s.lineEn}>{line.en}</span>}
+        </div>
+      </div>
+      {result && (
+        <RecognitionResult result={result} onReset={() => setResult(null)}/>
+      )}
+    </div>
+  );
+}
+
+// ─── PRACTICE PANEL — full-rhyme speech repetition ──────────────────────────
+
+function PracticePanel({ rhyme }) {
+  const [mode, setMode] = useState("guided"); // "guided" | "freeform"
+  const [lineIdx, setLineIdx] = useState(0);
+  const [lineResults, setLineResults] = useState({});  // {idx: result}
+  const [freeformResult, setFreeformResult] = useState(null);
+
+  if (!RECOGNITION_AVAILABLE) {
+    return (
+      <div style={s.card}>
+        <div style={s.practiceUnsupported}>
+          <strong>Speech recognition isn't available in this browser.</strong>
+          <br/>This feature needs Chrome, Edge, or Safari (14.5+). It also requires an internet connection on most devices, because Polish speech recognition runs on a cloud service.
+        </div>
+      </div>
+    );
+  }
+
+  const handleLineResult = (idx, result) => {
+    setLineResults(prev => ({ ...prev, [idx]: result }));
+  };
+
+  const goPrev = () => { setLineIdx(i => Math.max(0, i - 1)); };
+  const goNext = () => { setLineIdx(i => Math.min(rhyme.lines.length - 1, i + 1)); };
+
+  const currentLine = rhyme.lines[lineIdx];
+
+  // Aggregate score across all attempted lines
+  const attemptedCount = Object.keys(lineResults).length;
+  const avgScore = attemptedCount > 0
+    ? Math.round(Object.values(lineResults).reduce((s, r) => s + r.score, 0) / attemptedCount)
+    : null;
+
+  // Full-text for free-form mode
+  const fullPolish = rhyme.lines.map(l => l.pl).join(" ");
+
+  return (
+    <div style={s.card}>
+      <p style={s.practiceIntro}>
+        Practise your pronunciation. Read the line aloud and the app will compare what it heard to the original.
+      </p>
+
+      {/* Mode switcher */}
+      <div style={{display:"flex",gap:6,marginBottom:18,borderBottom:"1px solid #3a2a14"}}>
+        <button onClick={() => setMode("guided")}
+          style={{...s.tabBtn,...(mode==="guided"?s.tabBtnActive:{})}}>Line by line</button>
+        <button onClick={() => setMode("freeform")}
+          style={{...s.tabBtn,...(mode==="freeform"?s.tabBtnActive:{})}}>Whole rhyme</button>
+      </div>
+
+      {mode === "guided" && (
+        <>
+          <div style={s.practiceCurrentLine}>
+            <div style={s.practicePolish}>{currentLine.pl}</div>
+            <div style={s.practiceEnglish}>{currentLine.en}</div>
+            <div style={s.practiceControls}>
+              <button onClick={() => speak(currentLine.pl)} style={s.speakBtn}>🔊 Listen</button>
+              <MicButton
+                expected={currentLine.pl}
+                onResult={(r) => handleLineResult(lineIdx, r)}
+                size="large"
+              />
+            </div>
+          </div>
+
+          {lineResults[lineIdx] && (
+            <RecognitionResult
+              result={lineResults[lineIdx]}
+              onReset={() => setLineResults(prev => { const n = {...prev}; delete n[lineIdx]; return n; })}
+            />
+          )}
+
+          <div style={s.practiceNav}>
+            <button onClick={goPrev}
+              disabled={lineIdx === 0}
+              style={{...s.practiceNavBtn,...(lineIdx===0?s.practiceNavBtnDisabled:{})}}>← Prev</button>
+            <span style={s.practiceProgress}>Line {lineIdx+1} of {rhyme.lines.length}</span>
+            <button onClick={goNext}
+              disabled={lineIdx === rhyme.lines.length - 1}
+              style={{...s.practiceNavBtn,...(lineIdx===rhyme.lines.length-1?s.practiceNavBtnDisabled:{})}}>Next →</button>
+          </div>
+
+          {/* Aggregate scores across all attempted lines */}
+          {attemptedCount > 0 && (
+            <div style={s.practiceLineScores}>
+              <div style={{fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:8}}>
+                Your scores ({attemptedCount} of {rhyme.lines.length} lines, avg {avgScore}%)
+              </div>
+              {rhyme.lines.map((line, i) => {
+                const r = lineResults[i];
+                if (!r) return null;
+                const color = r.score >= 80 ? "#6fcf6f" : r.score >= 50 ? "#f5c842" : "#cf6f6f";
+                return (
+                  <div key={i} style={s.practiceLineScoreRow}>
+                    <span style={s.practiceLineScoreLabel}>{i+1}. {line.pl}</span>
+                    <div style={s.practiceLineScoreBar}>
+                      <div style={{...s.practiceLineScoreBarFill, width: `${r.score}%`, background: color}}/>
+                    </div>
+                    <span style={{...s.practiceLineScoreVal, color}}>{r.score}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      {mode === "freeform" && (
+        <>
+          <div style={s.practiceCurrentLine}>
+            <div style={{...s.practicePolish, textAlign: "left", fontSize: "clamp(15px,4vw,18px)", lineHeight: 1.5}}>
+              {rhyme.lines.map((l, i) => <div key={i}>{l.pl}</div>)}
+            </div>
+            <div style={s.practiceControls}>
+              <button onClick={() => speak(fullPolish)} style={s.speakBtn}>🔊 Listen to all</button>
+              <MicButton
+                expected={fullPolish}
+                onResult={setFreeformResult}
+                size="large"
+              />
+            </div>
+          </div>
+
+          {freeformResult && (
+            <RecognitionResult result={freeformResult} onReset={() => setFreeformResult(null)}/>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+const rhymeTabs = ["Rhyme","Vocab","Grammar","Practice","Quiz"];
 
 function RhymesPanel({ isMobile }) {
   const [selectedId, setSelectedId] = useState(1);
@@ -3633,22 +4064,15 @@ function RhymesPanel({ isMobile }) {
               </div>
               <div style={s.linesContainer}>
                 {rhyme.lines.map((line,i)=>(
-                  <div key={i} style={s.lineRow}>
-                    <button onClick={()=>speak(line.pl)} style={s.miniSpeakBtn}>🔊</button>
-                    <div style={s.lineText}>
-                      <span style={s.linePl}>
-                        <ClickablePolish text={line.pl} vocab={rhyme.vocab} onWordTap={handleWordTap}/>
-                      </span>
-                      {showTranslation && <span style={s.lineEn}>{line.en}</span>}
-                    </div>
-                  </div>
+                  <LineWithMic key={i} line={line} vocab={rhyme.vocab}
+                    showTranslation={showTranslation} onWordTap={handleWordTap}/>
                 ))}
               </div>
             </div>
           )}
 
           {/* VOCABULARY TAB */}
-          {tab==="Vocabulary" && (
+          {tab==="Vocab" && (
             <div style={s.card}>
               <p style={s.vocabIntro}>Key words from <em>{rhyme.title}</em></p>
               <div style={s.vocabGrid}>
@@ -3678,6 +4102,11 @@ function RhymesPanel({ isMobile }) {
                 ))}
               </div>
             </div>
+          )}
+
+          {/* PRACTICE TAB */}
+          {tab==="Practice" && (
+            <PracticePanel rhyme={rhyme}/>
           )}
 
           {/* QUIZ TAB */}
@@ -3827,6 +4256,42 @@ const s = {
   lineText:{display:"flex",flexDirection:"column",gap:3,flex:1},
   linePl:{fontSize:"clamp(15px,4.5vw,21px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.35},
   clickableWord:{cursor:"pointer",borderRadius:3,padding:"0 1px",transition:"background-color 0.12s",WebkitTapHighlightColor:"rgba(245,200,66,0.3)"},
+  // Speech recognition
+  micBtn:{background:"rgba(245,200,66,0.08)",border:"1px solid #4a3520",borderRadius:6,fontSize:14,cursor:"pointer",padding:"4px 7px",lineHeight:1,flexShrink:0,marginTop:3,color:"#c0a040",transition:"all 0.15s"},
+  micBtnLarge:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:10,fontSize:24,cursor:"pointer",padding:"14px 22px",lineHeight:1,color:"#f5c842",transition:"all 0.15s",minWidth:64,minHeight:54,display:"inline-flex",alignItems:"center",justifyContent:"center"},
+  micBtnActive:{background:"rgba(207,80,80,0.18)",borderColor:"#cf6f6f",color:"#e08080",animation:"pulse 1.4s infinite"},
+  micBtnError:{borderColor:"#cf6f6f",color:"#e08080"},
+  micError:{position:"absolute",top:"calc(100% + 4px)",left:"50%",transform:"translateX(-50%)",background:"rgba(80,30,30,0.95)",border:"1px solid #6a3a3a",borderRadius:6,padding:"5px 10px",fontSize:11,color:"#e0a0a0",whiteSpace:"nowrap",zIndex:50,pointerEvents:"none"},
+  recogResult:{background:"rgba(0,0,0,0.22)",border:"1px solid #3a2a14",borderRadius:8,padding:"12px 14px",marginTop:8,marginLeft:32},
+  recogScoreRow:{display:"flex",alignItems:"baseline",gap:10,marginBottom:8,flexWrap:"wrap"},
+  recogScore:{fontSize:22,fontWeight:700,fontFamily:"'Playfair Display',serif"},
+  recogScoreLabel:{fontSize:11,color:"#7a6a4a",letterSpacing:"0.04em",flex:1},
+  recogResetBtn:{background:"transparent",border:"1px solid #4a3520",borderRadius:6,color:"#9a8060",fontSize:14,cursor:"pointer",padding:"2px 9px",lineHeight:1,fontFamily:"inherit"},
+  recogWords:{display:"flex",flexWrap:"wrap",gap:"6px 6px",fontSize:"clamp(13px,3.5vw,16px)",fontFamily:"'Playfair Display',serif",fontStyle:"italic",lineHeight:1.5},
+  recogWord:{padding:"1px 5px",borderRadius:4,position:"relative"},
+  recogWordExact:{background:"rgba(80,160,80,0.18)",color:"#a0e0a0"},
+  recogWordClose:{background:"rgba(200,160,40,0.18)",color:"#f5d870"},
+  recogWordMissing:{background:"rgba(160,60,60,0.15)",color:"#e0a0a0",textDecoration:"line-through",textDecorationStyle:"solid"},
+  recogHeard:{fontSize:9,opacity:0.7,marginLeft:3,fontStyle:"normal",verticalAlign:"sub"},
+  recogHeardLine:{marginTop:8,fontSize:12,color:"#9a8060",lineHeight:1.5,fontStyle:"normal"},
+  // Practice tab
+  practiceIntro:{fontSize:13,color:"#9a8060",marginTop:0,marginBottom:18,lineHeight:1.6},
+  practiceCurrentLine:{background:"rgba(245,200,66,0.06)",border:"1px solid #5a4020",borderRadius:10,padding:"18px 16px",marginBottom:16,textAlign:"center"},
+  practicePolish:{fontSize:"clamp(18px,5vw,24px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.4,marginBottom:6,fontFamily:"'Playfair Display',serif"},
+  practiceEnglish:{fontSize:13,color:"#7a6a4a",marginBottom:14},
+  practiceControls:{display:"flex",gap:10,justifyContent:"center",alignItems:"center",flexWrap:"wrap",marginTop:10},
+  practiceNav:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14,gap:10},
+  practiceNavBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:8,color:"#9a8060",fontSize:13,padding:"8px 16px",cursor:"pointer",fontFamily:"inherit"},
+  practiceNavBtnDisabled:{opacity:0.35,cursor:"not-allowed"},
+  practiceProgress:{fontSize:11,color:"#7a6a4a",letterSpacing:"0.06em",textTransform:"uppercase"},
+  practiceLineScores:{marginTop:18,padding:"14px",background:"rgba(0,0,0,0.2)",borderRadius:8},
+  practiceLineScoreRow:{display:"flex",alignItems:"center",gap:10,padding:"6px 0",fontSize:12,borderBottom:"1px solid #2a1a08"},
+  practiceLineScoreLabel:{flex:1,color:"#9a8060",fontStyle:"italic",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"},
+  practiceLineScoreBar:{width:80,height:6,background:"#2a1a08",borderRadius:3,overflow:"hidden",flexShrink:0},
+  practiceLineScoreBarFill:{height:"100%",borderRadius:3,transition:"width 0.4s"},
+  practiceLineScoreVal:{width:36,textAlign:"right",fontWeight:700,fontSize:12,flexShrink:0},
+  practiceUnsupported:{background:"rgba(160,120,60,0.08)",border:"1px solid #6a5a3a",borderRadius:8,padding:"14px",fontSize:13,color:"#c09060",lineHeight:1.6,marginBottom:16},
+
   tooltipBackdrop:{position:"fixed",inset:0,zIndex:998,background:"transparent"},
   tooltipBox:{position:"absolute",zIndex:999,maxWidth:260,minWidth:160,background:"rgba(32,22,10,0.98)",border:"1px solid #7a6020",borderRadius:10,padding:"12px 14px",boxShadow:"0 8px 28px rgba(0,0,0,0.6)",backdropFilter:"blur(12px)",fontFamily:"'Playfair Display','Palatino Linotype',Georgia,serif"},
   tooltipWord:{display:"flex",alignItems:"center",gap:8,fontSize:18,fontWeight:700,fontStyle:"italic",color:"#f5c842",marginBottom:6},
