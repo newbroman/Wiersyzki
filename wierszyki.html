@@ -25,7 +25,591 @@ const { useState, useCallback, useEffect, useMemo, useRef } = React;
 
 const rhymes = [
   {
-    id:1, emoji:"🐱", difficulty:"Easy",
+    id:100, emoji:"🐱", difficulty:"Easy",
+    verified:true,
+    source_url:"https://pl.wikisource.org/wiki/Wlaz%C5%82_kotek_na_p%C5%82otek",
+    author:"traditional / anonymous (literary versions: Bełza 1871, Syrokomla 1901)",
+    era:"19th-century folk lullaby (quoted 1865; printed from 1871)",
+    cultural_note:"Probably the best-known Polish lullaby, recognisable to virtually every Polish speaker.",
+    title:"Wlazł kotek na płotek",
+    english_title:"The Little Cat Climbed on the Fence",
+    lines:[
+      {pl:"Wlazł kotek na płotek i mruga,",en:"Climbed a little-cat onto the little-fence and it blinks (verb-first; kotek/płotek both diminutives)"},
+      {pl:"Ładna to piosenka, niedługa.",en:"Pretty is this little-song, not-long ('to' = this/that is)"},
+      {pl:"Niedługa, niekrótka, lecz w sam raz,",en:"Not-long, not-short, but just right"},
+      {pl:"A ty mi, koteczku, buzi dasz.",en:"And you, little-kitty, will give me a kiss ('buzi dasz' lit. a-kiss you-will-give)"}
+    ],
+    vocab:[
+      {word:"kotek",meaning:"little cat (diminutive of 'kot'; nominative)"},
+      {word:"płotek",meaning:"little fence (diminutive of 'płot'); 'na płotek' = onto the fence (accusative of motion)"},
+      {word:"wlazł",meaning:"climbed/crept up (past, masc. sing., perfective 'wleźć')"},
+      {word:"mruga",meaning:"blinks/winks (3rd sing., imperfective 'mrugać')"},
+      {word:"piosenka",meaning:"song (nominative)"},
+      {word:"niedługa",meaning:"not long (fem. adj. agreeing with 'piosenka')"},
+      {word:"w sam raz",meaning:"just right (fixed phrase)"},
+      {word:"koteczku",meaning:"little kitty (double diminutive, vocative)"},
+      {word:"buzi dasz",meaning:"you'll give a kiss ('dasz' 2nd sing. perfective future of 'dać')"}
+    ],
+    grammar:[
+      {point:"Stacked diminutives",note:"kot→kotek, płot→płotek, koteczku (diminutive of a diminutive). The -ek/-eczek suffixes signal affection and child-directed speech."},
+      {point:"Case after 'na'",note:"'na płotek' is accusative because of implied motion onto the fence; static location would be 'na płotku' (locative). Same preposition, different case for motion vs. position."},
+      {point:"Vocative case",note:"'koteczku' addresses the cat directly. Polish keeps the vocative active in speech, especially for names and endearments."}
+    ],
+    questions:[
+      {lineIndex:0,hint:"Wlazł _____ na płotek i mruga,",answer:"kotek",choices:["kotek","mruga","płotek","wlazł"]},
+      {lineIndex:1,hint:"Ładna to _____, niedługa.",answer:"piosenka",choices:["mruga","piosenka","płotek","wlazł"]},
+      {lineIndex:2,hint:"_____, niekrótka, lecz w sam raz,",answer:"Niedługa",choices:["Niedługa","mruga","płotek","wlazł"]},
+      {lineIndex:3,hint:"A ty mi, _____, buzi dasz.",answer:"koteczku",choices:["koteczku","mruga","płotek","wlazł"]}
+    ],
+  },
+  {
+    id:101, emoji:"🐻", difficulty:"Easy",
+    verified:true,
+    source_url:"https://pl.wikipedia.org/wiki/Stary_nied%C5%BAwied%C5%BA_mocno_%C5%9Bpi",
+    author:"traditional / anonymous (folk game-song; play described by Maria Germanówna, 1923)",
+    era:"traditional folk; in print by 1923",
+    cultural_note:"Staple kindergarten circle-game: children tiptoe around a 'sleeping bear' until it wakes and chases them.",
+    title:"Stary niedźwiedź mocno śpi",
+    english_title:"The Old Bear Is Fast Asleep",
+    lines:[
+      {pl:"Stary niedźwiedź mocno śpi,",en:"Old bear strongly sleeps (= is fast asleep)"},
+      {pl:"Stary niedźwiedź mocno śpi.",en:"We [refl.] of-him are-afraid ('bać się' takes genitive: 'go')"},
+      {pl:"My się go boimy,",en:"On our toes we-walk ('palcach' locative pl.)"},
+      {pl:"Na palcach chodzimy.",en:"When he wakes up, then he'll eat us ('nas' accusative)"},
+      {pl:"Jak się zbudzi, to nas zje,",en:"First hour — the bear sleeps"},
+      {pl:"Jak się zbudzi, to nas zje!",en:"Second hour — the bear snores"},
+      {pl:"",en:"Third hour — the bear CATCHES!"}
+    ],
+    vocab:[
+      {word:"niedźwiedź",meaning:"bear (masc., nominative); famously tricky to spell/pronounce"},
+      {word:"mocno",meaning:"strongly/soundly (adverb of 'mocny')"},
+      {word:"śpi",meaning:"sleeps (3rd sing., imperfective 'spać')"},
+      {word:"boimy się",meaning:"we are afraid (1st pl., 'bać się' + genitive)"},
+      {word:"na palcach",meaning:"on tiptoe (locative pl. of 'palec')"},
+      {word:"chodzimy",meaning:"we walk (1st pl., iterative 'chodzić')"},
+      {word:"zbudzi się",meaning:"wakes up (3rd sing. perfective future, reflexive)"},
+      {word:"zje",meaning:"will eat (3rd sing. perfective future, 'zjeść')"},
+      {word:"chrapie",meaning:"snores (3rd sing., 'chrapać')"},
+      {word:"łapie",meaning:"catches/grabs (3rd sing., imperfective 'łapać')"}
+    ],
+    grammar:[
+      {point:"Reflexive 'się'",note:"'boimy się', 'zbudzi się'. The detachable particle often moves before the verb ('My się go boimy'). Many Polish verbs are inherently reflexive where English uses none."},
+      {point:"'bać się' + genitive",note:"the thing feared is genitive, so 'him' = 'go' (genitive); contrast 'zje nas' where 'eat' takes accusative 'nas'."},
+      {point:"Aspect contrast",note:"'śpi/chrapie/łapie' imperfective present (ongoing) vs. 'zbudzi się'/'zje' perfective future (single completed events) — the core of Polish aspect."}
+    ],
+    questions:[
+      {lineIndex:0,hint:"Stary _____ mocno śpi,",answer:"niedźwiedź",choices:["boimy","chodzimy","mocno","niedźwiedź"]},
+      {lineIndex:1,hint:"Stary niedźwiedź _____ śpi.",answer:"mocno",choices:["boimy","chodzimy","mocno","śpi"]},
+      {lineIndex:2,hint:"My się go _____,",answer:"boimy",choices:["boimy","chodzimy","zbudzi","śpi"]},
+      {lineIndex:3,hint:"Na palcach _____.",answer:"chodzimy",choices:["chodzimy","zbudzi","zje","śpi"]}
+    ],
+  },
+  {
+    id:102, emoji:"🦀", difficulty:"Easy",
+    verified:true,
+    source_url:"https://wiersze.juniora.pl/wyliczanki/wyliczanki_i05.html",
+    author:"traditional / anonymous (folk finger-rhyme / 'masażyk')",
+    era:"traditional folk (anthologised 1981; rhyme older)",
+    cultural_note:"Classic tickling/back-tracing rhyme — a parent 'walks' fingers up a child's arm or back, pinching gently on the last line.",
+    title:"Idzie rak",
+    english_title:"Here Comes the Crayfish",
+    lines:[
+      {pl:"Idzie rak nieborak,",en:"Goes a crayfish, poor-thing ('nieborak' = poor wretch)"},
+      {pl:"Raz do przodu, a raz wspak.",en:"Once forwards, and once backwards ('wspak' = backwards)"},
+      {pl:"Idzie rak nieborak,",en:"Goes a crayfish, poor-thing (repeat)"},
+      {pl:"Jak uszczypnie, będzie znak!",en:"When it pinches, there'll be a mark!"}
+    ],
+    vocab:[
+      {word:"idzie",meaning:"goes/comes (3rd sing., imperfective 'iść')"},
+      {word:"rak",meaning:"crayfish/crab (also 'cancer'; here the animal)"},
+      {word:"nieborak",meaning:"poor thing / poor wretch (pitying-affectionate)"},
+      {word:"raz... a raz...",meaning:"once... and once... / now... now..."},
+      {word:"do przodu",meaning:"forwards (genitive after 'do')"},
+      {word:"wspak",meaning:"backwards (adverb)"},
+      {word:"jak",meaning:"here 'when / as soon as' (colloquial = 'gdy/kiedy')"},
+      {word:"uszczypnie",meaning:"will pinch (3rd sing. perfective future, 'uszczypnąć')"},
+      {word:"znak",meaning:"sign / mark"}
+    ],
+    grammar:[
+      {point:"'do' + genitive",note:"'do przodu' (forwards) — 'do' always selects genitive (cf. 'do domu', 'do szkoły')."},
+      {point:"'jak' as 'when'",note:"in everyday/folk Polish 'jak' often means 'when / as soon as' rather than 'how/like'; formal Polish prefers 'gdy/kiedy'."},
+      {point:"Perfective future in '-nie'",note:"'uszczypnie' (from '-nąć' class 'uszczypnąć') carries future meaning with no auxiliary, unlike imperfective 'będzie szczypać'."}
+    ],
+    questions:[
+      {lineIndex:0,hint:"_____ rak nieborak,",answer:"Idzie",choices:["Idzie","nieborak","rak","raz"]},
+      {lineIndex:2,hint:"Idzie _____ nieborak,",answer:"rak",choices:["nieborak","rak","raz","wspak"]},
+      {lineIndex:1,hint:"_____ do przodu, a raz wspak.",answer:"Raz",choices:["Raz","jak","nieborak","wspak"]},
+      {lineIndex:3,hint:"_____ uszczypnie, będzie znak!",answer:"Jak",choices:["Jak","nieborak","wspak","znak"]}
+    ],
+  },
+  {
+    id:103, emoji:"🦁", difficulty:"Medium",
+    verified:true,
+    source_url:"https://wolnelektury.pl/katalog/lektura/stefek-burczymucha.html",
+    author:"Maria Konopnicka (1842–1910)",
+    era:"1895 (collection 'Szczęśliwy światek'); 19th-century Positivist children's verse",
+    cultural_note:"A school-anthology staple whose name became the Polish term for a blustering little braggart whose courage collapses at the first real test.",
+    title:"Stefek Burczymucha",
+    english_title:"Stefek the Blusterer",
+    lines:[
+      {pl:"O większego trudno zucha,",en:"A bigger daredevil is hard to find,"},
+      {pl:"Jak był Stefek Burczymucha…",en:"Than Stefek Burczymucha was…"},
+      {pl:"— Ja nikogo się nie boję!",en:"I'm not afraid of anyone!"},
+      {pl:"Choćby niedźwiedź… to dostoję!",en:"Even if it were a bear… I'd stand my ground!"},
+      {pl:"Wilki?.. Ja ich całą zgraję",en:"Wolves?.. Their whole pack I'll…"},
+      {pl:"Pozabijam i pokraję!",en:"…kill off and slice up!"},
+      {pl:"Te hijeny, te lamparty,",en:"Those hyenas, those leopards,"},
+      {pl:"To są dla mnie czyste żarty!",en:"Are pure jokes to me!"},
+      {pl:"A pantery i tygrysy",en:"And panthers and tigers"},
+      {pl:"Na sztyk wezmę u swej spisy!",en:"I'll take on the point of my spear!"},
+      {pl:"Lew!… Cóż lew jest? — kociak duży!",en:"A lion!… What's a lion? — a big kitten!"},
+      {pl:"Naczytałem się podróży!",en:"I've read my fill of travel books!"},
+      {pl:"I znam tego jegomości,",en:"And I know that fellow,"},
+      {pl:"Co zły tylko kiedy pości.",en:"Who's only fierce when he's fasting (hungry)."},
+      {pl:"Szakal, wilk?… Straszna nowina!",en:"A jackal, a wolf?… What scary news! (ironic)"},
+      {pl:"To jest tylko większa psina!…",en:"That's just a bigger mutt!…"},
+      {pl:"(Brysia mijam zaś zdaleka,",en:"(But Brysio the dog I give a wide berth,"},
+      {pl:"Bo nie lubię, gdy kto szczeka!)",en:"Because I don't like it when something barks!)"},
+      {pl:"Komu zechcę, to dam radę!",en:"Whoever I want, I'll handle!"},
+      {pl:"Zaraz na ocean jadę,",en:"Off to the ocean I go at once,"},
+      {pl:"I nie będę Stefkiem chyba,",en:"And I'm surely no Stefek (unworthy of the name)"},
+      {pl:"Jak nie chwycę wieloryba! —",en:"If I don't catch a whale! —"},
+      {pl:"I tak przez dzień boży cały",en:"And so the whole livelong day"},
+      {pl:"Zuch nasz trąbi swe pochwały.",en:"Our daredevil trumpets his boasts."},
+      {pl:"Aż raz usnął gdzieś na sianie…",en:"Until once he fell asleep somewhere on the hay…"},
+      {pl:"Wtem się budzi niespodzianie,",en:"Suddenly he wakes unexpectedly,"},
+      {pl:"Patrzy, a tu jakieś zwierzę",en:"He looks, and here some animal"},
+      {pl:"Do śniadania mu się bierze.",en:"Is helping itself to his breakfast."},
+      {pl:"Jak nie zerwie się na nogi,",en:"And didn't he just leap to his feet,"},
+      {pl:"Jak nie wrzaśnie z wielkiej trwogi —",en:"And didn't he just shriek in great terror —"},
+      {pl:"Pędzi, jakby chart ze smyczy…",en:"He bolts like a greyhound off the leash…"},
+      {pl:"— Tygrys, tato! tygrys! — krzyczy.",en:"A tiger, Dad! a tiger! — he yells."},
+      {pl:"— Tygrys?… ojciec się zapyta.",en:"A tiger?… the father asks."},
+      {pl:"— Ach, lew może!… miał kopyta",en:"Oh, a lion maybe!… it had hooves"},
+      {pl:"Straszne! Trzy czy cztery nogi,",en:"Awful ones! Three or four legs,"},
+      {pl:"Paszczę taką! Przytem rogi…",en:"Such a maw! And horns besides…"},
+      {pl:"— Gdzież to było?",en:"Where was this?"},
+      {pl:"— Tam na sianie,",en:"There, on the hay,"},
+      {pl:"Właśnie porwał mi śniadanie…",en:"It just snatched my breakfast…"},
+      {pl:"Idzie ojciec, służba cała,",en:"Off goes the father, the whole household,"},
+      {pl:"Patrzą… a tu myszka mała,",en:"They look… and here is a little mouse,"},
+      {pl:"Polna myszka siedzi sobie",en:"A little field-mouse just sitting there"},
+      {pl:"I ząbkami serek skrobie!…",en:"And with its little teeth scraping the cheese!…"}
+    ],
+    vocab:[
+      {word:"zuch",meaning:"daredevil / plucky lad (nominative; admiring)"},
+      {word:"Burczymucha",meaning:"invented surname ~'Grumble-fly/Blusterer' (burczeć 'grumble' + mucha 'fly')"},
+      {word:"dostoję",meaning:"I'll stand my ground (1st sing. perf. future of 'dostać' = withstand)"},
+      {word:"zgraja",meaning:"pack/mob; 'całą zgraję' = the whole pack (accusative)"},
+      {word:"pokraję",meaning:"I'll slice up (1st sing. perf. future, 'pokrajać')"},
+      {word:"na sztyk",meaning:"on the bayonet/point (fixed phrase)"},
+      {word:"spisa",meaning:"pike/spear (archaic); 'u swej spisy' = of my pike (archaic genitive)"},
+      {word:"jegomość",meaning:"gentleman/fellow (old, mock-grand)"},
+      {word:"pości",meaning:"fasts (3rd sing., 'pościć')"},
+      {word:"psina",meaning:"mutt (pejorative-affectionate diminutive of 'pies')"},
+      {word:"trwoga",meaning:"dread/terror; 'z trwogi' = out of terror (genitive)"},
+      {word:"paszcza",meaning:"maw/jaws (of a beast); 'paszczę' = accusative"},
+      {word:"serek",meaning:"little cheese (diminutive of 'ser')"}
+    ],
+    grammar:[
+      {point:"Perfective future = bravado",note:"'pozabijam i pokraję', 'wezmę', 'dam radę', 'chwycę' (and present-for-future 'jadę') frame each boast as a single finished act, dramatising Stefek finishing off every beast in one stroke."},
+      {point:"Emphatic 'jak nie + perfective'",note:"'Jak nie zerwie się… Jak nie wrzaśnie…' is NOT 'if he doesn't' but a vivid narrative idiom ≈ 'and didn't he just leap up / let out a yell!'"},
+      {point:"Diminutives puncture the bravado",note:"'myszka', 'serek', 'ząbkami' at the end deflate the grand vocabulary (jegomość, na sztyk) — the 'beast' is a tiny mouse nibbling cheese."}
+    ],
+    questions:[
+      {lineIndex:0,hint:"O większego trudno _____,",answer:"zucha",choices:["dostoję","zgraja","zuch","zucha"]},
+      {lineIndex:1,hint:"Jak był Stefek _____…",answer:"Burczymucha",choices:["Burczymucha","dostoję","pokraję","zgraja"]},
+      {lineIndex:3,hint:"Choćby niedźwiedź… to _____!",answer:"dostoję",choices:["dostoję","pokraję","zgraja","zuch"]},
+      {lineIndex:5,hint:"Pozabijam i _____!",answer:"pokraję",choices:["pokraję","spisa","zgraja","zuch"]}
+    ],
+  },
+  {
+    id:104, emoji:"❄️", difficulty:"Medium",
+    verified:true,
+    source_url:"https://wolnelektury.pl/katalog/lektura/zla-zima.html",
+    author:"Maria Konopnicka (1842–1910)",
+    era:"late 19th century; set to music in 'Śpiewnik dla dzieci' (1905/1910)",
+    cultural_note:"A perennial winter song in Polish kindergartens — children personify winter as a cranky old woman and 'fight back' with snowballs.",
+    title:"Zła zima",
+    english_title:"Wicked Winter",
+    lines:[
+      {pl:"Hu! hu! ha! Nasza zima zła!",en:"Hoo! hoo! ha! Our winter is wicked!"},
+      {pl:"Szczypie w nosy, szczypie w uszy,",en:"It nips at noses, nips at ears,"},
+      {pl:"Mroźnym śniegiem w oczy prószy,",en:"With frosty snow it sprinkles in our eyes,"},
+      {pl:"Wichrem w polu gna!",en:"With a gale it races across the field!"},
+      {pl:"Nasza zima zła!",en:"Our winter is wicked!"},
+      {pl:"Hu! hu! ha! Nasza zima zła!",en:"Hoo! hoo! ha! Our winter is wicked!"},
+      {pl:"Płachta na niej długa, biała,",en:"A sheet on her, long and white,"},
+      {pl:"W ręku gałąź oszroniała,",en:"In her hand a frost-covered branch,"},
+      {pl:"A na plecach drwa…",en:"And on her back, firewood…"},
+      {pl:"Nasza zima zła!",en:"Our winter is wicked!"},
+      {pl:"Hu! hu! ha! Nasza zima zła!",en:"Hoo! hoo! ha! Our winter is wicked!"},
+      {pl:"A my jej się nie boimy,",en:"But we're not afraid of her,"},
+      {pl:"Dalej śnieżkiem w plecy zimy,",en:"On with it — a snowball at winter's back,"},
+      {pl:"Niech pamiątkę ma!",en:"Let her have a keepsake of it!"},
+      {pl:"Nasza zima zła!",en:"Our winter is wicked!"}
+    ],
+    vocab:[
+      {word:"zła",meaning:"wicked/bad/cross (fem. adj. agreeing with 'zima')"},
+      {word:"szczypie",meaning:"nips/pinches (3rd sing., 'szczypać')"},
+      {word:"mroźnym śniegiem",meaning:"with frosty snow (instrumental of 'mroźny śnieg')"},
+      {word:"prószy",meaning:"sprinkles/dusts (3rd sing., 'prószyć')"},
+      {word:"wichrem",meaning:"with a gale (instrumental of 'wicher')"},
+      {word:"gna",meaning:"races/drives along (3rd sing., 'gnać')"},
+      {word:"płachta",meaning:"sheet / sheet of cloth (nominative)"},
+      {word:"oszroniała",meaning:"frost-covered (fem. participle, 'oszronieć')"},
+      {word:"drwa",meaning:"firewood (plural-only noun)"},
+      {word:"śnieżkiem",meaning:"with a snowball (instrumental of 'śnieżek', dim. of 'śnieg')"},
+      {word:"pamiątka",meaning:"keepsake/memento; 'pamiątkę' = accusative"}
+    ],
+    grammar:[
+      {point:"Instrumental for 'by means of'",note:"'mroźnym śniegiem', 'wichrem', 'śnieżkiem' are instrumental — the case for the instrument/means of an action; the adjective agrees ('mroźnym')."},
+      {point:"Feminine personification and agreement",note:"winter ('zima', fem.) is an old woman, so 'zła', 'na niej', 'jej' all agree in the feminine — good practice for grammatical gender."},
+      {point:"'bać się' + genitive again",note:"'A my jej się nie boimy' — the feared thing 'jej' is genitive, the same government as with the bear in Batch 1, here in the negative."}
+    ],
+    questions:[
+      {lineIndex:0,hint:"Hu! hu! ha! Nasza zima _____!",answer:"zła",choices:["mroźnym","prószy","szczypie","zła"]},
+      {lineIndex:1,hint:"_____ w nosy, szczypie w uszy,",answer:"Szczypie",choices:["Szczypie","mroźnym","prószy","wichrem"]},
+      {lineIndex:2,hint:"_____ śniegiem w oczy prószy,",answer:"Mroźnym",choices:["Mroźnym","gna","prószy","wichrem"]},
+      {lineIndex:3,hint:"_____ w polu gna!",answer:"Wichrem",choices:["Wichrem","gna","prószy","płachta"]}
+    ],
+  },
+  {
+    id:105, emoji:"🧺", difficulty:"Medium",
+    verified:true,
+    source_url:"https://wolnelektury.pl/katalog/lektura/pranie.html",
+    author:"Maria Konopnicka (1842–1910)",
+    era:"1897; 19th-century children's verse",
+    cultural_note:"A much-loved kindergarten recitation in which a little girl 'plays house', proudly listing her laundry skills while washing for her dolls.",
+    title:"Pranie",
+    english_title:"Doing the Washing",
+    lines:[
+      {pl:"— Pucu! pucu! chlastu! chlastu!",en:"Scrub-scrub! splash-splash! (washing sound-words)"},
+      {pl:"Nie mam rączek jedenastu,",en:"I don't have eleven little hands,"},
+      {pl:"Tylko dwie mam rączki małe,",en:"I only have two little hands,"},
+      {pl:"Lecz do prania doskonałe.",en:"But perfect for washing."},
+      {pl:"Umiem w cebrzyk wody nalać,",en:"I know how to pour water into a tub,"},
+      {pl:"Umiem wyprać… no… i zwalać.",en:"I know how to wash… well… and to make a mess too."},
+      {pl:"Z mydła zrobię tyle piany,",en:"From soap I'll make as much foam,"},
+      {pl:"Co nasz kucharz ze śmietany.",en:"As our cook makes from cream."},
+      {pl:"I wypłóczę i wykręcę,",en:"And I'll rinse and wring it out,"},
+      {pl:"Choć mnie dobrze bolą ręce.",en:"Although my hands really ache."},
+      {pl:"Umiem także i krochmalić,",en:"I can starch things too,"},
+      {pl:"Tylko nie chcę się już chwalić!",en:"Only I don't want to boast any more!"},
+      {pl:"Tak to praca zawsze nowa,",en:"So the work is always fresh (never-ending),"},
+      {pl:"Gdy kto lalek się dochowa!",en:"When one ends up with a brood of dolls!"},
+      {pl:"— A u pani? Jakże dziatki?",en:"And at your place, madam? How are the little ones?"},
+      {pl:"Czy też brudzą swe manatki?",en:"Do they dirty their bits of clothing too?"},
+      {pl:"— U mnie? Ach! to jeszcze gorzej:",en:"At mine? Oh! it's even worse:"},
+      {pl:"Zaraz zdejmuj, co się włoży!",en:"You have to take off whatever you put on right away!"},
+      {pl:"Ja i praczki już nie biorę,",en:"I don't even take on a washerwoman any more,"},
+      {pl:"Tylko codzień sama piorę!",en:"I just do the washing myself every day!"}
+    ],
+    vocab:[
+      {word:"pucu, chlastu",meaning:"onomatopoeia for scrubbing/splashing (frozen interjections)"},
+      {word:"rączki / rączek",meaning:"little hands (dim. of 'ręce'); 'rączek' = genitive pl. after negation"},
+      {word:"cebrzyk",meaning:"small wooden tub (diminutive of 'ceber')"},
+      {word:"zwalać",meaning:"to make a mess / muck up (imperfective; here playful)"},
+      {word:"piana",meaning:"foam/suds; 'tyle piany' = so much foam (genitive after 'tyle')"},
+      {word:"wypłóczę",meaning:"I'll rinse out (1st sing. perf. future, 'wypłukać')"},
+      {word:"wykręcę",meaning:"I'll wring out (1st sing. perf. future, 'wykręcić')"},
+      {word:"krochmalić",meaning:"to starch (imperfective infinitive)"},
+      {word:"dziatki",meaning:"little children (archaic-affectionate dim. plural)"},
+      {word:"manatki",meaning:"belongings / bits of clothing (colloquial, plural-only)"},
+      {word:"praczka",meaning:"washerwoman; 'praczki' = genitive after negation"}
+    ],
+    grammar:[
+      {point:"Genitive of negation",note:"'Nie mam rączek jedenastu' — after negated 'mam' (have), the object goes genitive ('rączek', not 'rączki'); likewise 'praczki już nie biorę'."},
+      {point:"'umieć' + perfective infinitive",note:"'umiem… nalać', 'umiem wyprać' = 'I know how to do X to completion'; a general skill would take an imperfective ('umiem prać' = 'I can do washing in general')."},
+      {point:"Diminutives = a child's proud voice",note:"'rączki', 'dziatki', 'cebrzyk', 'manatki' mark the speaker as a small girl playing grown-up; Polish uses these -ki/-ek suffixes far more than English."}
+    ],
+    questions:[
+      {lineIndex:0,hint:"— _____! pucu! chlastu! chlastu!",answer:"Pucu",choices:["Pucu","cebrzyk","rączki","zwalać"]},
+      {lineIndex:2,hint:"Tylko dwie mam _____ małe,",answer:"rączki",choices:["cebrzyk","piana","rączki","zwalać"]},
+      {lineIndex:4,hint:"Umiem w _____ wody nalać,",answer:"cebrzyk",choices:["cebrzyk","piana","wypłóczę","zwalać"]},
+      {lineIndex:5,hint:"Umiem wyprać… no… i _____.",answer:"zwalać",choices:["piana","wykręcę","wypłóczę","zwalać"]}
+    ],
+  },
+  {
+    id:106, emoji:"👧", difficulty:"Medium",
+    verified:true,
+    source_url:"https://wolnelektury.pl/katalog/lektura/tuwim-zosia-samosia.html",
+    author:"Julian Tuwim (1894–1953)",
+    era:"1930s — Julian Tuwim (edition 'Wiersze', Czytelnik 1955)",
+    cultural_note:"'Zosia Samosia' is now an everyday Polish label for a child — usually a girl — who insists on doing everything herself and thinks she already knows it all.",
+    title:"Zosia Samosia",
+    english_title:"Sophie Do-It-All-Herself",
+    lines:[
+      {pl:"Jest taka jedna Zosia,",en:"There's a certain Zosia,"},
+      {pl:"Nazwano ją Zosia-Samosia,",en:"They named her Zosia-Do-It-All-Herself,"},
+      {pl:"Bo wszystko",en:"Because [to] everything [she says]"},
+      {pl:"«Sama! sama! sama!»",en:"'Myself! myself! myself!'"},
+      {pl:"Ważna mi dama!",en:"What a grand lady! (ironic)"},
+      {pl:"Wszystko sama lepiej wie,",en:"She knows everything better herself,"},
+      {pl:"Wszystko sama robić chce,",en:"She wants to do everything herself,"},
+      {pl:"Dla niej szkoła, książka, mama",en:"For her, school, books, mum"},
+      {pl:"Nic nie znaczą — wszystko sama!",en:"Mean nothing — everything herself!"},
+      {pl:"Zjadła wszystkie rozumy,",en:"She's eaten up all the brains (thinks she knows it all),"},
+      {pl:"Więc co jej po rozumie?",en:"So what use to her is any more sense?"},
+      {pl:"Uczyć się nie chce — bo po co,",en:"She won't learn — for what,"},
+      {pl:"Gdy sama wszystko umie?",en:"When she can do everything herself?"},
+      {pl:"A jak zapytać Zosi:",en:"And if you ask Zosia:"},
+      {pl:"— Ile jest dwa i dwa?",en:"How much is two and two?"},
+      {pl:"— Osiem!",en:"Eight!"},
+      {pl:"— A kto był Kopernik?",en:"And who was Copernicus?"},
+      {pl:"— Król!",en:"A king!"},
+      {pl:"— A co nam Śląsk daje?",en:"And what does Silesia give us?"},
+      {pl:"— Sól!",en:"Salt!"},
+      {pl:"— A gdzie leży Kraków?",en:"And where does Kraków lie?"},
+      {pl:"— Nad Wartą!",en:"On the Warta! (wrong — Kraków is on the Vistula)"},
+      {pl:"— A uczyć się warto?",en:"And is it worth learning?"},
+      {pl:"— Nie warto!",en:"Not worth it!"},
+      {pl:"Bo ja sama wszystko wiem",en:"Because I know everything myself"},
+      {pl:"I śniadanie sama zjem,",en:"And I'll eat my breakfast myself,"},
+      {pl:"I samochód sama zrobię,",en:"And I'll build a car myself,"},
+      {pl:"I z wszystkim poradzę sobie!",en:"And I'll cope with everything myself!"},
+      {pl:"Kto by się tam uczył, pytał,",en:"Who'd bother learning, asking,"},
+      {pl:"Dowiadywał się i czytał,",en:"Finding things out and reading,"},
+      {pl:"Kto by sobie głowę łamał,",en:"Who'd rack their brains,"},
+      {pl:"Kiedy mogę sama, sama!",en:"When I can do it myself, myself!"},
+      {pl:"— Toś ty taka mądra dama?",en:"So you're such a clever lady?"},
+      {pl:"A kto głupi jest?",en:"And who's the foolish one?"},
+      {pl:"— Ja sama!",en:"Me, myself! (punchline — she claims that 'all by herself' too)"}
+    ],
+    vocab:[
+      {word:"sama",meaning:"(she) herself / on her own / by myself (fem. of 'sam'); the whole poem plays on it"},
+      {word:"Samosia",meaning:"coined nickname from 'sama', ≈ 'Miss-Do-It-All-Myself'"},
+      {word:"nazwano",meaning:"they named / she was named (impersonal past of 'nazwać')"},
+      {word:"ważna mi dama",meaning:"'a grand lady indeed!' (ironic; 'mi' = dismissive ethical dative)"},
+      {word:"zjadła wszystkie rozumy",meaning:"idiom: 'ate up all the brains' = thinks she knows everything"},
+      {word:"rozum",meaning:"reason / sense / wits; 'po rozumie' = 'use for sense'"},
+      {word:"umie",meaning:"knows how / can (3rd sing., 'umieć')"},
+      {word:"warto",meaning:"it's worth(while) (impersonal predicative + infinitive)"},
+      {word:"głowę łamać",meaning:"to rack one's brains (idiom)"},
+      {word:"poradzę sobie",meaning:"I'll manage / cope (1st sing. perf. future, 'poradzić sobie')"},
+      {word:"mądra / głupi",meaning:"clever (fem.) / foolish (masc.)"}
+    ],
+    grammar:[
+      {point:"The word 'sam/sama/samo'",note:"'sama' = '(she) herself / by herself / on her own', agreeing in gender and number (fem. sing. here). The joke and the coined surname 'Samosia' are built on it; keep it apart from 'ten sam' (the same) and reflexive 'się'."},
+      {point:"Impersonal '-no/-to' past",note:"'Nazwano ją…' ('they named her / she was named') uses the subjectless -no/-to past (from 'nazwać') — a very common Polish way to report an action without naming the doer."},
+      {point:"Impersonal 'warto' + perfective futures",note:"'uczyć się warto?' = 'is it worthwhile to…' (predicative, never inflects for person); her boasts 'zjem, zrobię, poradzę sobie' are perfective present-as-future, each a single confident completed act."}
+    ],
+    questions:[
+      {lineIndex:3,hint:"«_____! sama! sama!»",answer:"Sama",choices:["Sama","Samosia","nazwano","ważna"]},
+      {lineIndex:1,hint:"Nazwano ją Zosia-_____,",answer:"Samosia",choices:["Samosia","nazwano","ważna","zjadła"]},
+      {lineIndex:4,hint:"_____ mi dama!",answer:"Ważna",choices:["Ważna","nazwano","rozum","zjadła"]},
+      {lineIndex:9,hint:"_____ wszystkie rozumy,",answer:"Zjadła",choices:["Zjadła","nazwano","rozum","umie"]}
+    ],
+  },
+  {
+    id:107, emoji:"🐘", difficulty:"Medium",
+    verified:true,
+    source_url:"https://wolnelektury.pl/katalog/lektura/tuwim-slon-trabalski/",
+    author:"Julian Tuwim (1894–1953)",
+    era:"1930s — Julian Tuwim (edition 'Dzieła t. I', Czytelnik 1955)",
+    cultural_note:"A primary-school classic whose hero became a Polish byword for a lovably forgetful, absent-minded person — 'everything elephant, except the memory.'",
+    title:"Słoń Trąbalski",
+    english_title:"Trąbalski the Elephant",
+    lines:[
+      {pl:"Był sobie słoń, wielki — jak słoń.",en:"There once was an elephant, big — like an elephant."},
+      {pl:"Zwał się ten słoń Tomasz Trąbalski.",en:"This elephant was called Tomasz Trąbalski."},
+      {pl:"Wszystko, co miał, było jak słoń!",en:"Everything he had was elephant-like!"},
+      {pl:"Lecz straszny był zapominalski.",en:"But he was a terrible scatterbrain."},
+      {pl:"Słoniową miał głowę",en:"He had an elephant head"},
+      {pl:"I nogi słoniowe,",en:"And elephant legs,"},
+      {pl:"I kły z prawdziwej kości słoniowej,",en:"And tusks of real ivory,"},
+      {pl:"I trąbę, którą wspaniale kręcił,",en:"And a trunk he twirled magnificently,"},
+      {pl:"Wszystko słoniowe — oprócz pamięci.",en:"All elephant — except his memory."},
+      {pl:"Zaprosił kolegów — słoni — na karty",en:"He invited his pals — elephants — for cards"},
+      {pl:"Na wpół do czwartej.",en:"At half past three."},
+      {pl:"Przychodzą — ryczą: „Dzień dobry, kolego!”",en:"They arrive — they trumpet: 'Good day, friend!'"},
+      {pl:"Nikt nie odpowiada,",en:"Nobody answers,"},
+      {pl:"Nie ma Trąbalskiego.",en:"Trąbalski isn't there."},
+      {pl:"Zapomniał! Wyszedł!",en:"He forgot! He went out!"},
+      {pl:"Miał przyjść do państwa Krokodylów",en:"He was to visit the Crocodile family"},
+      {pl:"Na filiżankę wody z Nilu:",en:"For a cup of Nile water:"},
+      {pl:"Zapomniał! Nie przyszedł!",en:"He forgot! He didn't come!"},
+      {pl:"Ma on chłopczyka i dziewczynkę,",en:"He has a little boy and a little girl,"},
+      {pl:"Miłego słonika i śliczną słoninkę,",en:"A sweet little he-elephant and a lovely little she-elephant,"},
+      {pl:"Bardzo kocha te swoje słonięta,",en:"He dearly loves those baby elephants of his,"},
+      {pl:"Ale ich imion nie pamięta.",en:"But he doesn't remember their names."},
+      {pl:"Synek nazywa się Biały Ząbek,",en:"The little son is called White Tooth,"},
+      {pl:"A ojciec woła: „Trąbek! Bombek!”",en:"But the father calls: 'Trąbek! Bombek!'"},
+      {pl:"Córeczce na imię po prostu Kachna,",en:"The little daughter is simply named Kachna,"},
+      {pl:"A ojciec woła: „Grubachna! Wielgachna!”",en:"But the father calls: 'Chubby-one! Huge-one!'"},
+      {pl:"Nawet gdy własne imię wymawia,",en:"Even when he says his own name,"},
+      {pl:"Gdy się na przykład komuś przedstawia,",en:"When, say, he introduces himself to someone,"},
+      {pl:"Często się myli Tomasz Trąbalski",en:"Tomasz Trąbalski often slips up"},
+      {pl:"I mówi: „Jestem Tobiasz Bimbalski”.",en:"And says: 'I'm Tobiasz Bimbalski.'"},
+      {pl:"Żonę ma taką — jakby sześć żon miał!",en:"He has such a wife — as if he had six wives!"},
+      {pl:"(Imię jej: Bania, ale zapomniał).",en:"(Her name's Bania — but he forgot.)"},
+      {pl:"No i ta żona kiedyś powiada:",en:"And so that wife says one day:"},
+      {pl:"„Idź do doktora, niechaj cię zbada,",en:"'Go to the doctor, let him examine you,"},
+      {pl:"Niech cię wyleczy na stare lata!”.",en:"Let him cure you in your old age!'"},
+      {pl:"Więc zaraz poszedł — do adwokata,",en:"So off he went at once — to a lawyer,"},
+      {pl:"Potem do szewca i do rejenta,",en:"Then to a cobbler and to a notary,"},
+      {pl:"I wszędzie mówi, że nie pamięta!",en:"And everywhere he says he can't remember!"},
+      {pl:"„Dobrze wiedziałem, lecz zapomniałem,",en:"'I knew it well, but I forgot,"},
+      {pl:"Może kto z panów wie, czego chciałem?”",en:"Maybe one of you gentlemen knows what I wanted?'"},
+      {pl:"Błąka się, krąży, jest coraz później,",en:"He wanders, circles, it gets later and later,"},
+      {pl:"Aż do kowala trafił, do kuźni.",en:"Until he ended up at the blacksmith's, at the forge."},
+      {pl:"Ten chciał go podkuć, więc oprzytomniał,",en:"The smith meant to shoe him, so he came to his senses,"},
+      {pl:"Przypomniał sobie to, co zapomniał!",en:"He remembered what he'd forgotten!"},
+      {pl:"Kowal go zbadał, miechem podmuchał,",en:"The smith examined him, blew with the bellows,"},
+      {pl:"Zajrzał do gardła, zajrzał do ucha,",en:"Looked into his throat, looked into his ear,"},
+      {pl:"Potem opukał młotem kowalskim",en:"Then tapped him with the blacksmith's hammer"},
+      {pl:"I mówi: „Wiem już, panie Trąbalski!",en:"And says: 'I've got it now, Mr Trąbalski!"},
+      {pl:"Co dzień na głowę wody kubełek",en:"Each day a bucket of water on the head"},
+      {pl:"Oraz na trąbie zrobić supełek”.",en:"And tie a little knot in your trunk.'"},
+      {pl:"I chlust go wodą! Sekundę trwało",en:"And splash — water on him! It took a second"},
+      {pl:"I w supeł związał trąbę wspaniałą!",en:"And he tied that magnificent trunk into a knot!"},
+      {pl:"Pędem poleciał Tomasz do domu.",en:"Tomasz dashed off home at full speed."},
+      {pl:"Żona w krzyk: „Co to?” — „Nie mów nikomu!",en:"The wife cries out: 'What's this?' — 'Tell no one!"},
+      {pl:"To dla pamięci!” — „O czym?” — „No… chciałem…”",en:"It's for my memory!' — 'Of what?' — 'Well… I wanted…'"},
+      {pl:"— „Co chciałeś?” — „Nie wiem! Już zapomniałem!”",en:"'What did you want?' — 'I don't know! I've already forgotten!'"}
+    ],
+    vocab:[
+      {word:"zwał się",meaning:"was called (3rd sing. past, reflexive 'zwać się')"},
+      {word:"zapominalski",meaning:"forgetful one / scatterbrain (playful coinage from 'zapominać')"},
+      {word:"kły",meaning:"tusks / fangs (plural of 'kieł')"},
+      {word:"kość słoniowa",meaning:"ivory (literally 'elephant bone')"},
+      {word:"trąba",meaning:"trunk (also 'trumpet'); hence the surname 'Trąbalski'"},
+      {word:"oprócz",meaning:"except (+ genitive: 'oprócz pamięci')"},
+      {word:"na wpół do czwartej",meaning:"at half past three (lit. 'at half to four')"},
+      {word:"słonięta",meaning:"baby elephants (-ę/-ęta young-animal declension)"},
+      {word:"słoninka",meaning:"little she-elephant (diminutive; also a pun on 'słonina' = lard)"},
+      {word:"imion",meaning:"of names (genitive pl. of 'imię')"},
+      {word:"myli się",meaning:"slips up / gets it wrong (3rd sing., 'mylić się')"},
+      {word:"rejent",meaning:"notary (archaic for 'notariusz')"},
+      {word:"błąka się",meaning:"wanders / strays (3rd sing., 'błąkać się')"},
+      {word:"kuźnia",meaning:"forge / smithy"},
+      {word:"podkuć",meaning:"to shoe (a horse), fit with horseshoes (perfective)"},
+      {word:"oprzytomniał",meaning:"came to his senses (3rd sing. past, 'oprzytomnieć')"},
+      {word:"miech",meaning:"bellows; 'miechem' = instrumental"},
+      {word:"supeł / supełek",meaning:"knot / little knot"},
+      {word:"chlust",meaning:"splash! (onomatopoeic interjection)"}
+    ],
+    grammar:[
+      {point:"Diminutives and word-coinage",note:"Tuwim spins a family from 'słoń' — 'słonik', 'słoninka' (a pun on 'słonina' = lard), 'słonięta' — plus invented names 'Grubachna', 'Wielgachna', 'zapominalski'. This inventiveness is his signature."},
+      {point:"Telling time 'toward' the hour",note:"'Na wpół do czwartej' = half past three, literally 'at half to four'. Polish names the half-hour by pointing to the next full hour."},
+      {point:"The -ę/-ęta declension for young creatures",note:"'słonię → słonięta' (baby elephant → babies), like 'kocię → kocięta', 'dziecię → dzieci'; young-animal nouns take this neuter pattern with an -ęt- stem in the plural/oblique cases."}
+    ],
+    questions:[
+      {lineIndex:1,hint:"_____ się ten słoń Tomasz Trąbalski.",answer:"Zwał",choices:["Zwał","kość","kły","trąba"]},
+      {lineIndex:3,hint:"Lecz straszny był _____.",answer:"zapominalski",choices:["oprzytomniał","słoninka","słonięta","zapominalski"]},
+      {lineIndex:6,hint:"I _____ z prawdziwej kości słoniowej,",answer:"kły",choices:["kość","kły","oprócz","trąba"]},
+      {lineIndex:13,hint:"Nie ma _____.",answer:"Trąbalskiego",choices:["Trąbalskiego","oprzytomniał","słoninka","słonięta"]}
+    ],
+  },
+  {
+    id:108, emoji:"👓", difficulty:"Medium",
+    verified:true,
+    source_url:"https://wolnelektury.pl/katalog/lektura/tuwim-okulary.html",
+    author:"Julian Tuwim (1894–1953)",
+    era:"1930s — Julian Tuwim (edition 'Dzieła t. I', Czytelnik 1955)",
+    cultural_note:"A universally known poem; 'pan Hilary' / 'okulary na nosie' is Polish shorthand for frantically hunting something that's right in front of you.",
+    title:"Okulary",
+    english_title:"The Glasses",
+    lines:[
+      {pl:"Biega, krzyczy pan Hilary:",en:"Mr Hilary runs about, shouts:"},
+      {pl:"„Gdzie są moje okulary?”",en:"'Where are my glasses?'"},
+      {pl:"Szuka w spodniach i w surducie,",en:"He looks in his trousers and in his frock-coat,"},
+      {pl:"W prawym bucie, w lewym bucie.",en:"In the right shoe, in the left shoe."},
+      {pl:"Wszystko w szafach poprzewracał,",en:"He's turned everything upside down in the wardrobes,"},
+      {pl:"Maca szlafrok, palto maca.",en:"He gropes the dressing-gown, gropes the overcoat."},
+      {pl:"„Skandal! — krzyczy — nie do wiary!",en:"'Outrageous! — he shouts — unbelievable!"},
+      {pl:"Ktoś mi ukradł okulary!”",en:"Someone's stolen my glasses!'"},
+      {pl:"Pod kanapą, na kanapie,",en:"Under the sofa, on the sofa,"},
+      {pl:"Wszędzie szuka, parska, sapie!",en:"He searches everywhere, snorts, puffs!"},
+      {pl:"Szuka w piecu i w kominie,",en:"He looks in the stove and in the chimney,"},
+      {pl:"W mysiej dziurze i w pianinie.",en:"In the mouse-hole and in the piano."},
+      {pl:"Już podłogę chce odrywać,",en:"He's about to rip up the floor,"},
+      {pl:"Już policję zaczął wzywać.",en:"He's already started calling the police."},
+      {pl:"Nagle — zerknął do lusterka…",en:"Suddenly — he glanced in the little mirror…"},
+      {pl:"Nie chce wierzyć… Znowu zerka.",en:"He can't believe it… He looks again."},
+      {pl:"Znalazł! Są! Okazało się,",en:"Found them! There they are! It turned out"},
+      {pl:"Że je ma na własnym nosie.",en:"That he has them on his own nose."}
+    ],
+    vocab:[
+      {word:"biega",meaning:"runs about (3rd sing., iterative 'biegać')"},
+      {word:"surdut",meaning:"frock-coat (old men's garment)"},
+      {word:"maca",meaning:"gropes / feels around (3rd sing., 'macać')"},
+      {word:"szlafrok",meaning:"dressing gown"},
+      {word:"palto",meaning:"overcoat"},
+      {word:"poprzewracał",meaning:"turned everything over/upside down (perfective, distributive 'po-…przewracać')"},
+      {word:"nie do wiary",meaning:"unbelievable (fixed phrase)"},
+      {word:"parska / sapie",meaning:"snorts / puffs, wheezes"},
+      {word:"piec, komin",meaning:"stove, chimney ('w piecu, w kominie' = locative)"},
+      {word:"mysia dziura",meaning:"mouse-hole ('w mysiej dziurze' = locative)"},
+      {word:"pianino",meaning:"upright piano ('w pianinie' = locative)"},
+      {word:"odrywać / wzywać",meaning:"to tear up / to summon, call (imperfectives)"},
+      {word:"zerknął",meaning:"glanced (3rd sing. perf. past, 'zerknąć')"},
+      {word:"lusterko",meaning:"little mirror (dim. of 'lustro')"},
+      {word:"okazało się",meaning:"it turned out (3rd sing. past, 'okazać się')"}
+    ],
+    grammar:[
+      {point:"Locative case for static location",note:"the poem is a parade of locatives after 'w/na/pod' — 'w spodniach, w surducie, w bucie, w piecu, w kominie, w pianinie, na kanapie, na nosie'. Position (not motion) takes the locative; note endings -ie/-u and softening ('but → bucie', 'piec → piecu')."},
+      {point:"Distributive 'po-' prefix",note:"'poprzewracał' = turned over lots of things one after another; 'po-' on a perfective signals the action done across many objects in turn."},
+      {point:"Pronoun placement",note:"'Że je ma na własnym nosie' — the short accusative pronoun 'je' ('them' = okulary, neuter pl.) comes before the verb 'ma'; Polish unstressed pronouns gravitate to an early/second position."}
+    ],
+    questions:[
+      {lineIndex:0,hint:"_____, krzyczy pan Hilary:",answer:"Biega",choices:["Biega","maca","surdut","szlafrok"]},
+      {lineIndex:5,hint:"_____ szlafrok, palto maca.",answer:"Maca",choices:["Maca","palto","surdut","szlafrok"]},
+      {lineIndex:4,hint:"Wszystko w szafach _____,",answer:"poprzewracał",choices:["odrywać","pianino","poprzewracał","szlafrok"]},
+      {lineIndex:6,hint:"„Skandal! — krzyczy — _____ do wiary!",answer:"nie",choices:["nie","palto","surdut","szlafrok"]}
+    ],
+  },
+  {
+    id:109, emoji:"🏞️", difficulty:"Medium",
+    verified:true,
+    source_url:"https://wolnelektury.pl/katalog/lektura/tuwim-rzeczka.html",
+    author:"Julian Tuwim (1894–1953)",
+    era:"1930s — Julian Tuwim (edition 'Wiersze', Czytelnik 1955)",
+    cultural_note:"A beloved lyrical miniature — often one of the first 'real' little poems Polish children learn by heart; also set to music by Witold Lutosławski.",
+    title:"Rzeczka",
+    english_title:"The Little River",
+    lines:[
+      {pl:"Płynie, wije się rzeczka",en:"A little river flows, winds along,"},
+      {pl:"Jak błyszcząca wstążeczka,",en:"Like a shimmering little ribbon,"},
+      {pl:"Tu się srebrzy, tam ginie,",en:"Here it glints silver, there it vanishes,"},
+      {pl:"A tam znowu wypłynie.",en:"And over there it flows out again."},
+      {pl:"Woda w rzeczce przejrzysta,",en:"The water in the river is crystal-clear,"},
+      {pl:"Zimna, bystra i czysta,",en:"Cold, swift and clean,"},
+      {pl:"Biegnąc mruczy i szumi,",en:"As it runs it murmurs and rushes,"},
+      {pl:"Ale kto ją rozumie?",en:"But who understands it?"},
+      {pl:"Tylko kamień i ryba",en:"Only the stone and the fish"},
+      {pl:"Znają mowę tę chyba,",en:"Know that speech, perhaps,"},
+      {pl:"Ale one, jak wiecie,",en:"But they, as you know,"},
+      {pl:"Znane milczki na świecie.",en:"Are famous keep-quiets in the world."}
+    ],
+    vocab:[
+      {word:"płynie",meaning:"flows (3rd sing., 'płynąć')"},
+      {word:"wije się",meaning:"winds / meanders (3rd sing., reflexive 'wić się')"},
+      {word:"rzeczka",meaning:"little river (diminutive of 'rzeka')"},
+      {word:"wstążeczka",meaning:"little ribbon (double diminutive of 'wstążka')"},
+      {word:"srebrzy się",meaning:"glints/shimmers silver (3rd sing., reflexive 'srebrzyć się')"},
+      {word:"ginie",meaning:"disappears / vanishes (3rd sing., 'ginąć')"},
+      {word:"wypłynie",meaning:"will flow out / re-emerge (3rd sing. perf. future, 'wypłynąć')"},
+      {word:"przejrzysta",meaning:"transparent / crystal-clear (fem. adj.)"},
+      {word:"bystra",meaning:"swift, fast-flowing (also 'sharp/clever') (fem. adj.)"},
+      {word:"mruczy / szumi",meaning:"murmurs/purrs / rushes, rustles"},
+      {word:"mowa",meaning:"speech / language; 'mowę tę' = that speech (accusative)"},
+      {word:"milczek",meaning:"a silent, taciturn one (from 'milczeć'); 'milczki' = plural"}
+    ],
+    grammar:[
+      {point:"Reflexive intransitive verbs",note:"'wije się', 'srebrzy się' — Polish often forms 'self' actions with 'się' ('wić się' = to wind/meander, 'srebrzyć się' = to shimmer silver); the 'się' marks the river acting on/of itself, with no object."},
+      {point:"Aspect — imperfective present vs perfective future",note:"the ongoing scene uses imperfectives ('płynie, srebrzy się, ginie, mruczy, szumi'), but 'wypłynie' is a perfective future, a single completed re-emergence."},
+      {point:"Demonstrative after the noun",note:"'mowę tę' ('that speech') places the demonstrative 'tę' after its noun (vs everyday 'tę mowę') — a common poetic inversion for rhythm and emphasis."}
+    ],
+    questions:[
+      {lineIndex:0,hint:"_____, wije się rzeczka",answer:"Płynie",choices:["Płynie","rzeczka","wije","wstążeczka"]},
+      {lineIndex:1,hint:"Jak błyszcząca _____,",answer:"wstążeczka",choices:["ginie","rzeczka","srebrzy","wstążeczka"]},
+      {lineIndex:2,hint:"Tu się _____, tam ginie,",answer:"srebrzy",choices:["ginie","rzeczka","srebrzy","wije"]},
+      {lineIndex:3,hint:"A tam znowu _____.",answer:"wypłynie",choices:["ginie","rzeczka","wije","wypłynie"]}
+    ],
+  },
+  {
+    id:1, verified:false, emoji:"🐱", difficulty:"Easy",
     title:"Wlazł kotek na płotek",
     english_title:"The Kitten Climbed the Fence",
     lines:[
@@ -58,7 +642,7 @@ const rhymes = [
     ],
   },
   {
-    id:2, emoji:"🌙", difficulty:"Medium",
+    id:2, verified:false, emoji:"🌙", difficulty:"Medium",
     title:"Idzie niebo ciemną nocą",
     english_title:"The Sky Walks the Dark Night",
     lines:[
@@ -90,7 +674,7 @@ const rhymes = [
     ],
   },
   {
-    id:3, emoji:"🚂", difficulty:"Easy",
+    id:3, verified:false, emoji:"🚂", difficulty:"Easy",
     title:"Jedzie pociąg z daleka",
     english_title:"The Train Comes from Afar",
     lines:[
@@ -121,7 +705,7 @@ const rhymes = [
     ],
   },
   {
-    id:4, emoji:"🐻", difficulty:"Medium",
+    id:4, verified:false, emoji:"🐻", difficulty:"Medium",
     title:"Stary niedźwiedź mocno śpi",
     english_title:"The Old Bear Sleeps Soundly",
     lines:[
@@ -154,7 +738,7 @@ const rhymes = [
     ],
   },
   {
-    id:5, emoji:"🌧️", difficulty:"Easy",
+    id:5, verified:false, emoji:"🌧️", difficulty:"Easy",
     title:"Pada deszcz",
     english_title:"It is Raining",
     lines:[
@@ -186,7 +770,7 @@ const rhymes = [
     ],
   },
   {
-    id:6, emoji:"🐸", difficulty:"Easy",
+    id:6, verified:false, emoji:"🐸", difficulty:"Easy",
     title:"Siedzi żabka na liściu",
     english_title:"The Frog Sits on a Leaf",
     lines:[
@@ -218,7 +802,7 @@ const rhymes = [
     ],
   },
   {
-    id:7, emoji:"⭐", difficulty:"Medium",
+    id:7, verified:false, emoji:"⭐", difficulty:"Medium",
     title:"Gwiazdeczko mała",
     english_title:"Little Star",
     lines:[
@@ -250,7 +834,7 @@ const rhymes = [
     ],
   },
   {
-    id:8, emoji:"🐝", difficulty:"Hard",
+    id:8, verified:false, emoji:"🐝", difficulty:"Hard",
     title:"Pszczółka Maja",
     english_title:"The Little Bee Maya",
     lines:[
@@ -279,13 +863,633 @@ const rhymes = [
       {lineIndex:2,hint:"wróć do _____,",answer:"ula",choices:["ula","domu","lasu","ogrodu"]},
       {lineIndex:3,hint:"zanim przyjdzie _____.",answer:"noc",choices:["noc","deszcz","zima","burza"]},
       {lineIndex:0,hint:"Leć, _____, leć,",answer:"pszczółko",choices:["pszczółko","motylku","biedronko","mrówko"]},
+
+  {
+    id:9, verified:false, emoji:"🐓", difficulty:"Easy",
+    title:"Kurka wodna",
+    english_title:"The Little Water Hen",
+    lines:[
+      {pl:"Kurka wodna, kurka wodna,",en:"The little water hen, the little water hen,"},
+      {pl:"gdzie ty mieszkasz?",en:"where do you live?"},
+      {pl:"Przy jeziorku, przy jeziorku,",en:"By the little lake, by the little lake,"},
+      {pl:"tam ja mieszkam.",en:"that is where I live."},
+    ],
+    vocab:[
+      {word:"kurka",meaning:"little hen (diminutive of kura)"},
+      {word:"wodna",meaning:"water (adj., feminine) — of the water"},
+      {word:"mieszkasz",meaning:"you live, you dwell"},
+      {word:"jeziorko",meaning:"little lake (diminutive of jezioro)"},
+      {word:"tam",meaning:"there"},
+    ],
+    grammar:[
+      {point:"Diminutive adjective: 'kurka'",note:"'Kura' (hen) → 'kurka' (little hen). The suffix '-ka' on feminine nouns creates a warm, affectionate diminutive. Water birds in Polish folk verse are almost always diminutivised."},
+      {point:"Question word 'gdzie'",note:"'Gdzie' means 'where'. It's an invariable interrogative adverb — it doesn't change form regardless of case or gender. 'Gdzie ty mieszkasz?' = Where do you live? The 'ty' (you) is optional but adds a conversational warmth."},
+      {point:"Locative 'przy jeziorku'",note:"'Przy' (by, near) takes the locative case. 'Jeziorko' → 'jeziorku'. This is a very common pattern: 'przy + locative' for physical proximity."},
+    ],
+    questions:[
+      {lineIndex:1,hint:"gdzie ty _____?",answer:"mieszkasz",choices:["mieszkasz","chodzisz","śpiewasz","latasz"]},
+      {lineIndex:0,hint:"_____ wodna, kurka wodna,",answer:"Kurka",choices:["Kurka","Kaczka","Gąska","Rybka"]},
+      {lineIndex:2,hint:"Przy _____, przy jeziorku,",answer:"jeziorku",choices:["jeziorku","rzece","stawie","morzu"]},
+      {lineIndex:3,hint:"tam ja _____.",answer:"mieszkam",choices:["mieszkam","pływam","śpiewam","latam"]},
+    ],
+  },
+  {
+    id:10, verified:false, emoji:"🌻", difficulty:"Easy",
+    title:"Słoneczko",
+    english_title:"Little Sun",
+    lines:[
+      {pl:"Świeć, słoneczko, świeć,",en:"Shine, little sun, shine,"},
+      {pl:"nie kryj się za chmurę,",en:"don't hide behind the cloud,"},
+      {pl:"bo się dzieci boją",en:"because the children are afraid"},
+      {pl:"złej pogody szarej.",en:"of the grey bad weather."},
+    ],
+    vocab:[
+      {word:"świeć",meaning:"shine! (imperative of świecić)"},
+      {word:"słoneczko",meaning:"little sun (diminutive of słońce)"},
+      {word:"kryj się",meaning:"hide yourself (imperative)"},
+      {word:"chmura",meaning:"cloud"},
+      {word:"dzieci",meaning:"children"},
+      {word:"boją się",meaning:"are afraid"},
+      {word:"pogoda",meaning:"weather"},
+      {word:"szary",meaning:"grey"},
+    ],
+    grammar:[
+      {point:"Negative imperative: 'nie kryj się'",note:"To negate an imperative in Polish, simply put 'nie' before it. 'Kryj się' (hide yourself) → 'nie kryj się' (don't hide yourself). The reflexive 'się' stays in place."},
+      {point:"'Bo' — causal conjunction",note:"'Bo' means 'because' in everyday speech — slightly less formal than 'ponieważ'. It's extremely common in spoken Polish and children's verse. 'Bo się dzieci boją' = because the children are afraid."},
+      {point:"Genitive after 'bać się'",note:"'Boją się złej pogody' — 'złej pogody' is genitive. Fear verbs take the genitive case in Polish. 'Zła pogoda' (bad weather, nominative) → 'złej pogody' (genitive after boją się)."},
+    ],
+    questions:[
+      {lineIndex:0,hint:"Świeć, _____, świeć,",answer:"słoneczko",choices:["słoneczko","gwiazdeczko","księżycu","wiatrze"]},
+      {lineIndex:1,hint:"nie kryj się za _____,",answer:"chmurę",choices:["chmurę","górę","drzewo","dom"]},
+      {lineIndex:2,hint:"bo się dzieci _____",answer:"boją",choices:["boją","śmieją","cieszą","bawią"]},
+      {lineIndex:3,hint:"złej _____ szarej.",answer:"pogody",choices:["pogody","zimy","nocy","burzy"]},
+    ],
+  },
+  {
+    id:11, verified:false, emoji:"🐇", difficulty:"Medium",
+    title:"Zajączek",
+    english_title:"The Little Hare",
+    lines:[
+      {pl:"Biały zajączek po polu skakał,",en:"A white little hare hopped across the field,"},
+      {pl:"łapki miał małe i uszka duże,",en:"it had little paws and big ears,"},
+      {pl:"gdy go zobaczył, ogon podkulił,",en:"when it was spotted, it tucked its tail,"},
+      {pl:"i skoczył w krzaki i w leśne głusze.",en:"and leapt into the bushes and forest depths."},
+    ],
+    vocab:[
+      {word:"zajączek",meaning:"little hare (diminutive of zając)"},
+      {word:"skakał",meaning:"was hopping, hopped (imperfective past)"},
+      {word:"łapki",meaning:"little paws (diminutive of łapy)"},
+      {word:"uszka",meaning:"little ears (diminutive of uszy)"},
+      {word:"podkulił",meaning:"tucked under, pulled in"},
+      {word:"krzaki",meaning:"bushes, shrubs"},
+      {word:"głusza",meaning:"depths, wilderness (poetic)"},
+    ],
+    grammar:[
+      {point:"Past tense: 'skakał'",note:"'Skakał' is the masculine singular imperfective past of 'skakać' (to hop). Imperfective past describes ongoing or repeated action. The masculine ending is '-ł'; feminine would be '-ła' (skakała)."},
+      {point:"Double diminutive: 'łapki', 'uszka'",note:"Both 'łapki' (little paws) and 'uszka' (little ears) are diminutives. 'Uszka' is particularly interesting — 'ucho' (ear) is neuter, so its diminutive takes '-ka' in plural. Diminutives make the hare feel small and endearing."},
+      {point:"Perfective vs imperfective past",note:"'Skakał' (was hopping — ongoing) vs 'podkulił' and 'skoczył' (tucked, leapt — completed actions). This contrast of aspect is central to Polish. The hare was hopping along (ongoing) when it suddenly tucked and leapt (two completed actions)."},
+    ],
+    questions:[
+      {lineIndex:0,hint:"Biały zajączek po polu _____,",answer:"skakał",choices:["skakał","biegał","latał","pływał"]},
+      {lineIndex:1,hint:"łapki miał małe i _____ duże,",answer:"uszka",choices:["uszka","oczka","ogon","nóżki"]},
+      {lineIndex:2,hint:"gdy go zobaczył, ogon _____,",answer:"podkulił",choices:["podkulił","podniósł","schował","zmrużył"]},
+      {lineIndex:3,hint:"i skoczył w _____ i w leśne głusze.",answer:"krzaki",choices:["krzaki","trawę","wodę","śnieg"]},
+    ],
+  },
+  {
+    id:12, verified:false, emoji:"🌊", difficulty:"Medium",
+    title:"Morze",
+    english_title:"The Sea",
+    lines:[
+      {pl:"Szumi morze, szumi morze,",en:"The sea murmurs, the sea murmurs,"},
+      {pl:"fale biją w brzeg,",en:"waves beat against the shore,"},
+      {pl:"rybak łódkę swoją kołysze",en:"a fisherman rocks his little boat"},
+      {pl:"jadąc w daleki brzeg.",en:"sailing to a distant shore."},
+    ],
+    vocab:[
+      {word:"szumi",meaning:"murmurs, roars, hums"},
+      {word:"morze",meaning:"sea"},
+      {word:"fale",meaning:"waves"},
+      {word:"biją",meaning:"beat, strike"},
+      {word:"brzeg",meaning:"shore, bank, edge"},
+      {word:"rybak",meaning:"fisherman"},
+      {word:"łódka",meaning:"little boat (diminutive of łódź)"},
+      {word:"kołysze",meaning:"rocks, sways, lulls"},
+    ],
+    grammar:[
+      {point:"Onomatopoeic verb: 'szumi'",note:"'Szumieć' is a verb that mimics the sound of the sea, wind, or forest — a sustained hum or roar. Polish is rich in such sound verbs: 'szeleści' (rustles), 'bulgocze' (gurgles), 'pluszcze' (splashes). They give verse a vivid sonic quality."},
+      {point:"Accusative: 'w brzeg'",note:"'Biją w brzeg' — the waves beat into/against the shore. 'W' with the accusative expresses direction or target. 'Brzeg' (shore, masculine) stays unchanged in accusative. Compare 'na brzegu' (locative — on the shore, static)."},
+      {point:"Possessive pronoun: 'swoją'",note:"'Łódkę swoją' = his own little boat. 'Swój/swoja/swoje' is a reflexive possessive pronoun referring back to the subject. It's preferred over 'jego' (his) when the possessor is the sentence subject."},
+    ],
+    questions:[
+      {lineIndex:0,hint:"Szumi _____, szumi morze,",answer:"morze",choices:["morze","rzeka","jezioro","potok"]},
+      {lineIndex:1,hint:"fale biją w _____,",answer:"brzeg",choices:["brzeg","kamień","skałę","piasek"]},
+      {lineIndex:2,hint:"rybak _____ swoją kołysze",answer:"łódkę",choices:["łódkę","sieć","wiosło","rybę"]},
+      {lineIndex:3,hint:"jadąc w daleki _____.",answer:"brzeg",choices:["brzeg","las","kraj","port"]},
+    ],
+  },
+  {
+    id:13, verified:false, emoji:"❄️", difficulty:"Hard",
+    title:"Zima",
+    english_title:"Winter",
+    lines:[
+      {pl:"Pada śnieg, pada śnieg,",en:"Snow is falling, snow is falling,"},
+      {pl:"bielą się pola,",en:"the fields are turning white,"},
+      {pl:"dzieci lepią bałwana",en:"the children are making a snowman"},
+      {pl:"pośród śnieżnego boru.",en:"amid the snowy forest."},
+    ],
+    vocab:[
+      {word:"śnieg",meaning:"snow"},
+      {word:"bielą się",meaning:"are whitening, turning white"},
+      {word:"pola",meaning:"fields (plural of pole)"},
+      {word:"lepią",meaning:"are making/moulding (pressing together)"},
+      {word:"bałwan",meaning:"snowman (also: fool, blockhead)"},
+      {word:"pośród",meaning:"amid, in the middle of"},
+      {word:"śnieżny",meaning:"snowy, snow-covered"},
+      {word:"bór",meaning:"pine forest (poetic/archaic)"},
+    ],
+    grammar:[
+      {point:"Reflexive for passive meaning: 'bielą się'",note:"'Bielą się pola' = the fields are whitening/turning white. The reflexive '-się' construction is used in Polish to express a spontaneous or passive process. The fields aren't being whitened by someone — they are whitening of themselves."},
+      {point:"Double meaning: 'bałwan'",note:"'Bałwan' means snowman in modern Polish but also means blockhead or fool (and historically: idol/false god). The dual meaning has long been a source of wordplay. Context always makes the meaning clear."},
+      {point:"Poetic genitive: 'pośród boru'",note:"'Pośród' (amid, in the midst of) takes the genitive case. 'Bór' (genitive: 'boru') means a dense pine or conifer forest — a more poetic/archaic word than 'las' (everyday forest). Its use here elevates the tone."},
+    ],
+    questions:[
+      {lineIndex:1,hint:"bielą się _____,",answer:"pola",choices:["pola","góry","drzewa","drogi"]},
+      {lineIndex:0,hint:"Pada _____, pada śnieg,",answer:"śnieg",choices:["śnieg","deszcz","grad","lód"]},
+      {lineIndex:2,hint:"dzieci lepią _____",answer:"bałwana",choices:["bałwana","zamek","kulę","domek"]},
+      {lineIndex:3,hint:"pośród śnieżnego _____.",answer:"boru",choices:["boru","lasu","ogrodu","parku"]},
+    ],
+  },
+  {
+    id:14, verified:false, emoji:"🐦", difficulty:"Medium",
+    title:"Wróbelek",
+    english_title:"The Little Sparrow",
+    lines:[
+      {pl:"Mały wróbelek na dachu siedzi,",en:"A little sparrow sits on the roof,"},
+      {pl:"deszczyk pada i ptaszek się biedzi,",en:"the rain falls and the little bird struggles,"},
+      {pl:"gdzie się schronić, gdzie znaleźć ciepło?",en:"where to take shelter, where to find warmth?"},
+      {pl:"Pod strzechą słomianą, gdzie sucho i piękło.",en:"Under the thatched roof, where it is dry and warm."},
+    ],
+    vocab:[
+      {word:"wróbelek",meaning:"tiny sparrow (double diminutive of wróbel)"},
+      {word:"dach",meaning:"roof"},
+      {word:"deszczyk",meaning:"little rain, drizzle (diminutive of deszcz)"},
+      {word:"biedzi się",meaning:"struggles, has a hard time"},
+      {word:"schronić się",meaning:"to take shelter, find refuge"},
+      {word:"strzecha",meaning:"thatched roof (archaic/poetic)"},
+      {word:"słomiany",meaning:"made of straw, thatched"},
+      {word:"sucho",meaning:"dry (adverb)"},
+    ],
+    grammar:[
+      {point:"Double diminutive: 'wróbelek'",note:"'Wróbel' (sparrow) → 'wróbelek' (tiny sparrow). The suffix '-ek' is added to the already diminutive form, creating a double diminutive conveying great smallness and affection. Common in children's verse."},
+      {point:"Infinitives as questions",note:"'Gdzie się schronić? Gdzie znaleźć ciepło?' — infinitives used as rhetorical questions. This is a Polish rhetorical device: using bare infinitives to express a dilemma or longing, without specifying a subject."},
+      {point:"Instrumental of material: 'słomianą'",note:"'Pod strzechą słomianą' = under the straw/thatched roof. 'Słomiany' (adjective from 'słoma', straw) agrees with 'strzecha' (feminine). The instrumental case is used after 'pod' (under) when indicating a static position below something."},
+    ],
+    questions:[
+      {lineIndex:0,hint:"Mały wróbelek na _____ siedzi,",answer:"dachu",choices:["dachu","drzewie","gałęzi","płocie"]},
+      {lineIndex:1,hint:"_____ pada i ptaszek się biedzi,",answer:"deszczyk",choices:["deszczyk","śnieg","grad","wiatr"]},
+      {lineIndex:2,hint:"gdzie się _____, gdzie znaleźć ciepło?",answer:"schronić",choices:["schronić","schować","ukryć","położyć"]},
+      {lineIndex:3,hint:"Pod strzechą _____, gdzie sucho i piękło.",answer:"słomianą",choices:["słomianą","drewnianą","kamienną","zieloną"]},
+    ],
+  },
+  {
+    id:15, verified:false, emoji:"🍄", difficulty:"Hard",
+    title:"Grzybobranie",
+    english_title:"Mushroom Picking",
+    lines:[
+      {pl:"Do lasu, do lasu na grzyby idziemy,",en:"To the forest, to the forest for mushrooms we go,"},
+      {pl:"koszyczki wiklinowe ze sobą niesiemy,",en:"we carry wicker baskets with us,"},
+      {pl:"borowik i rydz, i kurka leśna,",en:"the porcini and saffron milk cap and chanterelle,"},
+      {pl:"jesień w Polsce jest grzybowa i piękna.",en:"autumn in Poland is full of mushrooms and beautiful."},
+    ],
+    vocab:[
+      {word:"grzybobranie",meaning:"mushroom picking (grzyb + branie)"},
+      {word:"koszyczek",meaning:"little basket (diminutive of kosz)"},
+      {word:"wiklinowy",meaning:"wicker, made of willow"},
+      {word:"borowik",meaning:"porcini mushroom (Boletus edulis)"},
+      {word:"rydz",meaning:"saffron milk cap mushroom"},
+      {word:"kurka",meaning:"chanterelle mushroom (also: little hen!)"},
+      {word:"jesień",meaning:"autumn"},
+      {word:"grzybowy",meaning:"mushroomy, full of mushrooms"},
+    ],
+    grammar:[
+      {point:"Compound noun: 'grzybobranie'",note:"'Grzybobranie' = 'grzyb' (mushroom) + 'branie' (taking/picking). Polish often creates compound nouns this way. Other examples: 'wieczorowanie' (evening gathering), 'sianokosie' (hay cutting). The activity defines itself by its two components."},
+      {point:"Instrumental 'ze sobą'",note:"'Ze sobą niesiemy' = we carry with us. 'Sobą' is the instrumental of the reflexive pronoun 'się/siebie', used with 'z/ze' to mean 'with oneself/with us'. A very common phrase in Polish."},
+      {point:"Listing without conjunctions",note:"'Borowik i rydz, i kurka leśna' — Polish can use 'i…i…' (and…and…) for emphasis when listing, giving each item equal weight. This is more emphatic than just commas and conveys the abundance of the forest."},
+    ],
+    questions:[
+      {lineIndex:0,hint:"Do lasu, do lasu na _____ idziemy,",answer:"grzyby",choices:["grzyby","jagody","orzechy","maliny"]},
+      {lineIndex:1,hint:"koszyczki _____ ze sobą niesiemy,",answer:"wiklinowe",choices:["wiklinowe","plastikowe","drewniane","papierowe"]},
+      {lineIndex:2,hint:"borowik i rydz, i _____ leśna,",answer:"kurka",choices:["kurka","rybka","żabka","mrówka"]},
+      {lineIndex:3,hint:"jesień w Polsce jest grzybowa i _____.",answer:"piękna",choices:["piękna","długa","krótka","smutna"]},
+    ],
+  },
+  {
+    id:16, verified:false, emoji:"🎠", difficulty:"Hard",
+    title:"Karuzela",
+    english_title:"The Merry-Go-Round",
+    lines:[
+      {pl:"Kręci się, kręci karuzela,",en:"The merry-go-round spins and spins,"},
+      {pl:"dzieci się śmieją, muzyka gra,",en:"the children laugh, the music plays,"},
+      {pl:"koniki drewniane w górę i w dół,",en:"the wooden horses up and down,"},
+      {pl:"każde dziecko na swoim jedzie kole.",en:"every child rides on its own circle."},
+    ],
+    vocab:[
+      {word:"karuzela",meaning:"merry-go-round, carousel"},
+      {word:"kręci się",meaning:"spins, rotates, turns"},
+      {word:"śmieją się",meaning:"laugh, are laughing"},
+      {word:"muzyka",meaning:"music"},
+      {word:"konik",meaning:"little horse (diminutive of koń)"},
+      {word:"drewniany",meaning:"wooden, made of wood"},
+      {word:"w górę i w dół",meaning:"up and down"},
+      {word:"koło",meaning:"circle, wheel"},
+    ],
+    grammar:[
+      {point:"Reflexive verb: 'kręci się'",note:"'Kręcić się' = to spin, to rotate. The reflexive '-się' marks this as an intransitive action — the carousel spins itself, not being spun by someone. Many movement verbs in Polish have both transitive (kręcić coś — to spin something) and reflexive intransitive forms."},
+      {point:"Asyndeton: 'dzieci się śmieją, muzyka gra'",note:"Two clauses joined without a conjunction — this is asyndeton. In Polish verse it creates a fast, energetic rhythm, mimicking the busy, joyful noise of a carousel. The lack of 'i' (and) makes it feel simultaneous and lively."},
+      {point:"Locative 'na kole'",note:"'Na swoim kole' = on its/their own circle/wheel. 'Koło' → 'kole' (locative). 'Na' with locative indicates a static position on top of or on a surface. 'Swój' (own) agrees with the subject and means the child's own horse/spot."},
+    ],
+    questions:[
+      {lineIndex:0,hint:"Kręci się, kręci _____,",answer:"karuzela",choices:["karuzela","huśtawka","wiatraczek","zabawka"]},
+      {lineIndex:1,hint:"dzieci się śmieją, _____ gra,",answer:"muzyka",choices:["muzyka","dzwonek","bębenek","trąbka"]},
+      {lineIndex:2,hint:"koniki _____ w górę i w dół,",answer:"drewniane",choices:["drewniane","plastikowe","żelazne","złote"]},
+      {lineIndex:3,hint:"każde dziecko na swoim jedzie _____.",answer:"kole",choices:["kole","koniu","miejscu","wozie"]},
+    ],
+  },
     ],
   },
 ];
 
+const JOKE_CAT_LABELS = {
+  jasiu: "🎒 Jasiu",
+  baba_do_lekarza: "🩺 Baba do lekarza",
+  gorale: "⛰️ Górale",
+  prl_political: "☭ PRL"
+};
+
 const sayings = [
   {
-    id:1,
+    id:100, verified:true,
+    pl:"Mądry Polak po szkodzie.",
+    en:"A Pole [is] wise after the damage/loss.",
+    meaning:"People only work out how to avoid a misfortune once it has already happened.",
+    explanation:"Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+    theme:"Hindsight",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'.",
+      "Things prosper when the owner personally keeps an eye on them. Rooted in manorial farm life: livestock thrives when the master himself supervises rather than leaving everything to hired hands. Used to argue that personal oversight beats hands-off delegation. Closest English: 'the master's eye makes the horse fat' / 'if you want a thing done well, do it yourself'."
+    ],
+  },
+  {
+    id:101, verified:true,
+    pl:"Gość w dom, Bóg w dom.",
+    en:"A guest into the house, God into the house.",
+    meaning:"A guest should be welcomed and honoured as though God himself had entered.",
+    explanation:"Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+    theme:"Hospitality",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'.",
+      "Things prosper when the owner personally keeps an eye on them. Rooted in manorial farm life: livestock thrives when the master himself supervises rather than leaving everything to hired hands. Used to argue that personal oversight beats hands-off delegation. Closest English: 'the master's eye makes the horse fat' / 'if you want a thing done well, do it yourself'."
+    ],
+  },
+  {
+    id:102, verified:true,
+    pl:"Wyjdzie szydło z worka.",
+    en:"The awl will come out of the sack.",
+    meaning:"A hidden truth or secret will eventually reveal itself.",
+    explanation:"A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'.",
+    theme:"Truth",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "Things prosper when the owner personally keeps an eye on them. Rooted in manorial farm life: livestock thrives when the master himself supervises rather than leaving everything to hired hands. Used to argue that personal oversight beats hands-off delegation. Closest English: 'the master's eye makes the horse fat' / 'if you want a thing done well, do it yourself'."
+    ],
+  },
+  {
+    id:103, verified:true,
+    pl:"Pańskie oko konia tuczy.",
+    en:"The master's eye fattens the horse.",
+    meaning:"Things prosper when the owner personally keeps an eye on them.",
+    explanation:"Rooted in manorial farm life: livestock thrives when the master himself supervises rather than leaving everything to hired hands. Used to argue that personal oversight beats hands-off delegation. Closest English: 'the master's eye makes the horse fat' / 'if you want a thing done well, do it yourself'.",
+    theme:"Diligence / Oversight",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:104, verified:true,
+    pl:"Co kraj, to obyczaj.",
+    en:"What country, that custom.",
+    meaning:"Every country (or region) has its own customs, which one should respect.",
+    explanation:"Invoked to explain or accept that practices differ from place to place, and that travellers should adapt rather than judge. Overlaps with 'when in Rome…' but has a long-standing fixed Polish form. Closest English: 'when in Rome, do as the Romans do' / 'different strokes for different folks'.",
+    theme:"Custom",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:105, verified:true,
+    pl:"Cudze chwalicie, swego nie znacie.",
+    en:"You praise what is foreign, you don't know your own.",
+    meaning:"People admire foreign things while overlooking the worth of their own.",
+    explanation:"A gentle reproach against prizing the exotic over the home-grown; the full couplet continues 'Sami nie wiecie, co posiadacie' ('you yourselves don't know what you possess'). Originates in the early-19th-c. verse of Stanisław Jachowicz and is now fully proverbial. Closest English: 'the grass is always greener on the other side'.",
+    theme:"Patriotism / Appreciation",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:106, verified:true,
+    pl:"Gdzie kucharek sześć, tam nie ma co jeść.",
+    en:"Where there are six [female] cooks, there's nothing to eat.",
+    meaning:"When too many people take charge of one task, it gets botched.",
+    explanation:"Distinctly Polish in its rhyming shape and its specifically female cooks ('kucharki'). Used when overlapping responsibility produces chaos or nothing gets finished. Closest English: 'too many cooks spoil the broth'.",
+    theme:"Cooperation",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:107, verified:true,
+    pl:"Bez pracy nie ma kołaczy.",
+    en:"Without work there are no kołacze [festive cakes].",
+    meaning:"You can't get rewards without effort.",
+    explanation:"Distinctly Polish thanks to the 'kołacz' — a traditional wedding/festive cake — standing in for 'the good things in life'. A staple lesson aimed at children and the idle alike. Closest English: 'no pain, no gain' / 'no bees, no honey; no work, no money'.",
+    theme:"Work / Reward",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:108, verified:true,
+    pl:"Szlachcic na zagrodzie równy wojewodzie.",
+    en:"A nobleman on his [small] farmstead [is] equal to the voivode.",
+    meaning:"Even the poorest gentleman has the same noble status and dignity as the greatest magnate.",
+    explanation:"A motto of the old Polish 'szlachta' ethos of legal equality among all nobles, however rich or poor — a cornerstone of the Nobles' Democracy of the Polish-Lithuanian Commonwealth. Today used to say that rank or wealth doesn't make one person inherently better than another. Distinctly Polish; no neat English equivalent.",
+    theme:"Equality / Dignity",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:109, verified:true,
+    pl:"Nie od razu Kraków zbudowano.",
+    en:"Kraków was not built at once.",
+    meaning:"Great things take time — be patient.",
+    explanation:"The Polish counterpart of 'Rome wasn't built in a day', using the historic royal capital Kraków instead of Rome. Said to reassure someone that worthwhile achievements need time and persistence. Closest English: 'Rome wasn't built in a day'.",
+    theme:"Patience",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:110, verified:true,
+    pl:"Polak, Węgier, dwa bratanki, i do szabli, i do szklanki.",
+    en:"A Pole, a Hungarian — two cousins, both for the sabre and for the glass.",
+    meaning:"Poles and Hungarians are natural friends, alike in both fighting and feasting.",
+    explanation:"Celebrates the centuries-old Polish–Hungarian friendship; 'bratanki' means close kin. Both nations take pride in valour in war ('szabla') and conviviality in drink ('szklanka'). No English equivalent.",
+    theme:"Friendship / Nations",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:111, verified:true,
+    pl:"Co ma wisieć, nie utonie.",
+    en:"What is to hang will not drown.",
+    meaning:"If something is fated, it will happen — you can't escape your destiny.",
+    explanation:"A fatalistic saying: a person destined to die one way won't perish another. Said with grim humour about inevitable outcomes or lucky escapes. Closest English: 'he that's born to be hanged shall never be drowned' / 'what's meant to be will be'.",
+    theme:"Fate",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"polish_form_of_shared",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:112, verified:true,
+    pl:"Jak trwoga, to do Boga.",
+    en:"When [there's] fear, then to God.",
+    meaning:"People turn to God only when frightened or in trouble.",
+    explanation:"A slightly cynical observation about fair-weather faith — people ignore God until danger strikes, then suddenly pray. The rhyme 'trwoga/Boga' makes it memorable. Closest English: 'there are no atheists in foxholes' / 'danger past, God forgotten'.",
+    theme:"Faith / Human nature",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:113, verified:true,
+    pl:"Czym chata bogata, tym (gościom) rada.",
+    en:"With whatever the cottage is rich, with that [it] gladly [serves its guests].",
+    meaning:"A host offers guests whatever they have, however humble.",
+    explanation:"A hospitality formula said when welcoming visitors to a modest table — 'we'll gladly share what little we've got'. Pairs naturally with 'Gość w dom, Bóg w dom'. Closest English: 'you're welcome to what we have' / 'pot luck'.",
+    theme:"Hospitality",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:114, verified:true,
+    pl:"Wolnoć Tomku w swoim domku.",
+    en:"[It's] freedom for you, Tom, in your own little house.",
+    meaning:"In your own home you may do as you please.",
+    explanation:"A folk saying immortalised by Fredro's fable 'Paweł i Gaweł', where a selfish neighbour justifies his racket this way — until it's turned back on him ('jak ty komu, tak on tobie'). Used, often ironically, to assert one's right to do as one likes at home. Closest English: 'an Englishman's home is his castle' / 'my house, my rules'.",
+    theme:"Property / Autonomy",
+    source_url:"https://wsjp.pl/haslo/podglad/48134/wolnoc-tomku-w-swoim-domku",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:115, verified:true,
+    pl:"Co wolno wojewodzie, to nie tobie, smrodzie.",
+    en:"What's allowed to the voivode is not [allowed] to you, [you] stinker.",
+    meaning:"The powerful get away with things ordinary people can't.",
+    explanation:"A rhyming Polish version of the Latin 'Quod licet Iovi, non licet bovi' — a sarcastic complaint about double standards and privilege; the crude 'smrodzie' gives it bite. Closest English: 'one rule for the rich, another for the poor'.",
+    theme:"Privilege / Double standards",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:116, verified:true,
+    pl:"Każdy sobie rzepkę skrobie.",
+    en:"Everyone scrapes their own little turnip.",
+    meaning:"Everyone looks after their own interests.",
+    explanation:"A homely image — each person peeling their own turnip instead of helping others — for self-interest and every-man-for-himself behaviour, usually said with mild disapproval of a lack of solidarity. Closest English: 'every man for himself' / 'I'm all right, Jack'.",
+    theme:"Self-interest",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:117, verified:true,
+    pl:"Baba z wozu, koniom lżej.",
+    en:"[With] the woman off the cart, [it's] lighter for the horses.",
+    meaning:"Good riddance — when a troublesome person leaves, things get easier for everyone.",
+    explanation:"A blunt, slightly rude saying: once the burdensome person (or thing) is gone, everyone else gets on more easily. Said with relief when an awkward person quits or a problem departs. Closest English: 'good riddance' / 'no great loss'.",
+    theme:"Relief / Good riddance",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:118, verified:true,
+    pl:"Nie miała baba kłopotu, [to] kupiła sobie prosię.",
+    en:"The woman had no trouble, [so] she bought herself a piglet.",
+    meaning:"Someone needlessly takes on a problem they didn't have to.",
+    explanation:"A wry comment on self-inflicted hassle — everything was fine until you went and created a new burden for yourself. Said when someone volunteers for unnecessary trouble. Closest English: 'asking for trouble' / 'why make a rod for your own back?'",
+    theme:"Self-inflicted trouble",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"distinctly_polish",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:119, verified:true,
+    pl:"Tonący brzytwy się chwyta.",
+    en:"A drowning man clutches at a razor.",
+    meaning:"In desperation, people grasp at anything, even something dangerous or hopeless.",
+    explanation:"Where English says 'clutches at a straw', Polish says 'razor' — sharpening the desperation, since a razor would cut the hand. Said of someone trying any last, futile remedy. Closest English: 'a drowning man clutches at straws'.",
+    theme:"Desperation",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"polish_form_of_shared",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:120, verified:true,
+    pl:"Nie chwal dnia przed zachodem słońca.",
+    en:"Don't praise the day before sunset.",
+    meaning:"Don't celebrate or judge an outcome before it's truly finished.",
+    explanation:"Warns against premature triumph — much can still go wrong before the day is out. Closest English: 'don't count your chickens before they hatch'.",
+    theme:"Caution",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"polish_form_of_shared",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:121, verified:true,
+    pl:"Kto pod kim dołki kopie, ten sam w nie wpada.",
+    en:"He who digs pits under someone falls into them himself.",
+    meaning:"Those who scheme to harm others often bring harm on themselves.",
+    explanation:"A moral warning that malice rebounds on its author; it has a Biblical ring and exists across Europe, but the Polish wording is fixed and common. Closest English: 'he who digs a pit for others falls into it' / 'what goes around comes around'.",
+    theme:"Karma",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"polish_form_of_shared",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:122, verified:true,
+    pl:"Niedaleko pada jabłko od jabłoni.",
+    en:"The apple doesn't fall far from the apple tree.",
+    meaning:"Children resemble their parents (often in their faults).",
+    explanation:"A pan-European proverb with a standard Polish form, said when someone clearly takes after a parent. Closest English: 'the apple doesn't fall far from the tree' / 'like father, like son'.",
+    theme:"Family / Heredity",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"polish_form_of_shared",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:123, verified:true,
+    pl:"Kruk krukowi oka nie wykole.",
+    en:"A raven won't peck out another raven's eye.",
+    meaning:"People of the same kind — especially rogues — won't harm one another.",
+    explanation:"Said of solidarity among those of one trade or clique who protect their own, often with a cynical edge about officials or crooks. Closest English: 'there's honour among thieves' / 'dog doesn't eat dog'.",
+    theme:"Loyalty / Complicity",
+    source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
+    origin_class:"polish_form_of_shared",
+    wrongChoices:[
+      "People only work out how to avoid a misfortune once it has already happened. Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+      "A guest should be welcomed and honoured as though God himself had entered. Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+      "A hidden truth or secret will eventually reveal itself. A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'."
+    ],
+  },
+  {
+    id:1, verified:false,
     pl:"Bez pracy nie ma kołaczy.",
     en:"Without work there are no rolls.",
     meaning:"Nothing comes for free — you have to earn what you want.",
@@ -298,7 +1502,7 @@ const sayings = [
     ],
   },
   {
-    id:2,
+    id:2, verified:false,
     pl:"Co nagle, to po diable.",
     en:"What is done in haste is the devil's work.",
     meaning:"Rushing leads to poor results. Take your time.",
@@ -311,7 +1515,7 @@ const sayings = [
     ],
   },
   {
-    id:3,
+    id:3, verified:false,
     pl:"Nie ma tego złego, co by na dobre nie wyszło.",
     en:"There is no bad that does not turn out for good.",
     meaning:"Every cloud has a silver lining.",
@@ -324,7 +1528,7 @@ const sayings = [
     ],
   },
   {
-    id:4,
+    id:4, verified:false,
     pl:"Mądry Polak po szkodzie.",
     en:"A Pole is wise after the damage is done.",
     meaning:"People often learn only after making mistakes — hindsight wisdom.",
@@ -337,7 +1541,7 @@ const sayings = [
     ],
   },
   {
-    id:5,
+    id:5, verified:false,
     pl:"Kto pod kim dołki kopie, sam w nie wpada.",
     en:"Whoever digs a pit for another falls into it himself.",
     meaning:"Plotting against others tends to backfire on the plotter.",
@@ -350,7 +1554,7 @@ const sayings = [
     ],
   },
   {
-    id:6,
+    id:6, verified:false,
     pl:"Nie wszystko złoto, co się świeci.",
     en:"Not all that glitters is gold.",
     meaning:"Appearances can be deceptive — things are not always as good as they look.",
@@ -363,7 +1567,7 @@ const sayings = [
     ],
   },
   {
-    id:7,
+    id:7, verified:false,
     pl:"Jak sobie pościelesz, tak się wyśpisz.",
     en:"As you make your bed, so you will sleep in it.",
     meaning:"You live with the consequences of your own choices and actions.",
@@ -376,7 +1580,7 @@ const sayings = [
     ],
   },
   {
-    id:8,
+    id:8, verified:false,
     pl:"Lepszy wróbel w garści niż gołąb na dachu.",
     en:"Better a sparrow in the hand than a pigeon on the roof.",
     meaning:"A certain small gain is worth more than a large but uncertain one.",
@@ -389,7 +1593,7 @@ const sayings = [
     ],
   },
   {
-    id:9,
+    id:9, verified:false,
     pl:"Cudze chwalicie, swego nie znacie.",
     en:"You praise what is foreign, you do not know your own.",
     meaning:"People idealise foreign things while overlooking the value of what they have at home.",
@@ -402,7 +1606,7 @@ const sayings = [
     ],
   },
   {
-    id:10,
+    id:10, verified:false,
     pl:"Gdzie kucharek sześć, tam nie ma co jeść.",
     en:"Where there are six cooks, there is nothing to eat.",
     meaning:"Too many people in charge leads to chaos and nothing getting done.",
@@ -413,6 +1617,632 @@ const sayings = [
       "Whoever rushes their work delivers it to the devil.",
       "Plotting against others ultimately harms the plotter most.",
     ],
+  },
+  {
+    id:11, verified:false,
+    pl:"Lepiej późno niż wcale.",
+    en:"Better late than never.",
+    meaning:"Doing something late is still better than not doing it at all.",
+    explanation:"One of the most universal proverbs. 'Wcale' is a strong Polish negation meaning 'at all'. Used to encourage someone who has delayed starting something.",
+    theme:"Perseverance",
+    wrongChoices:[
+      "Too many cooks in the kitchen means nothing gets cooked.",
+      "Plotting against others tends to catch the plotter instead.",
+      "A Pole only becomes wise after the damage is done.",
+    ],
+  },
+  {
+    id:12, verified:false,
+    pl:"Cicha woda brzegi rwie.",
+    en:"Still water tears at the banks.",
+    meaning:"Quiet, calm people can be the most determined and dangerous.",
+    explanation:"'Cicha' = quiet/still; 'woda' = water; 'brzegi rwie' = tears at the banks. Like a slow river that erodes its banks, quiet people can achieve — or cause — more than loud ones.",
+    theme:"Character",
+    wrongChoices:[
+      "Better to act late than to never act at all.",
+      "Hard work is always rewarded — laziness is not.",
+      "What glitters on the surface may not be gold underneath.",
+    ],
+  },
+  {
+    id:13, verified:false,
+    pl:"Nie chwali się rzemieślnik, lecz jego dzieło.",
+    en:"It is not the craftsman who praises himself, but his work.",
+    meaning:"Let your work speak for itself — self-praise means little.",
+    explanation:"'Rzemieślnik' = craftsman, artisan; 'dzieło' = work, creation. A caution against boasting. The quality of what you produce is the only honest advertisement.",
+    theme:"Humility",
+    wrongChoices:[
+      "Still waters run deep — the quiet ones achieve the most.",
+      "Whoever digs a pit for another ends up in it himself.",
+      "Foreigners' ways always seem more attractive than your own.",
+    ],
+  },
+  {
+    id:14, verified:false,
+    pl:"Apetyt rośnie w miarę jedzenia.",
+    en:"Appetite grows with eating.",
+    meaning:"The more you have, the more you want — desire grows as it is satisfied.",
+    explanation:"'Apetyt rośnie' = appetite grows; 'w miarę jedzenia' = as one eats. Originally about food, now used broadly about greed, ambition, or any growing desire. Similar to 'the more you get, the more you want'.",
+    theme:"Desire",
+    wrongChoices:[
+      "Better late than never — even a delayed action beats inaction.",
+      "It is the work itself, not the boasting, that earns respect.",
+      "A calm exterior often conceals the greatest inner force.",
+    ],
+  },
+  {
+    id:15, verified:false,
+    pl:"Kto rano wstaje, temu Pan Bóg daje.",
+    en:"God gives to those who rise early.",
+    meaning:"Early risers are rewarded — hard work and early starts bring success.",
+    explanation:"'Rano wstaje' = rises early; 'Pan Bóg daje' = God gives/grants. Poland's equivalent of 'the early bird catches the worm', but invoking God as the giver of rewards to the industrious.",
+    theme:"Diligence",
+    wrongChoices:[
+      "Appetite only grows bigger the more it is satisfied.",
+      "It is not the craftsman but his finished work that speaks.",
+      "Still water slowly and silently tears apart the riverbanks.",
+    ],
+  },
+];
+
+const jokes = [
+  {
+    id:100, verified:true,
+    type:"narrative",
+    category:"jasiu",
+    setup:"Mama widzi brudne ręce Jasia: — Z takimi brudnymi rękami nie możesz iść do szkoły!",
+    punchline:"— Dobrze, mamo. Jeśli tak się upierasz, to zostanę w domu.",
+    literal_setup:"Mum sees Jaś's dirty hands: \"With hands that dirty you can't go to school!\"",
+    literal_punchline:"\"All right, Mum. If you insist, I'll stay home.\"",
+    explanation:"Jasiu deliberately (mis)reads a scolding as permission to skip school — feigned obedience to dodge class.",
+    source_url:"https://anegdoty.pl/dowcipy-o-jasiu-w-szkole/",
+    vocab:[
+      {word:"brudne ręce",meaning:"dirty hands"},
+      {word:"upierać się",meaning:"to insist (reflexive)"},
+      {word:"zostanę w domu",meaning:"I'll stay home (perf. future of 'zostać')"}
+    ],
+  },
+  {
+    id:101, verified:true,
+    type:"pun",
+    category:"jasiu",
+    setup:"Ksiądz na religii: — Arabowie mogą mieć kilka żon — to poligamia. Chrześcijanie mają jedną żonę. A to się nazywa… mono… mono…",
+    punchline:"Jasio woła: — Monotonia!",
+    literal_setup:"Priest at RE class: \"Arabs may have several wives — that's polygamy. Christians have one wife. And that's called… mono… mono…\"",
+    literal_punchline:"Jaś calls out: \"Monotony!\"",
+    explanation:"The priest is prompting for 'monogamia' (monogamy); Jasiu blurts 'monotonia' (monotony), cheekily implying one wife is dull. Pun on the shared 'mono-' prefix.",
+    source_url:"https://karykatury.com/dowcipy-o-jasiu/",
+    vocab:[
+      {word:"poligamia",meaning:"polygamy"},
+      {word:"monogamia",meaning:"monogamy"},
+      {word:"monotonia",meaning:"monotony"},
+      {word:"ksiądz",meaning:"priest"},
+      {word:"żona",meaning:"wife"}
+    ],
+  },
+  {
+    id:102, verified:true,
+    type:"narrative",
+    category:"jasiu",
+    setup:"Nauczycielka: — Mieliście zrobić dwa dobre uczynki. Jasiu? — W sobotę pojechałem do babci i babcia bardzo się ucieszyła.",
+    punchline:"— A w niedzielę wyjechałem od babci i babcia jeszcze bardziej się ucieszyła!",
+    literal_setup:"Teacher: \"You were to do two good deeds. Jaś?\" \"On Saturday I went to Grandma's and Grandma was very glad.\"",
+    literal_punchline:"\"And on Sunday I left Grandma's, and Grandma was even gladder!\"",
+    explanation:"The second 'good deed' is simply leaving — Grandma's greater joy at his departure reveals what a handful he is. He's oblivious to the implication.",
+    source_url:"https://www.gizd.pl/jasiu_w_szkole.php",
+    vocab:[
+      {word:"dobry uczynek",meaning:"good deed"},
+      {word:"ucieszyć się",meaning:"to be glad (perf.)"},
+      {word:"pojechać / wyjechać",meaning:"to go (by vehicle) / to leave"},
+      {word:"babcia",meaning:"grandma"}
+    ],
+  },
+  {
+    id:103, verified:true,
+    type:"narrative",
+    category:"jasiu",
+    setup:"Pani pyta dzieci, kim chcą zostać. Jasio: — Ja będę Świętym Mikołajem. — A dlaczego?",
+    punchline:"— Bo będę pracować tylko jeden dzień w roku.",
+    literal_setup:"The teacher asks the children what they want to be. Jaś: \"I'll be Santa Claus.\" \"And why?\"",
+    literal_punchline:"\"Because I'll only work one day a year.\"",
+    explanation:"Jasiu picks a 'career' purely for its minimal workload — childish pragmatism puncturing an earnest classroom question.",
+    source_url:"https://www.gizd.pl/jasiu_w_szkole.php",
+    vocab:[
+      {word:"Święty Mikołaj",meaning:"St Nicholas / Santa"},
+      {word:"zostać",meaning:"to become"},
+      {word:"pracować",meaning:"to work"},
+      {word:"jeden dzień w roku",meaning:"one day a year"}
+    ],
+  },
+  {
+    id:104, verified:true,
+    type:"pun",
+    category:"jasiu",
+    setup:"Pani: — Zwierzątko na literę A. Jasio: — A może to karp? — Nie. Na literę B? — Być może to karp? — Jasiu, za drzwi! A na literę C?",
+    punchline:"Jasio zza drzwi: — Czyżby to był karp?",
+    literal_setup:"Teacher: \"An animal beginning with A.\" Jaś: \"A — maybe it's a carp?\" \"No. With B?\" \"B(e) — perhaps it's a carp?\" \"Jaś, out! And with C?\"",
+    literal_punchline:"Jaś from behind the door: \"C — could it be a carp?\"",
+    explanation:"Jasiu only knows one animal — 'karp' — and games the alphabet by prefacing each answer with a filler word starting with the required letter (A może, Być może, Czyżby), while the animal never changes. The wordplay is in the sentence-initial particles.",
+    source_url:"https://www.gizd.pl/jasiu_w_szkole.php",
+    vocab:[
+      {word:"zwierzątko",meaning:"little animal (dim.)"},
+      {word:"karp",meaning:"carp"},
+      {word:"a może",meaning:"and maybe"},
+      {word:"być może",meaning:"perhaps"},
+      {word:"czyżby",meaning:"could it be"},
+      {word:"za drzwi",meaning:"out (lit. 'behind the door')"}
+    ],
+  },
+  {
+    id:105, verified:true,
+    type:"narrative",
+    category:"jasiu",
+    setup:"Pani: — Jasiu, gdzie jest wieża Eiffla? — Ja nie brałem! Pani wzywa ojca: — Syn na pytanie, gdzie jest wieża Eiffla, mówi, że nie brał. — Ja też nie widziałem, żeby coś do domu wnosił. Pani idzie do dyrektora, a dyrektor:",
+    punchline:"— Co mi tu pani głowę zawraca?! Kupimy nową.",
+    literal_setup:"Teacher: \"Jaś, where is the Eiffel Tower?\" \"I didn't take it!\" The teacher summons the father: \"Your son, asked where the Eiffel Tower is, says he didn't take it.\" \"I never saw him bring anything home, either.\" The teacher goes to the headmaster, who says:",
+    literal_punchline:"\"Why are you bothering me with this?! We'll buy a new one.\"",
+    explanation:"A chain of escalating stupidity: nobody reads 'where is X?' as a geography question — all treat the tower as a stolen object — capped by the headmaster offering to 'buy a new one.'",
+    source_url:"https://www.gizd.pl/jasiu_w_szkole.php",
+    vocab:[
+      {word:"wieża",meaning:"tower"},
+      {word:"brać / wziąć",meaning:"to take"},
+      {word:"wnosić",meaning:"to carry in"},
+      {word:"zawracać głowę",meaning:"to pester / bother (idiom)"},
+      {word:"kupić",meaning:"to buy"}
+    ],
+  },
+  {
+    id:106, verified:true,
+    type:"narrative",
+    category:"jasiu",
+    setup:"Jasiu do taty: — Tatusiu, chyba muszę iść do okulisty! — Dlaczego?",
+    punchline:"— Bo od dawna nie widzę kieszonkowego, które miałeś mi dawać!",
+    literal_setup:"Jaś to his dad: \"Daddy, I think I need to see an optician!\" \"Why?\"",
+    literal_punchline:"\"Because for ages I haven't seen the pocket money you were supposed to give me!\"",
+    explanation:"'Not seeing' the pocket money is reframed as failing eyesight — a sly way of dunning dad for an unpaid allowance. Plays on literal vs figurative 'nie widzę' (I don't see).",
+    source_url:"https://promedia.pl/dowcipy,jasio,6",
+    vocab:[
+      {word:"okulista",meaning:"optician / eye doctor"},
+      {word:"kieszonkowe",meaning:"pocket money (noun)"},
+      {word:"od dawna",meaning:"for a long time"},
+      {word:"widzieć",meaning:"to see"}
+    ],
+  },
+  {
+    id:107, verified:true,
+    type:"narrative",
+    category:"baba_do_lekarza",
+    setup:"Przychodzi baba do lekarza: — Panie doktorze, mam zaniki pamięci. — Od kiedy?",
+    punchline:"— Co od kiedy?",
+    literal_setup:"A woman comes to the doctor: \"Doctor, I have memory loss.\" \"Since when?\"",
+    literal_punchline:"\"Since when what?\"",
+    explanation:"She forgets the question mid-sentence, instantly proving the very complaint she came in with. Tight situational irony.",
+    source_url:"https://pl.wikipedia.org/wiki/Przychodzi_baba_do_lekarza",
+    vocab:[
+      {word:"zaniki pamięci",meaning:"memory loss"},
+      {word:"skleroza",meaning:"(colloq.) forgetfulness"},
+      {word:"od kiedy",meaning:"since when"},
+      {word:"przychodzi baba do lekarza",meaning:"'a woman comes to the doctor' — the stock opening"}
+    ],
+  },
+  {
+    id:108, verified:true,
+    type:"narrative",
+    category:"baba_do_lekarza",
+    setup:"Przychodzi baba do lekarza, a lekarz:",
+    punchline:"— Niech pani już stąd wyjdzie, bo zaczynają o nas opowiadać dowcipy!",
+    literal_setup:"A woman comes to the doctor, and the doctor says:",
+    literal_punchline:"\"Please leave now — people are starting to tell jokes about us!\"",
+    explanation:"A self-aware, meta joke: the doctor knows he's trapped inside the endless 'baba do lekarza' series and begs to escape it. The humour depends on knowing the genre.",
+    source_url:"https://sadurski.com/przychodzi-baba-do-lekarza-dowcipy/",
+    vocab:[
+      {word:"niech pani wyjdzie",meaning:"please leave (polite imperative)"},
+      {word:"opowiadać dowcipy",meaning:"to tell jokes"},
+      {word:"o nas",meaning:"about us"}
+    ],
+  },
+  {
+    id:109, verified:true,
+    type:"narrative",
+    category:"baba_do_lekarza",
+    setup:"— Panie doktorze, gdy stoję, cały czas kręci mi się w głowie.",
+    punchline:"— Niech pani tak nie stoi, proszę usiąść.",
+    literal_setup:"\"Doctor, when I stand, my head keeps spinning.\"",
+    literal_punchline:"\"Then don't stand — please sit down.\"",
+    explanation:"The doctor offers a uselessly literal 'cure' — remove the trigger instead of treating the cause. Deadpan absurd logic.",
+    source_url:"https://sadurski.com/przychodzi-baba-do-lekarza-dowcipy/",
+    vocab:[
+      {word:"kręci mi się w głowie",meaning:"I feel dizzy (idiom, lit. 'it spins in my head')"},
+      {word:"stać",meaning:"to stand"},
+      {word:"usiąść",meaning:"to sit down (perf.)"}
+    ],
+  },
+  {
+    id:110, verified:true,
+    type:"pun",
+    category:"baba_do_lekarza",
+    setup:"Lekarz: — Niech pani codziennie rano wypija jedno jajko. — Ale ja nie znoszę jajek!",
+    punchline:"— A kto pani każe je znosić?",
+    literal_setup:"Doctor: \"Drink one raw egg every morning.\" \"But I can't stand eggs!\"",
+    literal_punchline:"\"And who's telling you to lay them?\"",
+    explanation:"A pun on 'znosić': 'nie znoszę' = 'I can't stand/bear' (dislike), but 'znosić jajka' literally means 'to lay eggs' (of a hen). The doctor deliberately takes the hen-meaning. Works only in Polish.",
+    source_url:"https://promedia.pl/dowcipy,baba,2",
+    vocab:[
+      {word:"znosić",meaning:"(1) to bear/stand/tolerate, (2) to lay (eggs)"},
+      {word:"nie znoszę",meaning:"I can't stand"},
+      {word:"kazać → każe",meaning:"to order/tell → (s)he tells"},
+      {word:"jajko",meaning:"egg"}
+    ],
+  },
+  {
+    id:111, verified:true,
+    type:"pun",
+    category:"baba_do_lekarza",
+    setup:"Przychodzi baba do lekarza, a lekarz biega dookoła biurka. — Co pan doktor robi?",
+    punchline:"— A jestem lekarz okręgowy!",
+    literal_setup:"A woman comes to the doctor, and the doctor is running around the desk. \"What are you doing, doctor?\"",
+    literal_punchline:"\"Well, I'm a district doctor!\"",
+    explanation:"A pun on 'okręgowy': 'lekarz okręgowy' is an official title ('district doctor'), but the root 'okrąg/okręg' means 'circle' — so he's literally running in circles. A morphological pun.",
+    source_url:"https://rozrywka.ox.pl/baba",
+    vocab:[
+      {word:"biegać",meaning:"to run"},
+      {word:"dookoła",meaning:"around"},
+      {word:"biurko",meaning:"desk"},
+      {word:"lekarz okręgowy",meaning:"district doctor"},
+      {word:"okrąg",meaning:"circle"}
+    ],
+  },
+  {
+    id:112, verified:true,
+    type:"narrative",
+    category:"baba_do_lekarza",
+    setup:"Lekarz: — Powinna pani jeść dużo owoców, najlepiej bez obierania. Baba dziękuje i zbiera się do wyjścia. — A tak a propos, jakie owoce jada pani najczęściej?",
+    punchline:"— Orzechy.",
+    literal_setup:"Doctor: \"You should eat lots of fruit, ideally without peeling it.\" The woman thanks him and gets ready to leave. \"By the way — what fruit do you eat most often?\"",
+    literal_punchline:"\"Nuts.\"",
+    explanation:"The advice 'don't peel your fruit' collides with her answer: nuts must be shelled. The mismatch quietly shows the advice is hopeless for her.",
+    source_url:"https://promedia.pl/dowcipy,baba,2",
+    vocab:[
+      {word:"owoce",meaning:"fruit"},
+      {word:"obierać",meaning:"to peel"},
+      {word:"jadać",meaning:"to eat (habitually; frequentative)"},
+      {word:"orzechy",meaning:"nuts"}
+    ],
+  },
+  {
+    id:113, verified:true,
+    type:"narrative",
+    category:"gorale",
+    setup:"Na łożu śmierci leży góral i szepcze do żony: — Daj mi kieliszek wódki, jakoś mi niedobrze…",
+    punchline:"— Tera sie nie pije, tera sie umiera!",
+    literal_setup:"A highlander lies on his deathbed and whispers to his wife: \"Give me a shot of vodka, I feel unwell…\"",
+    literal_punchline:"\"Now's not for drinking — now's for dying!\"",
+    explanation:"The wife's grim, businesslike priorities deflate the dying man's last request. Punchline is in gwara: 'tera' = 'teraz', 'sie' = 'się', impersonal 'sie pije / sie umiera'.",
+    source_url:"https://sadurski.com/dowcipy-o-goralach/",
+    vocab:[
+      {word:"łoże śmierci",meaning:"deathbed"},
+      {word:"kieliszek wódki",meaning:"a shot of vodka"},
+      {word:"niedobrze mi",meaning:"I feel unwell"},
+      {word:"tera (gwara) = teraz",meaning:"now"},
+      {word:"umierać",meaning:"to die"}
+    ],
+  },
+  {
+    id:114, verified:true,
+    type:"narrative",
+    category:"gorale",
+    setup:"Góral nie mógł wejść do ministra, więc krzyknął: — Jestem szwagrem Pana Boga! Wpuścili go. Potem minister pyta: — Baco, jak to możliwe, że jesteście szwagrem Pana Boga?",
+    punchline:"— Nooo… Były dwie siostry. Jedną, kiej pomarła, wziął Pan Bóg, a drugą — jo.",
+    literal_setup:"A highlander couldn't get in to see the minister, so he shouted: \"I'm God's brother-in-law!\" They let him in. Later the minister asks: \"Baca, how can you possibly be God's brother-in-law?\"",
+    literal_punchline:"\"Well… there were two sisters. One, when she died, God took; and the other — I did.\"",
+    explanation:"He claims kinship with God by deadpan logic: God 'took' one sister (in death), he 'took' (married) the other — so they're in-laws. Plays on 'wziąć' ('to take') meaning both marrying and dying.",
+    source_url:"https://sadurski.com/dowcipy-o-goralach/",
+    vocab:[
+      {word:"szwagier",meaning:"brother-in-law"},
+      {word:"minister",meaning:"minister"},
+      {word:"siostra",meaning:"sister"},
+      {word:"wziąć",meaning:"to take (marry / take away)"},
+      {word:"jo (gwara) = ja",meaning:"I"}
+    ],
+  },
+  {
+    id:115, verified:true,
+    type:"narrative",
+    category:"gorale",
+    setup:"Juhas pyta bacę, na czym stoi Ziemia. — Na trzech betonowych filarach. — A na czym stoją filary? — Na betonowej płycie. — A na czym stoi ta płyta?",
+    punchline:"— Oj juhasie, cosik mi się zdaje, żeś przyszedł nie po nauki, ino żeby dostać po pysku!",
+    literal_setup:"A shepherd boy asks the head shepherd what the Earth stands on. \"On three concrete pillars.\" \"And what do the pillars stand on?\" \"On a concrete slab.\" \"And what does the slab stand on?\"",
+    literal_punchline:"\"Oh lad, I'm starting to think you came not to learn, but to get a smack in the mouth!\"",
+    explanation:"The baca improvises an ever-deeper 'turtles all the way down' cosmology, then, cornered by the next 'and under that?', abandons reason for a threat. In gwara.",
+    source_url:"https://karykatury.com/dowcipy-o-goralach/",
+    vocab:[
+      {word:"juhas",meaning:"young shepherd"},
+      {word:"baca",meaning:"head shepherd"},
+      {word:"filar",meaning:"pillar"},
+      {word:"płyta",meaning:"slab"},
+      {word:"cosik (gwara) = coś",meaning:"something"},
+      {word:"po pysku",meaning:"a smack in the mouth (colloq.)"}
+    ],
+  },
+  {
+    id:116, verified:true,
+    type:"narrative",
+    category:"gorale",
+    setup:"Krupówkami idzie góral, a za nim pies. Policjant: — Baco, czemu prowadzicie psa bez smyczy? — To nie mój pies. — Jak to? Przecież idzie za wami.",
+    punchline:"— Ejże, on się tak samo do mnie przyczepił, jak i wy.",
+    literal_setup:"A highlander walks down Krupówki street, a dog behind him. Policeman: \"Baca, why are you walking a dog with no leash?\" \"It's not my dog.\" \"How so? It's following you.\"",
+    literal_punchline:"\"Eh, it latched onto me just the same as you did.\"",
+    explanation:"The góral wittily equates the nosy policeman with the stray — both 'attached themselves' to him uninvited. A sharp comeback puncturing officialdom.",
+    source_url:"https://karykatury.com/dowcipy-o-goralach/",
+    vocab:[
+      {word:"smycz",meaning:"leash"},
+      {word:"przyczepić się",meaning:"to latch onto / pester (reflexive)"},
+      {word:"tak samo… jak",meaning:"just as… as"},
+      {word:"ejże",meaning:"eh, come now (interjection)"},
+      {word:"Krupówki",meaning:"Zakopane's main street"}
+    ],
+  },
+  {
+    id:117, verified:true,
+    type:"narrative",
+    category:"gorale",
+    setup:"W kolejce na Kasprowy Wierch stary gazda kurczowo trzyma się uchwytów. Wczasowiczka: — Dlaczego tak mocno się trzymacie?",
+    punchline:"— Widzi pani, dwa dni temu też się mocno trzymołem, a podłoga odpadła — tylko jo zyje.",
+    literal_setup:"In the cable car up Kasprowy Wierch an old highlander clings tightly to the handholds. A holidaymaker: \"Why are you holding on so tight?\"",
+    literal_punchline:"\"You see, two days ago I held on tight too — and the floor fell out; only I survived.\"",
+    explanation:"His 'reassuring' explanation is terrifying: he survived a cable-car floor collapse precisely because he held on. Dark mountain humour; gwara: 'trzymołem' = 'trzymałem', 'jo' = 'ja', 'zyje' = 'żyję'.",
+    source_url:"https://perspektywy.pl/portal/index.php?option=com_content&view=article&id=1117",
+    vocab:[
+      {word:"kolejka (linowa)",meaning:"cable car"},
+      {word:"Kasprowy Wierch",meaning:"a Tatra peak"},
+      {word:"kurczowo się trzymać",meaning:"to cling tightly"},
+      {word:"uchwyt",meaning:"handhold"},
+      {word:"podłoga",meaning:"floor"},
+      {word:"odpaść",meaning:"to fall off"}
+    ],
+  },
+  {
+    id:118, verified:true,
+    type:"narrative",
+    category:"gorale",
+    setup:"Dwóch górali liczy, ilu ludzi jest w knajpie. Jeden wyrzuca gości, drugi liczy. Brzęk szkła: — Roz. Znów krzyk: — Dwa. Po chwili wylatujący ze środka woła:",
+    punchline:"— Teroz nie licz, bo to jo!",
+    literal_setup:"Two highlanders count how many people are in the pub: one throws guests out, the other counts. A crash of glass: \"One.\" Another shout: \"Two.\" After a moment the one flying out the door cries:",
+    literal_punchline:"\"Don't count now — it's me!\"",
+    explanation:"Their counting method (throwing people out one by one) backfires when the 'thrower' himself gets ejected and must disqualify his own exit from the tally. Slapstick logic; gwara: 'roz' = 'raz', 'teroz' = 'teraz', 'jo' = 'ja'.",
+    source_url:"https://dobryhumor.pl/dowcipy-o-goralach/",
+    vocab:[
+      {word:"knajpa",meaning:"pub / joint"},
+      {word:"wyrzucać",meaning:"to throw out"},
+      {word:"brzęk szkła",meaning:"clink / crash of glass"},
+      {word:"roz (gwara) = raz",meaning:"one / once"},
+      {word:"teroz (gwara) = teraz",meaning:"now"}
+    ],
+  },
+  {
+    id:119, verified:true,
+    type:"narrative",
+    category:"prl_political",
+    setup:"Słuchacz pyta Radio Erewań: — Czy to prawda, że w Moskwie na Placu Czerwonym rozdają mercedesy?",
+    punchline:"— Prawda, ale: nie w Moskwie, tylko w Leningradzie; nie mercedesy, tylko rowery; i nie rozdają, tylko kradną.",
+    literal_setup:"A listener asks Radio Yerevan: \"Is it true that on Red Square in Moscow they're giving away Mercedes cars?\"",
+    literal_punchline:"\"True, but: not in Moscow but in Leningrad; not Mercedes cars but bicycles; and not giving them away but stealing them.\"",
+    explanation:"The signature Radio Yerevan format — a rumour is 'confirmed', then dismantled clause by clause until the opposite is true. A parody of propaganda's slippery non-answers; also exposes everyday scarcity and theft.",
+    source_url:"https://pl.wikipedia.org/wiki/Radio_Erewa%C5%84",
+    vocab:[
+      {word:"Radio Erewań",meaning:"fictional Soviet-parody radio station"},
+      {word:"rozdawać",meaning:"to give away"},
+      {word:"kraść",meaning:"to steal"},
+      {word:"Plac Czerwony",meaning:"Red Square"},
+      {word:"rower",meaning:"bicycle"}
+    ],
+  },
+  {
+    id:120, verified:true,
+    type:"narrative",
+    category:"prl_political",
+    setup:"Radio Erewań podaje: Grupa komunistów chińskich zaatakowała pracujący w polu radziecki traktor.",
+    punchline:"Traktor odpowiedział celnym ogniem dział rakietowych, po czym odleciał w kierunku Moskwy.",
+    literal_setup:"Radio Yerevan reports: A group of Chinese communists attacked a Soviet tractor working in a field.",
+    literal_punchline:"The tractor returned accurate rocket fire and then flew off towards Moscow.",
+    explanation:"Mocks Soviet secrecy and militarisation — the 'tractor' is obviously a disguised weapon/aircraft — in a straight-faced news-report tone. Also nods to the Sino-Soviet split.",
+    source_url:"https://www.salon24.pl/u/salonowcy/1385147,ilekroc-wlaczam-tv-republika-przypominaja-mi-sie-dowcipy-polityczne-radia-erewan",
+    vocab:[
+      {word:"zaatakować",meaning:"to attack"},
+      {word:"radziecki",meaning:"Soviet"},
+      {word:"traktor",meaning:"tractor"},
+      {word:"celny ogień",meaning:"accurate fire"},
+      {word:"odlecieć",meaning:"to fly off"}
+    ],
+  },
+  {
+    id:121, verified:true,
+    type:"narrative",
+    category:"prl_political",
+    setup:"— Jaka jest różnica między Polską a USA? — Żadna. W USA jest 50 stanów…",
+    punchline:"…a w Polsce 49 województw i Związek Radziecki.",
+    literal_setup:"\"What's the difference between Poland and the USA?\" \"None. The USA has 50 states…\"",
+    literal_punchline:"\"…and Poland has 49 provinces and the Soviet Union.\"",
+    explanation:"A bitter jab at Poland's lack of real sovereignty: the USSR is treated as just another 'province' running the country. References the 49-województwo administrative division (1975–1998).",
+    source_url:"https://karykatury.com/prl-dowcipy/",
+    vocab:[
+      {word:"różnica",meaning:"difference"},
+      {word:"województwo",meaning:"province / voivodeship"},
+      {word:"Związek Radziecki",meaning:"the Soviet Union"},
+      {word:"stan",meaning:"state"}
+    ],
+  },
+  {
+    id:122, verified:true,
+    type:"narrative",
+    category:"prl_political",
+    setup:"— Zabrakło wieprzowiny. Dlaczego?",
+    punchline:"— Bo wszystkie świnie siedzą w rządzie.",
+    literal_setup:"\"There's no pork. Why?\"",
+    literal_punchline:"\"Because all the pigs are sitting in the government.\"",
+    explanation:"A double meaning of 'świnie' (pigs / scoundrels): the meat shortage is 'explained' by the pigs having moved into government. A documented variant: 'Are all pigs in the Party? No, but all Party members are pigs.'",
+    source_url:"https://mediateka.muzhp.pl/kawaly-polityczne-w-prl-dlaczego-wladza-sie-ich-bala",
+    vocab:[
+      {word:"wieprzowina",meaning:"pork"},
+      {word:"zabrakło",meaning:"ran out (impersonal past of 'zabraknąć')"},
+      {word:"świnia",meaning:"pig (also 'swine/scoundrel')"},
+      {word:"rząd",meaning:"government"}
+    ],
+  },
+  {
+    id:123, verified:true,
+    type:"narrative",
+    category:"prl_political",
+    setup:"— Czym jest demokracja ludowa?",
+    punchline:"— Ma tyle wspólnego z demokracją, co krzesło elektryczne z krzesłem.",
+    literal_setup:"\"What is people's democracy?\"",
+    literal_punchline:"\"It has as much in common with democracy as an electric chair has with a chair.\"",
+    explanation:"Skewers the official label 'People's Democracy': the qualifier turns the noun into its sinister opposite, just as 'electric' does to 'chair'. (Cf. the acronym joke PRL = 'Prywatne Rancho Leonida' — 'Leonid Brezhnev's Private Ranch'.)",
+    source_url:"https://cojak.net.pl/humor.htm",
+    vocab:[
+      {word:"demokracja ludowa",meaning:"people's democracy (official term)"},
+      {word:"krzesło",meaning:"chair"},
+      {word:"krzesło elektryczne",meaning:"electric chair"},
+      {word:"mieć wspólnego",meaning:"to have in common"}
+    ],
+  },
+  {
+    id:124, verified:true,
+    type:"narrative",
+    category:"prl_political",
+    setup:"Pytają ministra: — Jak układają się wasze stosunki handlowe z ZSRR? — Doskonale.",
+    punchline:"— My im dajemy mięso, a oni za to biorą od nas zboże.",
+    literal_setup:"The minister is asked: \"How are your trade relations with the USSR?\" \"Excellent.\"",
+    literal_punchline:"\"We give them meat, and in exchange they take grain from us.\"",
+    explanation:"'Trade' that's really one-way plunder: Poland both gives meat AND has grain taken — no reciprocity at all, despite the cheery 'excellent.' Mocks the exploitative relationship dressed up as partnership.",
+    source_url:"https://bezwalizki.com/radio-erewan/",
+    vocab:[
+      {word:"stosunki handlowe",meaning:"trade relations"},
+      {word:"ZSRR",meaning:"USSR"},
+      {word:"dawać",meaning:"to give"},
+      {word:"brać",meaning:"to take"},
+      {word:"zboże",meaning:"grain"}
+    ],
+  },
+  {
+    id:1, verified:false,
+    type:"pun",
+    setup:"Dlaczego ryba nie lubi komputera?",
+    punchline:"Bo boi się internetu! (sieci)",
+    literal_setup:"Why doesn't the fish like computers?",
+    literal_punchline:"Because it's afraid of the internet! (net/network)",
+    explanation:"This is a pun on 'sieć' which means both 'net' (a fishing net) and 'network/internet'. The fish fears the net — which could be a fishing net or the internet. Classic Polish wordplay.",
+    vocab:[{word:"ryba",meaning:"fish"},{word:"sieć",meaning:"net / network / internet"},{word:"bać się",meaning:"to be afraid of"},{word:"internet",meaning:"internet"}],
+  },
+  {
+    id:2, verified:false,
+    type:"narrative",
+    setup:"Przychodzi baba do lekarza i mówi: Panie doktorze, mój mąż myśli, że jest lodówką.",
+    punchline:"Lekarz odpowiada: To niegroźne. A ona: Ale on śpi z otwartymi ustami i przez całą noc świeci mi w twarz!",
+    literal_setup:"A woman comes to the doctor and says: Doctor, my husband thinks he's a refrigerator.",
+    literal_punchline:"The doctor replies: That's not serious. And she says: But he sleeps with his mouth open and shines a light in my face all night!",
+    explanation:"The joke plays on the classic image of a fridge light switching on when the door opens. The husband 'thinks he's a fridge' so the light shines out of his open mouth. 'Przychodzi baba do lekarza' is a classic Polish joke-opener formula.",
+    vocab:[{word:"lekarz",meaning:"doctor"},{word:"lodówka",meaning:"refrigerator, fridge"},{word:"świeci",meaning:"shines, gives light"},{word:"niegroźne",meaning:"not dangerous, harmless"}],
+  },
+  {
+    id:3, verified:false,
+    type:"pun",
+    setup:"Dlaczego matematycy lubią parki?",
+    punchline:"Bo jest tam dużo drzew-nowych! (drewnianych / drzew nowych)",
+    literal_setup:"Why do mathematicians like parks?",
+    literal_punchline:"Because there are lots of new trees there! (wooden / new trees)",
+    explanation:"A pun on 'drewniany' (wooden) sounding like 'drzewo nowe' (new tree). Also a nod to the word 'drzewo' containing 'trzy' (three — a number). Stretched wordplay typical of Polish groaner puns.",
+    vocab:[{word:"matematyk",meaning:"mathematician"},{word:"park",meaning:"park"},{word:"drzewo",meaning:"tree"},{word:"drewniany",meaning:"wooden"}],
+  },
+  {
+    id:4, verified:false,
+    type:"narrative",
+    setup:"Nauczyciel pyta ucznia: Jasiu, ile to jest dwa plus dwa?",
+    punchline:"Jasiu odpowiada: Cztery. Nauczyciel: Bardzo dobrze! A Jasiu na to: Bardzo dobrze? Albo jest cztery, albo nie jest!",
+    literal_setup:"The teacher asks the pupil: Little Jasiu, what is two plus two?",
+    literal_punchline:"Jasiu answers: Four. Teacher: Very good! And Jasiu replies: Very good? Either it's four or it isn't!",
+    explanation:"'Jasiu' is the diminutive of 'Jan' (John) — the archetypal Polish schoolboy name in jokes, like 'Little Johnny' in English. The joke mocks the idea of praising an objective fact. Jasiu's logic is impeccable.",
+    vocab:[{word:"nauczyciel",meaning:"teacher"},{word:"uczeń",meaning:"pupil, student"},{word:"Jasiu",meaning:"little Jan / Johnny (diminutive)"}],
+  },
+  {
+    id:5, verified:false,
+    type:"pun",
+    setup:"Co mówi dach do ściany?",
+    punchline:"Spotkamy się na rogu!",
+    literal_setup:"What does the roof say to the wall?",
+    literal_punchline:"We'll meet at the corner!",
+    explanation:"'Róg' in Polish means both 'corner' (of a building or street) and 'horn' (of an animal). A building's roof meets the wall at a corner — and they could equally 'meet on the horn'. Simple, clean, satisfying.",
+    vocab:[{word:"dach",meaning:"roof"},{word:"ściana",meaning:"wall"},{word:"róg",meaning:"corner / horn"},{word:"spotkamy się",meaning:"we will meet"}],
+  },
+  {
+    id:6, verified:false,
+    type:"narrative",
+    setup:"Mama mówi do syna: Idź umyj ręce przed obiadem! Syn: Ale mamo, ja nie jestem głodny.",
+    punchline:"Mama: Nieważne, czy jesteś głodny. Idź umyć ręce! Syn: To po co mam myć ręce, skoro nie będę jeść?",
+    literal_setup:"Mum says to her son: Go wash your hands before dinner! Son: But Mum, I'm not hungry.",
+    literal_punchline:"Mum: It doesn't matter if you're hungry. Go wash your hands! Son: Then why should I wash my hands if I'm not going to eat?",
+    explanation:"A classic example of a child's impeccable but infuriating logic. The son's reasoning is technically correct. 'Nieważne' (doesn't matter) is a very common Polish parent phrase. The joke is recognisable across cultures.",
+    vocab:[{word:"umyć ręce",meaning:"to wash one's hands"},{word:"obiad",meaning:"dinner, main meal"},{word:"głodny",meaning:"hungry"},{word:"nieważne",meaning:"doesn't matter, unimportant"}],
+  },
+  {
+    id:7, verified:false,
+    type:"pun",
+    setup:"Dlaczego szkielet nie poszedł na imprezę?",
+    punchline:"Bo nie miał ciała na to!",
+    literal_setup:"Why didn't the skeleton go to the party?",
+    literal_punchline:"Because it had no body for it! / Because it didn't feel like it!",
+    explanation:"A pun on 'nie miał ciała na to' — literally 'had no body for it' (a skeleton has no flesh/body) and idiomatically 'didn't feel up to it / had no heart for it'. 'Ciało' means body/flesh.",
+    vocab:[{word:"szkielet",meaning:"skeleton"},{word:"impreza",meaning:"party"},{word:"ciało",meaning:"body, flesh"},{word:"nie mieć ciała na coś",meaning:"not to feel up to something (idiom)"}],
+  },
+  {
+    id:8, verified:false,
+    type:"narrative",
+    setup:"Przychodzi Jasiu do szkoły z papugą na ramieniu. Nauczyciel pyta: Skąd masz tę papugę?",
+    punchline:"Papuga odpowiada: Wygrałem go w loterii! Ptaków jest w Polsce pełno!",
+    literal_setup:"Little Jasiu comes to school with a parrot on his shoulder. The teacher asks: Where did you get that parrot?",
+    literal_punchline:"The parrot answers: I won him in a lottery! There are plenty of birds in Poland!",
+    explanation:"The joke subverts expectations — we expect Jasiu to answer, but the parrot speaks for itself. 'Pełno ptaków' (plenty of birds) is a phrase the parrot uses to boast. The reversal of who speaks is the core surprise.",
+    vocab:[{word:"papuga",meaning:"parrot"},{word:"ramię",meaning:"shoulder, arm"},{word:"wygram",meaning:"I win"},{word:"loteria",meaning:"lottery"}],
+  },
+  {
+    id:9, verified:false,
+    type:"pun",
+    setup:"Co mówi jeden ocean do drugiego?",
+    punchline:"Nic. Tylko pomachał.",
+    literal_setup:"What does one ocean say to another?",
+    literal_punchline:"Nothing. It just waved.",
+    explanation:"'Pomachał' means 'waved (goodbye)' but an ocean also produces waves ('fale'). This is actually a Polish version of the English ocean/wave joke — it translates perfectly because 'machać' (to wave a hand) works alongside the concept of waves.",
+    vocab:[{word:"ocean",meaning:"ocean"},{word:"pomachał",meaning:"waved (with hand)"},{word:"fala",meaning:"wave (of water)"},{word:"nic",meaning:"nothing"}],
+  },
+  {
+    id:10, verified:false,
+    type:"narrative",
+    setup:"Lekarz mówi do pacjenta: Ma pan tylko trzy minuty życia. Pacjent: To proszę zagotować mi jajko na twardo!",
+    punchline:"Lekarz: Ale po co? Pacjent: Bo nigdy nie ugotowało się porządnie w trzy minuty!",
+    literal_setup:"The doctor says to the patient: You have only three minutes to live. The patient says: Then please hard-boil me an egg!",
+    literal_punchline:"Doctor: But why? Patient: Because it never properly boiled in three minutes!",
+    explanation:"Dark humour with a domestic twist. The patient's dying wish is to complain about a badly boiled egg. 'Jajko na twardo' = hard-boiled egg. 'Ugotowało się' = it cooked/boiled (reflexive). The absurdity lies in the mundaneness of the final concern.",
+    vocab:[{word:"pacjent",meaning:"patient"},{word:"jajko na twardo",meaning:"hard-boiled egg"},{word:"zagotować",meaning:"to boil"},{word:"porządnie",meaning:"properly, decently"}],
+  },
+  {
+    id:11, verified:false,
+    type:"pun",
+    setup:"Dlaczego żaby są takie szczęśliwe?",
+    punchline:"Bo jedzą co im ślina przyniesie!",
+    literal_setup:"Why are frogs so happy?",
+    literal_punchline:"Because they eat whatever their saliva brings!",
+    explanation:"A pun on the Polish idiom 'jeść co ślina przyniesie' which means 'to eat whatever comes your way / to eat randomly'. But frogs literally eat with their tongues — so their saliva (sticky tongue) really does bring them food. The idiom becomes literal.",
+    vocab:[{word:"żaba",meaning:"frog"},{word:"szczęśliwy",meaning:"happy"},{word:"ślina",meaning:"saliva, spit"},{word:"jeść co ślina przyniesie",meaning:"to eat whatever comes (idiom)"}],
+  },
+  {
+    id:12, verified:false,
+    type:"narrative",
+    setup:"Tata pyta syna: Synku, dlaczego dostałeś jedynkę z matematyki?",
+    punchline:"Syn odpowiada: Nauczyciel zapytał, ile to jest siedem razy osiem, a ja powiedziałem pięćdziesiąt cztery. Tata: Ale to jest pięćdziesiąt sześć! Syn: No widzisz — o dwa się pomyliłem, a dostałem jedynkę!",
+    literal_setup:"Dad asks his son: Son, why did you get a one (fail) in maths?",
+    literal_punchline:"Son answers: The teacher asked what seven times eight was, and I said fifty-four. Dad: But that's fifty-six! Son: See — I was only off by two, and I got a one!",
+    explanation:"In Poland, school grades run from 1 (lowest/fail) to 6 (highest). Getting a 1 (jedynka) is the worst possible grade. The son's complaint — only off by two! — is the core absurdity. '7×8=56' is also a classic mistake.",
+    vocab:[{word:"jedynka",meaning:"grade 1 (fail) in Polish school system"},{word:"matematyka",meaning:"mathematics"},{word:"pomylić się",meaning:"to make a mistake, to be wrong"},{word:"nauczyciel",meaning:"teacher"}],
   },
 ];
 
@@ -433,12 +2263,427 @@ const LS = {
 // HELPERS
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Mini-dictionary of common Polish words that recur across the rhymes.
+// Used as a fallback when a tapped word isn't in the rhyme's vocab list.
+// Entries are stems/lemmas — the lookup handles common inflections automatically.
+const MINI_DICT = {
+  // Pronouns
+  "ja": "I",
+  "ty": "you (singular informal)",
+  "on": "he",
+  "ona": "she",
+  "ono": "it",
+  "my": "we",
+  "wy": "you (plural)",
+  "oni": "they (masc.)",
+  "one": "they (fem./neut.)",
+  "to": "this/that/it",
+  "ten": "this/that (masc.)",
+  "ta": "this/that (fem.)",
+  "tej": "this/that (fem., genitive/dative/locative)",
+  "tę": "this/that (fem., accusative)",
+  "tym": "this/that (masc./neut., instrumental/locative)",
+  "się": "oneself (reflexive particle)",
+  "mnie": "me (accusative/genitive)",
+  "ciebie": "you (accusative/genitive, emphatic)",
+  "cię": "you (accusative/genitive, short form)",
+  "go": "him/it (accusative/genitive)",
+  "ją": "her (accusative)",
+  "jej": "her (genitive/dative)",
+  "nas": "us",
+  "wam": "to you (plural, dative)",
+  "ich": "them/their",
+  "im": "to them (dative)",
+  "swój": "one's own (reflexive possessive)",
+  "swoja": "one's own (fem.)",
+  "swoje": "one's own (neut./pl.)",
+  "swoim": "one's own (instrumental/locative)",
+  "mój": "my (masc.)",
+  "moja": "my (fem.)",
+  "moje": "my (neut./pl.)",
+  "twój": "your (singular, masc.)",
+  "nasz": "our (masc.)",
+  "wasz": "your (plural, masc.)",
+  // Question words
+  "kto": "who",
+  "co": "what",
+  "gdzie": "where",
+  "kiedy": "when",
+  "jak": "how / as / when (colloquial)",
+  "dlaczego": "why",
+  "ile": "how much/how many",
+  "który": "which",
+  "czyj": "whose",
+  // Prepositions
+  "w": "in / into",
+  "we": "in / into (before some consonants)",
+  "na": "on / onto / for",
+  "do": "to / into (+ genitive)",
+  "z": "with / from / out of",
+  "ze": "with / from (before some consonants)",
+  "od": "from / since (+ genitive)",
+  "po": "after / along / for (+ locative)",
+  "u": "at / at someone's place (+ genitive)",
+  "przy": "by / near (+ locative)",
+  "pod": "under (+ instrumental/accusative)",
+  "nad": "above / over (+ instrumental/accusative)",
+  "przed": "before / in front of (+ instrumental/accusative)",
+  "za": "behind / for (+ instrumental/accusative)",
+  "bez": "without (+ genitive)",
+  "dla": "for (+ genitive)",
+  "o": "about / at (+ locative/accusative)",
+  "według": "according to (+ genitive)",
+  "obok": "next to (+ genitive)",
+  "wokół": "around (+ genitive)",
+  "ponad": "above / over (+ instrumental)",
+  "pomiędzy": "between (+ instrumental)",
+  "między": "between (+ instrumental)",
+  "wśród": "among (+ genitive)",
+  "pośród": "amid (+ genitive)",
+  // Conjunctions & particles
+  "i": "and",
+  "a": "and / but / and so",
+  "ale": "but",
+  "lecz": "but / yet (literary)",
+  "albo": "or",
+  "lub": "or",
+  "czy": "whether / question particle",
+  "że": "that (conjunction)",
+  "bo": "because",
+  "ponieważ": "because (more formal)",
+  "więc": "so / therefore",
+  "też": "also / too",
+  "także": "also / as well",
+  "również": "also / as well",
+  "tylko": "only",
+  "już": "already / yet",
+  "jeszcze": "still / yet",
+  "teraz": "now",
+  "potem": "then / afterwards",
+  "wtedy": "then / at that time",
+  "zawsze": "always",
+  "nigdy": "never",
+  "czasem": "sometimes",
+  "często": "often",
+  "rzadko": "rarely",
+  "tu": "here",
+  "tutaj": "here",
+  "tam": "there",
+  "wszędzie": "everywhere",
+  "nigdzie": "nowhere",
+  "dobrze": "well / good",
+  "źle": "badly / wrong",
+  "tak": "yes / so",
+  "nie": "no / not",
+  "może": "maybe / can",
+  "chyba": "perhaps / I think",
+  "nawet": "even",
+  "jeśli": "if",
+  "gdyby": "if (hypothetical)",
+  "kiedy": "when",
+  "zanim": "before (conjunction)",
+  "aż": "until",
+  "raz": "once / one time",
+  "dwa": "two",
+  "trzy": "three",
+  "razem": "together",
+  "sam": "alone / by oneself",
+  "wszystko": "everything",
+  "wszyscy": "everyone (masc.)",
+  "nic": "nothing",
+  "nikt": "nobody",
+  // Common verbs (3rd-person sing. present mostly)
+  "jest": "is",
+  "są": "are",
+  "był": "was (masc.)",
+  "była": "was (fem.)",
+  "było": "was (neut.)",
+  "byli": "were (masc. personal)",
+  "były": "were (other)",
+  "będzie": "will be",
+  "będą": "will be (plural)",
+  "ma": "has",
+  "mają": "they have",
+  "miał": "had (masc.)",
+  "miała": "had (fem.)",
+  "chce": "wants",
+  "chcę": "I want",
+  "chcesz": "you want",
+  "musi": "must",
+  "muszę": "I must",
+  "może": "can / may / maybe",
+  "mogę": "I can",
+  "umie": "knows how to",
+  "wie": "knows",
+  "widzi": "sees",
+  "słyszy": "hears",
+  "mówi": "says / speaks",
+  "powiedział": "said (masc.)",
+  "powiedziała": "said (fem.)",
+  "idzie": "goes / walks",
+  "szedł": "went (masc.)",
+  "biegnie": "runs",
+  "leci": "flies",
+  "płynie": "flows / swims",
+  "siedzi": "sits",
+  "stoi": "stands",
+  "leży": "lies",
+  "śpi": "sleeps",
+  "je": "eats",
+  "pije": "drinks",
+  "robi": "does / makes",
+  "daje": "gives",
+  "bierze": "takes",
+  "patrzy": "looks / watches",
+  "myśli": "thinks",
+  "kocha": "loves",
+  "lubi": "likes",
+  // Basic adjectives
+  "duży": "big (masc.)",
+  "duża": "big (fem.)",
+  "mały": "small (masc.)",
+  "mała": "small (fem.)",
+  "stary": "old (masc.)",
+  "stara": "old (fem.)",
+  "młody": "young (masc.)",
+  "młoda": "young (fem.)",
+  "nowy": "new (masc.)",
+  "nowa": "new (fem.)",
+  "dobry": "good (masc.)",
+  "dobra": "good (fem.)",
+  "zły": "bad / wicked (masc.)",
+  "zła": "bad / wicked (fem.)",
+  "piękny": "beautiful (masc.)",
+  "piękna": "beautiful (fem.)",
+  "ładny": "pretty (masc.)",
+  "ładna": "pretty (fem.)",
+  "długi": "long (masc.)",
+  "długa": "long (fem.)",
+  "krótki": "short (masc.)",
+  "krótka": "short (fem.)",
+  "biały": "white (masc.)",
+  "biała": "white (fem.)",
+  "czarny": "black (masc.)",
+  "czarna": "black (fem.)",
+  "czerwony": "red (masc.)",
+  "zielony": "green (masc.)",
+  "żółty": "yellow (masc.)",
+  "niebieski": "blue (masc.)",
+  // Common nouns
+  "dom": "house / home",
+  "domu": "house (genitive/locative)",
+  "domek": "little house",
+  "dziecko": "child",
+  "dzieci": "children",
+  "mama": "mum",
+  "tata": "dad",
+  "ojciec": "father",
+  "matka": "mother",
+  "babcia": "grandma",
+  "dziadek": "grandpa",
+  "syn": "son",
+  "córka": "daughter",
+  "brat": "brother",
+  "siostra": "sister",
+  "pan": "Mr / sir / gentleman",
+  "pani": "Mrs / madam",
+  "chłopiec": "boy",
+  "dziewczynka": "girl",
+  "człowiek": "person / human",
+  "noc": "night",
+  "nocą": "at night (instrumental)",
+  "dzień": "day",
+  "dnia": "day (genitive)",
+  "rok": "year",
+  "godzina": "hour",
+  "ręka": "hand / arm",
+  "rączka": "little hand",
+  "noga": "leg / foot",
+  "oko": "eye",
+  "ucho": "ear",
+  "nos": "nose",
+  "głowa": "head",
+  "włos": "hair (single strand)",
+  "włosy": "hair (collectively)",
+};
+
+// Strip Polish-specific characters down to ASCII-ish for forgiving comparison
+const polishFold = (s) =>
+  s.toLowerCase()
+    .replace(/ą/g, "a").replace(/ć/g, "c").replace(/ę/g, "e")
+    .replace(/ł/g, "l").replace(/ń/g, "n").replace(/ó/g, "o")
+    .replace(/ś/g, "s").replace(/ź/g, "z").replace(/ż/g, "z");
+
+// Look up a tapped word, trying the rhyme's vocab first then the mini-dict
+// then trying to strip common Polish inflectional endings.
+function lookupWord(word, rhymeVocab) {
+  if (!word) return null;
+  const clean = word.trim().toLowerCase().replace(/[.,!?:;„""'()]/g, "");
+  if (!clean) return null;
+
+  // 1. Exact match in rhyme vocab
+  if (rhymeVocab) {
+    for (const v of rhymeVocab) {
+      const head = v.word.toLowerCase().replace(/[.,!?:;()]/g, "");
+      // The vocab "word" may be "word1 / word2" or "word1, word2" — split on those
+      const variants = head.split(/\s*[\/,]\s*/);
+      for (const variant of variants) {
+        if (variant === clean) return { source: "vocab", meaning: v.meaning };
+      }
+    }
+    // 2. Shared-prefix match in vocab (handles inflections like kotek → koteczku, niedźwiedź → niedźwiedzia)
+    // Require at least 3 shared chars (4 for longer words) and limit length divergence.
+    for (const v of rhymeVocab) {
+      const head = v.word.toLowerCase().replace(/[.,!?:;()]/g, "").split(/\s*[\/,]\s*/)[0];
+      if (head.length < 3 || clean.length < 3) continue;
+      const minLen = Math.min(head.length, clean.length);
+      // For 5+ char words, demand 4 shared chars; for 3-4 char words, 3 shared chars is enough
+      const requiredShared = minLen >= 6 ? 4 : 3;
+      const headPrefix = head.slice(0, requiredShared);
+      const cleanPrefix = clean.slice(0, requiredShared);
+      if (polishFold(headPrefix) === polishFold(cleanPrefix)
+          && Math.abs(head.length - clean.length) <= 5) {
+        return { source: "vocab-stem", meaning: v.meaning, related: v.word };
+      }
+    }
+  }
+
+  // 3. Mini-dictionary exact match
+  if (MINI_DICT[clean]) return { source: "dict", meaning: MINI_DICT[clean] };
+
+  // 4. Strip common endings and try again
+  // Polish noun/adj endings: -em, -om, -ami, -ach, -ie, -e, -y, -i, -a, -o, -u, -ą, -ę
+  // Verb endings: -ę, -em, -esz, -isz, -ymy, -ycie, -ą, -ł, -ła, -ło, -li, -ły
+  const endings = ["ami", "ach", "ów", "om", "em", "esz", "isz", "ymy", "ycie",
+                   "ie", "ę", "ą", "y", "i", "a", "e", "o", "u", "ł"];
+  for (const end of endings) {
+    if (clean.endsWith(end) && clean.length > end.length + 2) {
+      const stem = clean.slice(0, -end.length);
+      if (MINI_DICT[stem]) return { source: "dict-stem", meaning: MINI_DICT[stem], related: stem };
+      // Try with a final 'y' or 'a' added (common nominative forms)
+      for (const finalLetter of ["", "y", "a", "o", "i"]) {
+        if (MINI_DICT[stem + finalLetter])
+          return { source: "dict-stem", meaning: MINI_DICT[stem + finalLetter], related: stem + finalLetter };
+      }
+    }
+  }
+
+  return null;
+}
+
+// Component: a Polish line whose words are individually tappable.
+function ClickablePolish({ text, vocab, onWordTap }) {
+  // Split into tokens: words vs. punctuation/whitespace
+  // Polish-aware regex: \p{L} would be ideal but we'll list the chars
+  const tokens = text.split(/(\s+|[^\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+)/);
+  return (
+    <>
+      {tokens.map((tok, i) => {
+        if (/^[\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/.test(tok)) {
+          // It's a word — make it tappable
+          return (
+            <span key={i}
+              onClick={(e) => { e.stopPropagation(); onWordTap(tok, e); }}
+              style={s.clickableWord}>{tok}</span>
+          );
+        }
+        return <span key={i}>{tok}</span>;
+      })}
+    </>
+  );
+}
+
+// Floating tooltip showing the meaning of the currently selected word
+function WordTooltip({ data, anchorRect, onDismiss }) {
+  if (!data || !anchorRect) return null;
+  const top = anchorRect.bottom + window.scrollY + 6;
+  const left = Math.max(8, Math.min(window.innerWidth - 280, anchorRect.left + window.scrollX - 8));
+  return (
+    <>
+      <div style={s.tooltipBackdrop} onClick={onDismiss}/>
+      <div style={{...s.tooltipBox, top, left}}>
+        <div style={s.tooltipWord}>
+          {data.word}
+          <button onClick={(e) => { e.stopPropagation(); speak(data.word); }} style={s.tooltipSpeak}>🔊</button>
+        </div>
+        {data.result ? (
+          <>
+            <div style={s.tooltipMeaning}>{data.result.meaning}</div>
+            {data.result.related && (
+              <div style={s.tooltipRelated}>from <em>{data.result.related}</em></div>
+            )}
+          </>
+        ) : (
+          <div style={s.tooltipMeaningDim}>Not in dictionary. Try tapping a nearby key word.</div>
+        )}
+      </div>
+    </>
+  );
+}
+
 function speak(text) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = "pl-PL"; u.rate = 0.85;
-  window.speechSynthesis.speak(u);
+
+  // Split into chunks at major punctuation so the synthesizer pauses naturally.
+  const chunks = text
+    .split(/(?<=[.!?:;,—–\-])\s+|\n+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
+
+  // Pause durations (ms) per closing punctuation — generous to give learners thinking time
+  const pauseFor = (chunk) => {
+    const last = chunk.slice(-1);
+    if (".!?".includes(last)) return 1400;  // sentence end — long pause
+    if (":;".includes(last))  return 1000;  // semi-strong break
+    if ("—–-".includes(last)) return 850;   // dash
+    if (last === ",")         return 750;   // comma
+    return 600;                              // line break or other
+  };
+
+  // Strip dash characters that the synthesizer would otherwise read aloud
+  // (e.g. as "pauza" / "powser"). Em-dashes, en-dashes, and standalone hyphens
+  // used as pause markers are silent — we already encode the pause via setTimeout.
+  // We preserve hyphens INSIDE words (e.g. "biało-czerwona") by only stripping
+  // dashes that have whitespace or end-of-string adjacent to them.
+  const cleanForSpeech = (s) => {
+    return s
+      .replace(/\s*[—–]\s*/g, ' ')        // em/en dashes always silent
+      .replace(/\s+-\s+/g, ' ')           // ' - ' (hyphen with spaces) silent
+      .replace(/[—–]$/g, '')              // trailing em/en dash
+      .replace(/\s-$/g, '')               // trailing ' -'
+      .replace(/^[—–]\s*/g, '')           // leading em/en dash
+      .replace(/^-\s+/g, '')              // leading '- '
+      .replace(/\s+/g, ' ')               // collapse whitespace
+      .trim();
+  };
+
+  // Speak chunks sequentially with real silent gaps.
+  let i = 0;
+  const speakNext = () => {
+    if (i >= chunks.length) return;
+    const chunk = chunks[i++];
+    const spoken = cleanForSpeech(chunk);
+    if (!spoken) {
+      // Chunk was nothing but dashes/whitespace — just honour its pause and move on
+      if (i < chunks.length) setTimeout(speakNext, pauseFor(chunk));
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(spoken);
+    u.lang = "pl-PL";
+    u.rate = 0.8;
+    u.pitch = 1.0;
+    u.onend = () => {
+      if (i < chunks.length) {
+        setTimeout(speakNext, pauseFor(chunk));
+      }
+    };
+    u.onerror = () => {
+      if (i < chunks.length) setTimeout(speakNext, 200);
+    };
+    window.speechSynthesis.speak(u);
+  };
+  speakNext();
 }
 
 function useIsMobile() {
@@ -655,6 +2900,83 @@ function SayingsQuiz({ onExit }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// JOKES PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+
+function JokeCard({ joke }) {
+  const [revealed, setRevealed] = useState(false);
+  const typePill = joke.type === "pun"
+    ? {label:"😄 Pun", bg:"rgba(245,200,66,0.08)", color:"#c0a040", border:"#6a5a20"}
+    : {label:"📖 Story", bg:"rgba(80,160,200,0.08)", color:"#6090c0", border:"#304060"};
+  return (
+    <div style={{...s.jokeCard,...(revealed?s.jokeCardOpen:{})}}>
+      <div style={s.jokeTop}>
+        <span style={{...s.jokePill,background:typePill.bg,color:typePill.color,borderColor:typePill.border}}>{typePill.label}</span>
+        {joke.category && <span style={s.categoryPill}>{JOKE_CAT_LABELS[joke.category] || joke.category}</span>}
+        {joke.verified && joke.source_url && <a href={joke.source_url} target="_blank" rel="noopener noreferrer" style={s.verifiedBadge}>✓</a>}
+        <button onClick={()=>speak(joke.setup)} style={s.sayingSpeak} title="Listen to the setup">🔊</button>
+      </div>
+      <div style={s.jokeSetup}>{joke.setup}</div>
+      {!revealed && (
+        <button onClick={()=>{window.speechSynthesis && window.speechSynthesis.cancel(); setRevealed(true);}} style={s.jokeRevealBtn}>Show punchline ▼</button>
+      )}
+      {revealed && (
+        <>
+          <div style={s.jokePunchlineRow}>
+            <div style={{...s.jokePunchline,flex:1,marginBottom:0}}>{joke.punchline}</div>
+            <button onClick={()=>speak(joke.punchline)} style={s.punchlineSpeak} title="Listen to the punchline">🔊</button>
+          </div>
+          <div style={s.jokeDivider}/>
+          <div style={s.jokeTranslation}>
+            <div style={s.jokeTransLabel}>🇬🇧 Translation</div>
+            <div style={s.jokeTransSetup}>{joke.literal_setup}</div>
+            <div style={s.jokeTransPunch}>{joke.literal_punchline}</div>
+          </div>
+          <div style={s.jokeDivider}/>
+          <div style={s.jokeExplanation}>{joke.explanation}</div>
+          {joke.vocab && joke.vocab.length > 0 && (
+            <div style={s.jokeVocab}>
+              {joke.vocab.map((v,i)=>(
+                <span key={i} style={s.jokeVocabItem}>
+                  <strong>{v.word}</strong> — {v.meaning}
+                </span>
+              ))}
+            </div>
+          )}
+          <button onClick={()=>{window.speechSynthesis && window.speechSynthesis.cancel(); setRevealed(false);}} style={s.jokeHideBtn}>Hide ▲</button>
+        </>
+      )}
+    </div>
+  );
+}
+
+function JokesPanel({ isMobile }) {
+  const [filter, setFilter] = useState("All");
+  const displayed = filter === "All" ? jokes
+    : jokes.filter(j => j.type === (filter === "Puns" ? "pun" : "narrative"));
+  return (
+    <div style={isMobile?s.layoutMobile:s.layoutDesktop}>
+      <div style={s.main}>
+        <div style={{display:"flex",gap:8,marginBottom:16,alignItems:"center",flexWrap:"wrap"}}>
+          <p style={{...s.vocabIntro,margin:0,flex:1}}>Polish jokes (kawały) — tap to reveal the punchline.</p>
+          <div style={{display:"flex",gap:6}}>
+            {["All","Puns","Stories"].map(f=>(
+              <button key={f} onClick={()=>setFilter(f)}
+                style={{...s.filterBtn,...(filter===f?{borderColor:"#f5c842",color:"#f5c842",background:"rgba(245,200,66,0.08)"}:{})}}>
+                {f}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          {displayed.map(joke=><JokeCard key={joke.id} joke={joke}/>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // SAYINGS PANEL
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -714,6 +3036,11 @@ function SayingsPanel({ isMobile }) {
                   </div>
                   <div style={s.sayingMeta}>
                     <span style={s.sayingTheme}>{saying.theme}</span>
+                        {saying.verified && saying.source_url
+                          ? <a href={saying.source_url} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={s.verifiedBadge}>✓</a>
+                          : saying.verified === false
+                            ? <span style={s.unverifiedBadgeSm}>⚠</span>
+                            : null}
                     <button onClick={e=>{e.stopPropagation();speak(saying.pl);}} style={s.sayingSpeak}>🔊</button>
                     <button onClick={e=>{e.stopPropagation();toggleBookmark(saying.id);}}
                       style={{...s.sayingSpeak,color:starred?"#f5c842":"#6a5a3a",fontSize:17}}>
@@ -852,6 +3179,7 @@ function RhymesPanel({ isMobile }) {
   const [showBookmarked, setShowBookmarked] = useState(false);
   const [wrongLog, setWrongLog] = useState(()=>LS.get("wrongLog",{}));
   const [history, setHistory] = useState(()=>LS.get("history",[]));
+  const [wordTooltip, setWordTooltip] = useState(null);
 
   const rhyme = rhymes.find(r=>r.id===selectedId);
   const bookmarkedIds = bookmarks.rhymes || [];
@@ -876,7 +3204,15 @@ function RhymesPanel({ isMobile }) {
   const selectRhyme = useCallback((id)=>{
     setSelectedId(id); setTab("Rhyme");
     setShowTranslation(false); setQuizDone(false); setQuizKey(k=>k+1);
+    setWordTooltip(null);
   },[]);
+
+  const handleWordTap = useCallback((word, e) => {
+    const r = rhymes.find(x => x.id === selectedId);
+    const result = lookupWord(word, r?.vocab);
+    const anchorRect = e.currentTarget.getBoundingClientRect();
+    setWordTooltip({ word, result, anchorRect });
+  }, [selectedId]);
 
   const handleQuizComplete = (score,total)=>{
     setQuizScore(score); setQuizTotal(total); setQuizDone(true);
@@ -980,8 +3316,17 @@ function RhymesPanel({ isMobile }) {
                 <span style={{...s.diffPill,fontSize:11,color:DIFF_COLORS[rhyme.difficulty],borderColor:DIFF_COLORS[rhyme.difficulty]}}>
                   {rhyme.difficulty}
                 </span>
+                {rhyme.verified
+                  ? <a href={rhyme.source_url} target="_blank" rel="noopener noreferrer" style={s.verifiedBadge} title={"Verified Polish source: " + rhyme.source_url}>✓ Verified</a>
+                  : <span style={s.unverifiedBadge} title="Source not verified">⚠ Unverified</span>}
               </div>
               <p style={s.rhymeSubtitle}>{rhyme.english_title}</p>
+              {rhyme.verified && rhyme.author && (
+                <p style={s.attribution}>{rhyme.author}{rhyme.era ? " · " + rhyme.era : ""}</p>
+              )}
+              {rhyme.verified && rhyme.cultural_note && (
+                <p style={s.cultureNote}>{rhyme.cultural_note}</p>
+              )}
             </div>
             <div style={{display:"flex",gap:8,flexShrink:0,alignItems:"flex-start"}}>
               <button onClick={()=>toggleBookmark(selectedId)}
@@ -1030,7 +3375,9 @@ function RhymesPanel({ isMobile }) {
                   <div key={i} style={s.lineRow}>
                     <button onClick={()=>speak(line.pl)} style={s.miniSpeakBtn}>🔊</button>
                     <div style={s.lineText}>
-                      <span style={s.linePl}>{line.pl}</span>
+                      <span style={s.linePl}>
+                        <ClickablePolish text={line.pl} vocab={rhyme.vocab} onWordTap={handleWordTap}/>
+                      </span>
                       {showTranslation && <span style={s.lineEn}>{line.en}</span>}
                     </div>
                   </div>
@@ -1117,6 +3464,13 @@ function RhymesPanel({ isMobile }) {
           )}
         </main>
       </div>
+      {wordTooltip && (
+        <WordTooltip
+          data={wordTooltip}
+          anchorRect={wordTooltip.anchorRect}
+          onDismiss={() => setWordTooltip(null)}
+        />
+      )}
     </>
   );
 }
@@ -1141,7 +3495,7 @@ function App() {
         </div>
       </header>
       <nav style={s.modeBar}>
-        {[["rhymes","📖","Rhymes"],["sayings","💬","Sayings"],["global","🌍","Quiz"]].map(([m,ico,lbl])=>(
+        {[["rhymes","📖","Rhymes"],["sayings","💬","Sayings"],["jokes","😄","Jokes"],["global","🌍","Quiz"]].map(([m,ico,lbl])=>(
           <button key={m} onClick={()=>setMode(m)}
             style={{...s.modeBarBtn,...(mode===m?s.modeBarBtnActive:{})}}>
             <span style={{fontSize:16,lineHeight:1}}>{ico}</span>
@@ -1151,6 +3505,7 @@ function App() {
       </nav>
       {mode==="rhymes"  && <RhymesPanel isMobile={isMobile}/>}
       {mode==="sayings" && <SayingsPanel isMobile={isMobile}/>}
+      {mode==="jokes"   && <JokesPanel isMobile={isMobile}/>}
       {mode==="global"  && <GlobalQuizPanel isMobile={isMobile}/>}
     </div>
   );
@@ -1210,6 +3565,14 @@ const s = {
   miniSpeakBtn:{background:"rgba(245,200,66,0.08)",border:"1px solid #4a3520",borderRadius:6,fontSize:15,cursor:"pointer",padding:"5px 8px",lineHeight:1,flexShrink:0,marginTop:3},
   lineText:{display:"flex",flexDirection:"column",gap:3,flex:1},
   linePl:{fontSize:"clamp(15px,4.5vw,21px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.35},
+  clickableWord:{cursor:"pointer",borderRadius:3,padding:"0 1px",transition:"background-color 0.12s",WebkitTapHighlightColor:"rgba(245,200,66,0.3)"},
+  tooltipBackdrop:{position:"fixed",inset:0,zIndex:998,background:"transparent"},
+  tooltipBox:{position:"absolute",zIndex:999,maxWidth:260,minWidth:160,background:"rgba(32,22,10,0.98)",border:"1px solid #7a6020",borderRadius:10,padding:"12px 14px",boxShadow:"0 8px 28px rgba(0,0,0,0.6)",backdropFilter:"blur(12px)",fontFamily:"'Playfair Display','Palatino Linotype',Georgia,serif"},
+  tooltipWord:{display:"flex",alignItems:"center",gap:8,fontSize:18,fontWeight:700,fontStyle:"italic",color:"#f5c842",marginBottom:6},
+  tooltipSpeak:{background:"transparent",border:"none",fontSize:14,cursor:"pointer",opacity:0.7,padding:0,lineHeight:1,marginLeft:"auto"},
+  tooltipMeaning:{fontSize:13,color:"#e0c890",lineHeight:1.5},
+  tooltipMeaningDim:{fontSize:12,color:"#9a8060",lineHeight:1.5,fontStyle:"italic"},
+  tooltipRelated:{fontSize:11,color:"#7a6a4a",marginTop:6,fontStyle:"italic"},
   lineEn:{fontSize:12,color:"#7a6a4a",letterSpacing:"0.02em"},
   vocabIntro:{fontSize:13,color:"#7a6a4a",marginTop:0,marginBottom:14,fontStyle:"italic"},
   vocabGrid:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:9},
@@ -1258,6 +3621,25 @@ const s = {
   globalIntroText:{fontSize:14,color:"#9a8060",lineHeight:1.7,margin:"0 0 16px"},
   wrongSummary:{background:"rgba(160,60,60,0.07)",border:"1px solid #6a3a3a",borderRadius:8,padding:"12px",marginBottom:16},
   wrongBadge:{fontSize:11,color:"#e0a0a0",background:"rgba(160,60,60,0.12)",border:"1px solid #6a3a3a",borderRadius:4,padding:"2px 7px"},
+  // Jokes
+  jokeCard:{background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:12,padding:"16px"},
+  jokeCardOpen:{borderColor:"#7a6020",background:"rgba(245,200,66,0.03)"},
+  jokeTop:{display:"flex",alignItems:"center",gap:8,marginBottom:10},
+  jokePill:{fontSize:10,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid",borderRadius:4,padding:"2px 7px",whiteSpace:"nowrap"},
+  jokeSetup:{fontSize:"clamp(14px,4vw,17px)",color:"#f0e0b0",lineHeight:1.55,fontStyle:"italic",marginBottom:10},
+  jokeRevealBtn:{background:"rgba(245,200,66,0.08)",border:"1px solid #5a4020",borderRadius:6,color:"#c0a040",fontSize:12,padding:"6px 14px",cursor:"pointer",fontFamily:"inherit",width:"100%",textAlign:"center"},
+  jokePunchline:{fontSize:"clamp(14px,4vw,17px)",color:"#f5c842",lineHeight:1.55,fontWeight:700,fontStyle:"italic",marginBottom:10},
+  jokePunchlineRow:{display:"flex",alignItems:"flex-start",gap:10,marginBottom:10},
+  punchlineSpeak:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:6,color:"#f5c842",fontSize:14,cursor:"pointer",padding:"6px 9px",lineHeight:1,flexShrink:0,marginTop:2},
+  jokeDivider:{height:1,background:"#2a1a08",margin:"10px 0"},
+  jokeTranslation:{background:"rgba(0,0,0,0.15)",borderRadius:6,padding:"10px 12px"},
+  jokeTransLabel:{fontSize:10,letterSpacing:"0.1em",textTransform:"uppercase",color:"#6a5a3a",marginBottom:6},
+  jokeTransSetup:{fontSize:13,color:"#9a8060",marginBottom:4,lineHeight:1.4},
+  jokeTransPunch:{fontSize:13,color:"#c0a040",lineHeight:1.4,fontStyle:"italic"},
+  jokeExplanation:{fontSize:13,color:"#c0a878",lineHeight:1.65,marginBottom:8},
+  jokeVocab:{display:"flex",flexDirection:"column",gap:4,marginBottom:10},
+  jokeVocabItem:{fontSize:12,color:"#9a8060",lineHeight:1.4},
+  jokeHideBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:6,color:"#6a5a3a",fontSize:11,padding:"5px 14px",cursor:"pointer",fontFamily:"inherit",width:"100%",textAlign:"center"},
   // Sayings
   sayingsIntro:{fontSize:13,color:"#7a6a4a",fontStyle:"italic",marginTop:0,marginBottom:16},
   sayingsList:{display:"flex",flexDirection:"column",gap:10},
@@ -1274,6 +3656,14 @@ const s = {
   // Sayings quiz
   sayingQuizPrompt:{background:"rgba(0,0,0,0.22)",borderRadius:8,padding:"16px",textAlign:"center"},
   sayingQuizPl:{fontSize:"clamp(16px,4.5vw,22px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.4},
+
+  // Verification badges
+  verifiedBadge:{fontSize:10,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid #4a8a4a",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap",color:"#7ac07a",background:"rgba(80,160,80,0.1)",textDecoration:"none",cursor:"pointer"},
+  unverifiedBadge:{fontSize:10,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid #8a6a3a",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap",color:"#c09060",background:"rgba(160,120,60,0.08)"},
+  unverifiedBadgeSm:{fontSize:11,color:"#c09060"},
+  attribution:{margin:"6px 0 0",fontSize:11,color:"#9a8060",fontStyle:"italic",letterSpacing:"0.02em"},
+  cultureNote:{margin:"4px 0 0",fontSize:11,color:"#8a7a5a",lineHeight:1.5,fontStyle:"italic",borderLeft:"2px solid #4a3520",paddingLeft:8,maxWidth:"90%"},
+  categoryPill:{fontSize:10,letterSpacing:"0.06em",border:"1px solid #4a3520",borderRadius:4,padding:"2px 7px",whiteSpace:"nowrap",color:"#a09070",background:"rgba(255,240,200,0.04)"},
   sayingChoiceBtn:{background:"rgba(245,200,66,0.04)",border:"1px solid #3a2a14",borderRadius:10,color:"#c0a878",fontSize:"clamp(12px,3.5vw,14px)",fontFamily:"inherit",padding:"12px 14px",cursor:"pointer",textAlign:"left",lineHeight:1.5,transition:"all 0.15s"},
 };
 
