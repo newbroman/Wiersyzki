@@ -82,7 +82,9 @@
       0%, 100% { box-shadow: 0 0 0 0 rgba(207, 80, 80, 0.5); }
       50% { box-shadow: 0 0 0 8px rgba(207, 80, 80, 0); }
     }
-  </style>
+  @keyframes wzFade{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
 </head>
 <body>
 <div id="root"></div>
@@ -3550,27 +3552,60 @@ function JokeCard({ joke }) {
   );
 }
 
-function JokesPanel({ isMobile }) {
-  const [filter, setFilter] = useState("All");
-  const displayed = filter === "All" ? jokes
-    : jokes.filter(j => j.type === (filter === "Puns" ? "pun" : "narrative"));
+// ═══════════════════════════════════════════════════════════════════════════
+// JOKES — category page → joke list (cards reveal in place)
+// ═══════════════════════════════════════════════════════════════════════════
+function JokesCategoriesScreen({ go, back }) {
+  const counts = useMemo(() => {
+    const c = {};
+    jokes.forEach(j => { c[j.category] = (c[j.category] || 0) + 1; });
+    return c;
+  }, []);
   return (
-    <div style={isMobile?s.layoutMobile:s.layoutDesktop}>
-      <div style={s.main}>
-        <div style={{display:"flex",gap:8,marginBottom:16,alignItems:"center",flexWrap:"wrap"}}>
-          <p style={{...s.vocabIntro,margin:0,flex:1}}>Polish jokes (kawały) — tap to reveal the punchline.</p>
-          <div style={{display:"flex",gap:6}}>
-            {["All","Puns","Stories"].map(f=>(
-              <button key={f} onClick={()=>setFilter(f)}
-                style={{...s.filterBtn,...(filter===f?{borderColor:"#f5c842",color:"#f5c842",background:"rgba(245,200,66,0.08)"}:{})}}>
-                {f}
+    <div style={NAV.screen}>
+      <NavBar title="Jokes" onBack={back}/>
+      <div style={NAV.body}>
+        <p style={NAV.intro}>Polish jokes (kawały) — pick a set.</p>
+        <div style={NAV.cardGrid}>
+          {Object.keys(JOKE_CAT_LABELS).map(cat => {
+            const label = JOKE_CAT_LABELS[cat] || cat;
+            const n = counts[cat] || 0;
+            return (
+              <button key={cat} style={NAV.sectionCard} onClick={() => go({ view:"jokes-list", category:cat })}>
+                <span style={{fontSize:28,lineHeight:1}}>{label.split(" ")[0]}</span>
+                <span style={{textAlign:"left",flex:1}}>
+                  <span style={NAV.sectionLabel}>{label.replace(/^\S+\s/,"")}</span>
+                  <span style={NAV.sectionBlurb}>{n} joke{n!==1?"s":""}</span>
+                </span>
+                <span style={NAV.chev}>›</span>
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          {displayed.map(joke=><JokeCard key={joke.id} joke={joke}/>)}
-        </div>
+      </div>
+    </div>
+  );
+}
+
+function JokesListScreen({ category, jokeFilter, setJokeFilter, back }) {
+  const inCat = jokes.filter(j => j.category === category);
+  const displayed = jokeFilter === "All" ? inCat
+    : inCat.filter(j => j.type === (jokeFilter === "Puns" ? "pun" : "narrative"));
+  return (
+    <div style={NAV.screen}>
+      <NavBar title={JOKE_CAT_LABELS[category] || category} onBack={back}/>
+      <div style={s.filterBar}>
+        {["All","Puns","Stories"].map(f => (
+          <button key={f} onClick={() => setJokeFilter(f)}
+            style={{...s.filterBtn,...(jokeFilter===f?{borderColor:"#f5c842",color:"#f5c842",background:"rgba(245,200,66,0.08)"}:{})}}>{f}</button>
+        ))}
+      </div>
+      <div style={NAV.body}>
+        {displayed.length === 0
+          ? <p style={s.vocabIntro}>No jokes match this filter.</p>
+          : <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              {displayed.map(joke => <JokeCard key={joke.id} joke={joke}/>)}
+            </div>}
       </div>
     </div>
   );
@@ -3580,55 +3615,30 @@ function JokesPanel({ isMobile }) {
 // SAYINGS PANEL
 // ═══════════════════════════════════════════════════════════════════════════
 
-function SayingsPanel({ isMobile }) {
-  const [expandedId, setExpandedId] = useState(null);
-  const [quizMode, setQuizMode] = useState(false);
-  const [bookmarks, setBookmarks] = useState(() => LS.get("bookmarks", {rhymes:[],sayings:[]}));
-  const [showBookmarked, setShowBookmarked] = useState(false);
-
-  const toggleBookmark = (id) => {
-    setBookmarks(prev => {
-      const ids = prev.sayings || [];
-      const next = ids.includes(id) ? ids.filter(x=>x!==id) : [...ids, id];
-      const updated = {...prev, sayings:next};
-      LS.set("bookmarks", updated);
-      return updated;
-    });
-  };
-
+// ═══════════════════════════════════════════════════════════════════════════
+// SAYINGS — list → detail, plus the sayings quiz as its own screen
+// ═══════════════════════════════════════════════════════════════════════════
+function SayingsListScreen({ store, go, back }) {
+  const { bookmarks, sayingsSaved, setSayingsSaved, toggleBookmark } = store;
   const bookmarkedIds = bookmarks.sayings || [];
-  const displayed = showBookmarked ? sayings.filter(s=>bookmarkedIds.includes(s.id)) : sayings;
-
-  if (quizMode) return (
-    <div style={isMobile?s.layoutMobile:s.layoutDesktop}>
-      <div style={s.main}>
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-          <button onClick={()=>setQuizMode(false)} style={s.secondaryBtn}>← Back</button>
-          <h3 style={{margin:0,color:"#f5e6a0",fontSize:16,fontStyle:"italic"}}>Sayings Quiz</h3>
-        </div>
-        <SayingsQuiz onExit={()=>setQuizMode(false)}/>
-      </div>
-    </div>
-  );
-
+  const displayed = sayingsSaved ? sayings.filter(x => bookmarkedIds.includes(x.id)) : sayings;
   return (
-    <div style={isMobile?s.layoutMobile:s.layoutDesktop}>
-      <div style={s.main}>
-        <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap",alignItems:"center"}}>
-          <button onClick={()=>setQuizMode(true)} style={s.startBtn}>🎯 Take Sayings Quiz</button>
-          <button onClick={()=>setShowBookmarked(v=>!v)}
-            style={{...s.secondaryBtn,...(showBookmarked?{borderColor:"#f5c842",color:"#f5c842"}:{})}}>
-            {showBookmarked?"★ Bookmarked":"☆ Bookmarked"}
+    <div style={NAV.screen}>
+      <NavBar title="Sayings" onBack={back}/>
+      <div style={NAV.body}>
+        <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+          <button onClick={() => go({ view:"sayings-quiz" })} style={s.startBtn}>🎯 Take Sayings Quiz</button>
+          <button onClick={() => setSayingsSaved(v => !v)}
+            style={{...s.secondaryBtn,...(sayingsSaved?{borderColor:"#f5c842",color:"#f5c842"}:{})}}>
+            {sayingsSaved ? "★ Saved" : "☆ Saved"}
           </button>
         </div>
-        {displayed.length===0 && <p style={s.vocabIntro}>No bookmarked sayings yet — tap ☆ on any saying to save it.</p>}
+        {displayed.length === 0 && <p style={s.vocabIntro}>No saved sayings yet — tap ☆ on any saying to save it.</p>}
         <div style={s.sayingsList}>
-          {displayed.map(saying=>{
-            const open = expandedId===saying.id;
+          {displayed.map(saying => {
             const starred = bookmarkedIds.includes(saying.id);
             return (
-              <div key={saying.id} style={{...s.sayingCard,...(open?s.sayingCardOpen:{})}}
-                onClick={()=>setExpandedId(open?null:saying.id)}>
+              <div key={saying.id} style={s.sayingCard} onClick={() => go({ view:"sayings-detail", id:saying.id })}>
                 <div style={s.sayingTop}>
                   <div style={{flex:1}}>
                     <div style={s.sayingPl}>{saying.pl}</div>
@@ -3636,28 +3646,63 @@ function SayingsPanel({ isMobile }) {
                   </div>
                   <div style={s.sayingMeta}>
                     <span style={s.sayingTheme}>{saying.theme}</span>
-                        {saying.verified && saying.source_url
-                          ? <a href={saying.source_url} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={s.verifiedBadge}>✓</a>
-                          : saying.verified === false
-                            ? <span style={s.unverifiedBadgeSm}>⚠</span>
-                            : null}
-                    <button onClick={e=>{e.stopPropagation();speak(saying.pl);}} style={s.sayingSpeak}>🔊</button>
-                    <button onClick={e=>{e.stopPropagation();toggleBookmark(saying.id);}}
-                      style={{...s.sayingSpeak,color:starred?"#f5c842":"#6a5a3a",fontSize:17}}>
-                      {starred?"★":"☆"}
-                    </button>
-                    <span style={s.sayingChevron}>{open?"▲":"▼"}</span>
+                    <button onClick={e => { e.stopPropagation(); speak(saying.pl); }} style={s.sayingSpeak}>🔊</button>
+                    <button onClick={e => { e.stopPropagation(); toggleBookmark("sayings", saying.id); }}
+                      style={{...s.sayingSpeak,color:starred?"#f5c842":"#6a5a3a",fontSize:17}}>{starred?"★":"☆"}</button>
+                    <span style={s.sayingChevron}>›</span>
                   </div>
                 </div>
-                {open && (
-                  <div style={s.sayingMeaning}>
-                    <strong>{saying.meaning}</strong><br/>{saying.explanation}
-                  </div>
-                )}
               </div>
             );
           })}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function SayingsDetailScreen({ id, store, back }) {
+  const { bookmarks, toggleBookmark } = store;
+  const saying = sayings.find(x => x.id === id);
+  if (!saying) return null;
+  const starred = (bookmarks.sayings || []).includes(id);
+  return (
+    <div style={NAV.screen}>
+      <NavBar title={saying.theme || "Saying"} onBack={back}/>
+      <div style={NAV.body}>
+        <div style={s.card}>
+          <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start"}}>
+            <div style={{flex:1}}>
+              <div style={{...s.sayingPl,fontSize:"clamp(18px,5vw,24px)",marginBottom:8}}>{saying.pl}</div>
+              <div style={s.sayingEn}>{saying.en}</div>
+            </div>
+            <div style={{display:"flex",gap:6,flexShrink:0}}>
+              <button onClick={() => speak(saying.pl)} style={s.sayingSpeak}>🔊</button>
+              <button onClick={() => toggleBookmark("sayings", id)}
+                style={{...s.sayingSpeak,color:starred?"#f5c842":"#6a5a3a",fontSize:18}}>{starred?"★":"☆"}</button>
+            </div>
+          </div>
+          <div style={{display:"flex",gap:8,alignItems:"center",margin:"14px 0",flexWrap:"wrap"}}>
+            <span style={s.sayingTheme}>{saying.theme}</span>
+            {saying.verified && saying.source_url
+              ? <a href={saying.source_url} target="_blank" rel="noopener noreferrer" style={s.verifiedBadge}>✓ Verified</a>
+              : saying.verified === false ? <span style={s.unverifiedBadge}>⚠ Unverified</span> : null}
+          </div>
+          <div style={s.sayingMeaning}>
+            <strong>{saying.meaning}</strong><br/>{saying.explanation}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SayingsQuizScreen({ back }) {
+  return (
+    <div style={NAV.screen}>
+      <NavBar title="Sayings Quiz" onBack={back}/>
+      <div style={NAV.body}>
+        <SayingsQuiz onExit={back}/>
       </div>
     </div>
   );
@@ -3924,310 +3969,191 @@ function PracticePanel({ rhyme }) {
 
 const rhymeTabs = ["Rhyme","Vocab","Grammar","Practice","Quiz"];
 
-function RhymesPanel({ isMobile }) {
-  const [selectedId, setSelectedId] = useState(1);
+// ═══════════════════════════════════════════════════════════════════════════
+// RHYMES — list → detail (detail keeps all five tabs incl. voice Practice)
+// ═══════════════════════════════════════════════════════════════════════════
+function RhymesListScreen({ store, go, back }) {
+  const { bookmarks, rhymeFilter, setRhymeFilter } = store;
+  const bookmarkedIds = bookmarks.rhymes || [];
+  const displayed = useMemo(() => {
+    let list = rhymes;
+    if (rhymeFilter.saved) list = list.filter(r => bookmarkedIds.includes(r.id));
+    if (rhymeFilter.diff !== "All") list = list.filter(r => r.difficulty === rhymeFilter.diff);
+    return list;
+  }, [rhymeFilter, bookmarkedIds]);
+  return (
+    <div style={NAV.screen}>
+      <NavBar title="Rhymes" onBack={back}/>
+      <div style={s.filterBar}>
+        {["All","Easy","Medium","Hard"].map(d => (
+          <button key={d} onClick={() => setRhymeFilter(f => ({...f, diff:d}))}
+            style={{...s.filterBtn,...(rhymeFilter.diff===d?{
+              background:d==="All"?"rgba(245,200,66,0.12)":DIFF_BG[d],
+              borderColor:d==="All"?"#f5c842":DIFF_COLORS[d],
+              color:d==="All"?"#f5c842":DIFF_COLORS[d]}:{})}}>{d}</button>
+        ))}
+        <button onClick={() => setRhymeFilter(f => ({...f, saved:!f.saved}))}
+          style={{...s.filterBtn,...(rhymeFilter.saved?{borderColor:"#f5c842",color:"#f5c842"}:{})}}>
+          {rhymeFilter.saved ? "★ Saved" : "☆ Saved"}
+        </button>
+      </div>
+      <div style={NAV.body}>
+        {displayed.length === 0
+          ? <p style={s.vocabIntro}>No rhymes match this filter.</p>
+          : <div style={NAV.list}>
+              {displayed.map(r => (
+                <button key={r.id} style={NAV.itemCard} onClick={() => go({ view:"rhymes-detail", id:r.id })}>
+                  <span style={{fontSize:22}}>{r.emoji}</span>
+                  <span style={{textAlign:"left",flex:1,minWidth:0}}>
+                    <span style={NAV.itemTitle}>{r.title}</span>
+                    <span style={NAV.itemSub}>{r.english_title}</span>
+                  </span>
+                  <span style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+                    <span style={{...s.diffPill,color:DIFF_COLORS[r.difficulty],borderColor:DIFF_COLORS[r.difficulty]}}>{r.difficulty}</span>
+                    {bookmarkedIds.includes(r.id) && <span style={{fontSize:11,color:"#f5c842"}}>★</span>}
+                  </span>
+                </button>
+              ))}
+            </div>}
+      </div>
+    </div>
+  );
+}
+
+function RhymesDetailScreen({ id, store, back }) {
+  const { bookmarks, history, wrongLog, toggleBookmark, addHistory, addWrong } = store;
+  const rhyme = rhymes.find(r => r.id === id);
   const [tab, setTab] = useState("Rhyme");
   const [showTranslation, setShowTranslation] = useState(false);
   const [quizDone, setQuizDone] = useState(false);
   const [quizScore, setQuizScore] = useState(0);
   const [quizTotal, setQuizTotal] = useState(0);
   const [quizKey, setQuizKey] = useState(0);
-  const [bookmarks, setBookmarks] = useState(()=>LS.get("bookmarks",{rhymes:[],sayings:[]}));
-  const [diffFilter, setDiffFilter] = useState("All");
-  const [showBookmarked, setShowBookmarked] = useState(false);
-  const [wrongLog, setWrongLog] = useState(()=>LS.get("wrongLog",{}));
-  const [history, setHistory] = useState(()=>LS.get("history",[]));
-  const [wordTooltip, setWordTooltip] = useState(null); // { word, result, anchorRect }
+  const [wordTooltip, setWordTooltip] = useState(null);
+  if (!rhyme) return null;
 
-  const rhyme = rhymes.find(r=>r.id===selectedId);
-  const bookmarkedIds = bookmarks.rhymes || [];
-
-  const displayed = useMemo(()=>{
-    let list = rhymes;
-    if (showBookmarked) list = list.filter(r=>bookmarkedIds.includes(r.id));
-    if (diffFilter!=="All") list = list.filter(r=>r.difficulty===diffFilter);
-    return list;
-  },[showBookmarked,diffFilter,bookmarkedIds]);
-
-  const toggleBookmark = (id) => {
-    setBookmarks(prev=>{
-      const ids = prev.rhymes||[];
-      const next = ids.includes(id)?ids.filter(x=>x!==id):[...ids,id];
-      const updated = {...prev,rhymes:next};
-      LS.set("bookmarks",updated);
-      return updated;
-    });
-  };
-
-  const selectRhyme = useCallback((id)=>{
-    setSelectedId(id); setTab("Rhyme");
-    setShowTranslation(false); setQuizDone(false); setQuizKey(k=>k+1);
-    setWordTooltip(null);
-  },[]);
-
-  const handleWordTap = useCallback((word, e) => {
-    const r = rhymes.find(x => x.id === selectedId);
-    const result = lookupWord(word, r?.vocab);
+  const handleWordTap = (word, e) => {
+    const result = lookupWord(word, rhyme.vocab);
     const anchorRect = e.currentTarget.getBoundingClientRect();
     setWordTooltip({ word, result, anchorRect });
-  }, [selectedId]);
-
-  const handleQuizComplete = (score,total)=>{
+  };
+  const handleQuizComplete = (score, total) => {
     setQuizScore(score); setQuizTotal(total); setQuizDone(true);
-    const entry = {date:new Date().toISOString(),rhymeId:selectedId,score,total};
-    setHistory(prev=>{
-      const updated = [entry,...prev].slice(0,100);
-      LS.set("history",updated);
-      return updated;
-    });
+    addHistory({ date:new Date().toISOString(), rhymeId:id, score, total });
   };
-
-  const handleWrong = (qKey) => {
-    setWrongLog(prev=>{
-      const updated = {...prev,[qKey]:(prev[qKey]||0)+1};
-      LS.set("wrongLog",updated);
-      return updated;
-    });
-  };
-
-  const retryQuiz = ()=>{ setQuizDone(false); setQuizKey(k=>k+1); };
-
-  // Per-rhyme history
-  const rhymeHistory = history.filter(h=>h.rhymeId===selectedId).slice(0,5);
-  const starred = bookmarkedIds.includes(selectedId);
-
-  // Count wrong answers for this rhyme
-  const rhymeWrong = Object.entries(wrongLog)
-    .filter(([k])=>k.startsWith(`${selectedId}-`))
-    .reduce((a,[,v])=>a+v,0);
+  const retryQuiz = () => { setQuizDone(false); setQuizKey(k => k + 1); };
+  const rhymeHistory = history.filter(h => h.rhymeId === id).slice(0, 5);
+  const starred = (bookmarks.rhymes || []).includes(id);
+  const rhymeWrong = Object.entries(wrongLog).filter(([k]) => k.startsWith(`${id}-`)).reduce((a, [, v]) => a + v, 0);
 
   return (
-    <>
-      {/* Filter bar */}
-      <div style={s.filterBar}>
-        <div style={s.filterGroup}>
-          {["All","Easy","Medium","Hard"].map(d=>(
-            <button key={d} onClick={()=>setDiffFilter(d)}
-              style={{...s.filterBtn,...(diffFilter===d?{
-                background:d==="All"?"rgba(245,200,66,0.12)":DIFF_BG[d],
-                borderColor:d==="All"?"#f5c842":DIFF_COLORS[d],
-                color:d==="All"?"#f5c842":DIFF_COLORS[d],
-              }:{})}}>
-              {d}
-            </button>
-          ))}
-        </div>
-        <button onClick={()=>setShowBookmarked(v=>!v)}
-          style={{...s.filterBtn,...(showBookmarked?{borderColor:"#f5c842",color:"#f5c842"}:{})}}>
-          {showBookmarked?"★ Saved":"☆ Saved"}
-        </button>
-      </div>
-
-      {/* Rhyme picker strip */}
-      <div className="noscroll" style={s.pickerStrip}>
-        {displayed.length===0
-          ? <span style={{color:"#6a5a3a",fontSize:13,padding:"0 4px",alignSelf:"center"}}>No rhymes match this filter.</span>
-          : displayed.map(r=>(
-          <button key={r.id} onClick={()=>selectRhyme(r.id)}
-            style={{...s.pickerBtn,...(selectedId===r.id?s.pickerBtnActive:{})}}>
-            <span style={s.pickerEmoji}>{r.emoji}</span>
-            <span style={s.pickerBtnTitle}>{r.title}</span>
-            <div style={{display:"flex",gap:4,alignItems:"center",justifyContent:"center",marginTop:2}}>
-              <span style={{...s.diffPill,color:DIFF_COLORS[r.difficulty],borderColor:DIFF_COLORS[r.difficulty]}}>
-                {r.difficulty}
-              </span>
-              {(bookmarks.rhymes||[]).includes(r.id) && <span style={{fontSize:10,color:"#f5c842"}}>★</span>}
+    <div style={NAV.screen}>
+      <NavBar title={rhyme.title} onBack={back}/>
+      <div style={NAV.body}>
+        <div style={s.rhymeHeader}>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+              <h2 style={s.rhymeTitle}>{rhyme.emoji} {rhyme.title}</h2>
+              <span style={{...s.diffPill,fontSize:11,color:DIFF_COLORS[rhyme.difficulty],borderColor:DIFF_COLORS[rhyme.difficulty]}}>{rhyme.difficulty}</span>
+              {rhyme.verified
+                ? <a href={rhyme.source_url} target="_blank" rel="noopener noreferrer" style={s.verifiedBadge} title={"Verified Polish source: " + rhyme.source_url}>✓ Verified</a>
+                : <span style={s.unverifiedBadge} title="Source not verified">⚠ Unverified</span>}
             </div>
-          </button>
-        ))}
-      </div>
+            <p style={s.rhymeSubtitle}>{rhyme.english_title}</p>
+            {rhyme.verified && rhyme.author && <p style={s.attribution}>{rhyme.author}{rhyme.era ? " · " + rhyme.era : ""}</p>}
+            {rhyme.verified && rhyme.cultural_note && <p style={s.cultureNote}>{rhyme.cultural_note}</p>}
+          </div>
+          <div style={{display:"flex",gap:8,flexShrink:0,alignItems:"flex-start"}}>
+            <button onClick={() => toggleBookmark("rhymes", id)}
+              style={{...s.speakBtn,color:starred?"#f5c842":"#6a5a3a",borderColor:starred?"#7a6020":"#3a2a14",fontSize:18}}>{starred?"★":"☆"}</button>
+            <button onClick={() => speak(rhyme.lines.map(l => l.pl).join(" "))} style={s.speakBtn}>🔊 Listen</button>
+          </div>
+        </div>
 
-      <div style={isMobile?s.layoutMobile:s.layoutDesktop}>
-        {/* Desktop sidebar */}
-        {!isMobile && (
-          <aside style={s.sidebar}>
-            <p style={s.sidebarLabel}>Choose a rhyme</p>
-            {displayed.map(r=>(
-              <button key={r.id} onClick={()=>selectRhyme(r.id)}
-                style={{...s.sidebarBtn,...(selectedId===r.id?s.sidebarBtnActive:{})}}>
-                <span style={s.sidebarEmoji}>{r.emoji}</span>
-                <div style={{flex:1,minWidth:0}}>
-                  <span style={s.sidebarBtnTitle}>{r.title}</span>
-                  <div style={{display:"flex",gap:6,marginTop:3,alignItems:"center"}}>
-                    <span style={{...s.diffPill,fontSize:9,color:DIFF_COLORS[r.difficulty],borderColor:DIFF_COLORS[r.difficulty]}}>
-                      {r.difficulty}
-                    </span>
-                    {(bookmarks.rhymes||[]).includes(r.id) && <span style={{fontSize:11,color:"#f5c842"}}>★</span>}
-                  </div>
-                </div>
-              </button>
-            ))}
-          </aside>
+        {rhymeWrong > 0 && (
+          <div style={s.wrongAlert}>⚠ You've missed <strong>{rhymeWrong}</strong> question{rhymeWrong!==1?"s":""} from this rhyme in the global quiz. Extra practice recommended!</div>
         )}
 
-        <main style={s.main}>
-          {/* Rhyme header */}
-          <div style={s.rhymeHeader}>
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-                <h2 style={s.rhymeTitle}>{rhyme.emoji} {rhyme.title}</h2>
-                <span style={{...s.diffPill,fontSize:11,color:DIFF_COLORS[rhyme.difficulty],borderColor:DIFF_COLORS[rhyme.difficulty]}}>
-                  {rhyme.difficulty}
-                </span>
-                {rhyme.verified
-                  ? <a href={rhyme.source_url} target="_blank" rel="noopener noreferrer" style={s.verifiedBadge} title={"Verified Polish source: " + rhyme.source_url}>✓ Verified</a>
-                  : <span style={s.unverifiedBadge} title="Source not verified">⚠ Unverified</span>}
-              </div>
-              <p style={s.rhymeSubtitle}>{rhyme.english_title}</p>
-              {rhyme.verified && rhyme.author && (
-                <p style={s.attribution}>{rhyme.author}{rhyme.era ? " · " + rhyme.era : ""}</p>
-              )}
-              {rhyme.verified && rhyme.cultural_note && (
-                <p style={s.cultureNote}>{rhyme.cultural_note}</p>
-              )}
+        <div style={s.tabs}>
+          {rhymeTabs.map(t => (
+            <button key={t} onClick={() => { setTab(t); retryQuiz(); }}
+              style={{...s.tabBtn,...(tab===t?s.tabBtnActive:{})}}>{t}</button>
+          ))}
+        </div>
+
+        {tab === "Rhyme" && (
+          <div style={s.card}>
+            <div style={{display:"flex",gap:8,marginBottom:18,flexWrap:"wrap"}}>
+              <button onClick={() => setShowTranslation(v => !v)} style={s.toggleBtn}>{showTranslation?"Hide":"Show"} translation</button>
+              <button onClick={() => speak(rhyme.lines.map(l => l.pl).join(" "))} style={{...s.toggleBtn,flex:"none"}}>🔊 Listen</button>
             </div>
-            <div style={{display:"flex",gap:8,flexShrink:0,alignItems:"flex-start"}}>
-              <button onClick={()=>toggleBookmark(selectedId)}
-                style={{...s.speakBtn,color:starred?"#f5c842":"#6a5a3a",borderColor:starred?"#7a6020":"#3a2a14",fontSize:18}}>
-                {starred?"★":"☆"}
-              </button>
-              {!isMobile && (
-                <button onClick={()=>speak(rhyme.lines.map(l=>l.pl).join(" "))} style={s.speakBtn}>
-                  🔊 Listen
-                </button>
-              )}
+            <div style={s.linesContainer}>
+              {rhyme.lines.map((line, i) => (
+                <LineWithMic key={i} line={line} vocab={rhyme.vocab} showTranslation={showTranslation} onWordTap={handleWordTap}/>
+              ))}
             </div>
           </div>
+        )}
 
-          {/* Wrong-answer alert */}
-          {rhymeWrong > 0 && (
-            <div style={s.wrongAlert}>
-              ⚠ You've missed <strong>{rhymeWrong}</strong> question{rhymeWrong!==1?"s":""} from this rhyme in the global quiz. Extra practice recommended!
+        {tab === "Vocab" && (
+          <div style={s.card}>
+            <p style={s.vocabIntro}>Key words from <em>{rhyme.title}</em></p>
+            <div style={s.vocabGrid}>
+              {rhyme.vocab.map((v, i) => (
+                <div key={i} style={s.vocabCard}>
+                  <div style={s.vocabWord}><span>{v.word}</span><button onClick={() => speak(v.word)} style={s.vocabSpeak}>🔊</button></div>
+                  <div style={s.vocabMeaning}>{v.meaning}</div>
+                </div>
+              ))}
             </div>
-          )}
-
-          {/* Tabs */}
-          <div style={s.tabs}>
-            {rhymeTabs.map(t=>(
-              <button key={t} onClick={()=>{setTab(t);retryQuiz();}}
-                style={{...s.tabBtn,...(tab===t?s.tabBtnActive:{})}}>
-                {t}
-              </button>
-            ))}
           </div>
+        )}
 
-          {/* RHYME TAB */}
-          {tab==="Rhyme" && (
-            <div style={s.card}>
-              <div style={{display:"flex",gap:8,marginBottom:18,flexWrap:"wrap"}}>
-                <button onClick={()=>setShowTranslation(v=>!v)} style={s.toggleBtn}>
-                  {showTranslation?"Hide":"Show"} translation
-                </button>
-                {isMobile && (
-                  <button onClick={()=>speak(rhyme.lines.map(l=>l.pl).join(" "))}
-                    style={{...s.toggleBtn,flex:"none"}}>🔊 Listen</button>
-                )}
-              </div>
-              <div style={s.linesContainer}>
-                {rhyme.lines.map((line,i)=>(
-                  <LineWithMic key={i} line={line} vocab={rhyme.vocab}
-                    showTranslation={showTranslation} onWordTap={handleWordTap}/>
-                ))}
-              </div>
+        {tab === "Grammar" && (
+          <div style={s.card}>
+            <p style={s.vocabIntro}>Grammar notes for <em>{rhyme.title}</em></p>
+            <div style={{display:"flex",flexDirection:"column",gap:14}}>
+              {rhyme.grammar.map((g, i) => (
+                <div key={i} style={s.grammarCard}><div style={s.grammarPoint}>{g.point}</div><div style={s.grammarNote}>{g.note}</div></div>
+              ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* VOCABULARY TAB */}
-          {tab==="Vocab" && (
-            <div style={s.card}>
-              <p style={s.vocabIntro}>Key words from <em>{rhyme.title}</em></p>
-              <div style={s.vocabGrid}>
-                {rhyme.vocab.map((v,i)=>(
-                  <div key={i} style={s.vocabCard}>
-                    <div style={s.vocabWord}>
-                      <span>{v.word}</span>
-                      <button onClick={()=>speak(v.word)} style={s.vocabSpeak}>🔊</button>
+        {tab === "Practice" && <PracticePanel rhyme={rhyme}/>}
+
+        {tab === "Quiz" && !quizDone && (
+          <QuizEngine key={quizKey} questions={rhyme.questions} rhyme={rhyme} onComplete={handleQuizComplete} onWrong={addWrong}/>
+        )}
+        {tab === "Quiz" && quizDone && (
+          <div style={s.card}>
+            <div style={{textAlign:"center",padding:"16px 0 8px"}}>
+              <div style={{fontSize:40,marginBottom:8}}>{quizScore===quizTotal?"🏆":quizScore>=quizTotal*0.6?"⭐":"📚"}</div>
+              <h3 style={s.completionTitle}>{quizScore}/{quizTotal} correct</h3>
+              <p style={s.completionText}>{quizScore===quizTotal?"Doskonale! You aced this rhyme.":quizScore>=quizTotal*0.6?"Dobrze! Try again to get them all.":"Dobry początek! Read the rhyme again then retry."}</p>
+              <div style={{...s.scoreBar,maxWidth:200,margin:"0 auto 8px"}}><div style={{...s.scoreBarFill,width:`${(quizScore/quizTotal)*100}%`}}/></div>
+              {rhymeHistory.length > 0 && (
+                <div style={s.historyBox}>
+                  <div style={{fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:"#6a5a3a",marginBottom:8}}>Past attempts</div>
+                  {rhymeHistory.map((h, i) => (
+                    <div key={i} style={s.historyRow}>
+                      <span style={{color:"#7a6a4a",fontSize:11}}>{new Date(h.date).toLocaleDateString()}</span>
+                      <div style={{...s.scoreBar,flex:1,height:6}}><div style={{...s.scoreBarFill,width:`${(h.score/h.total)*100}%`}}/></div>
+                      <span style={{color:"#f5c842",fontSize:12,fontWeight:700}}>{h.score}/{h.total}</span>
                     </div>
-                    <div style={s.vocabMeaning}>{v.meaning}</div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              )}
+              <div style={{display:"flex",gap:10,justifyContent:"center",marginTop:16,flexWrap:"wrap"}}>
+                <button onClick={retryQuiz} style={s.startBtn}>Try again</button>
+                <button onClick={() => setTab("Rhyme")} style={s.secondaryBtn}>Read rhyme</button>
               </div>
             </div>
-          )}
-
-          {/* GRAMMAR TAB */}
-          {tab==="Grammar" && (
-            <div style={s.card}>
-              <p style={s.vocabIntro}>Grammar notes for <em>{rhyme.title}</em></p>
-              <div style={{display:"flex",flexDirection:"column",gap:14}}>
-                {rhyme.grammar.map((g,i)=>(
-                  <div key={i} style={s.grammarCard}>
-                    <div style={s.grammarPoint}>{g.point}</div>
-                    <div style={s.grammarNote}>{g.note}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* PRACTICE TAB */}
-          {tab==="Practice" && (
-            <PracticePanel rhyme={rhyme}/>
-          )}
-
-          {/* QUIZ TAB */}
-          {tab==="Quiz" && !quizDone && (
-            <QuizEngine key={quizKey} questions={rhyme.questions} rhyme={rhyme}
-              onComplete={handleQuizComplete} onWrong={handleWrong}/>
-          )}
-
-          {tab==="Quiz" && quizDone && (
-            <div style={s.card}>
-              <div style={{textAlign:"center",padding:"16px 0 8px"}}>
-                <div style={{fontSize:40,marginBottom:8}}>
-                  {quizScore===quizTotal?"🏆":quizScore>=quizTotal*0.6?"⭐":"📚"}
-                </div>
-                <h3 style={s.completionTitle}>{quizScore}/{quizTotal} correct</h3>
-                <p style={s.completionText}>
-                  {quizScore===quizTotal?"Doskonale! You aced this rhyme."
-                   :quizScore>=quizTotal*0.6?"Dobrze! Try again to get them all."
-                   :"Dobry początek! Read the rhyme again then retry."}
-                </p>
-                <div style={{...s.scoreBar,maxWidth:200,margin:"0 auto 8px"}}>
-                  <div style={{...s.scoreBarFill,width:`${(quizScore/quizTotal)*100}%`}}/>
-                </div>
-                {/* History */}
-                {rhymeHistory.length>0 && (
-                  <div style={s.historyBox}>
-                    <div style={{fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:"#6a5a3a",marginBottom:8}}>Past attempts</div>
-                    {rhymeHistory.map((h,i)=>(
-                      <div key={i} style={s.historyRow}>
-                        <span style={{color:"#7a6a4a",fontSize:11}}>{new Date(h.date).toLocaleDateString()}</span>
-                        <div style={{...s.scoreBar,flex:1,height:6}}>
-                          <div style={{...s.scoreBarFill,width:`${(h.score/h.total)*100}%`}}/>
-                        </div>
-                        <span style={{color:"#f5c842",fontSize:12,fontWeight:700}}>{h.score}/{h.total}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div style={{display:"flex",gap:10,justifyContent:"center",marginTop:16,flexWrap:"wrap"}}>
-                  <button onClick={retryQuiz} style={s.startBtn}>Try again</button>
-                  <button onClick={()=>setTab("Rhyme")} style={s.secondaryBtn}>Read rhyme</button>
-                </div>
-              </div>
-            </div>
-          )}
-        </main>
+          </div>
+        )}
       </div>
-      {wordTooltip && (
-        <WordTooltip
-          data={wordTooltip}
-          anchorRect={wordTooltip.anchorRect}
-          onDismiss={() => setWordTooltip(null)}
-        />
-      )}
-    </>
+      {wordTooltip && <WordTooltip data={wordTooltip} anchorRect={wordTooltip.anchorRect} onDismiss={() => setWordTooltip(null)}/>}
+    </div>
   );
 }
 
@@ -4235,12 +4161,45 @@ function RhymesPanel({ isMobile }) {
 // APP SHELL
 // ═══════════════════════════════════════════════════════════════════════════
 
-function App() {
-  const [mode, setMode] = useState("rhymes");
-  const isMobile = useIsMobile();
+// ═══════════════════════════════════════════════════════════════════════════
+// LAYERED NAVIGATION  (home → list → detail) + hardware back button
+// ═══════════════════════════════════════════════════════════════════════════
+function useNavStack(initial) {
+  const [stack, setStack] = useState([initial]);
+  useEffect(() => {
+    const onPop = () => { setStack(st => st.length > 1 ? st.slice(0, -1) : st); window.scrollTo(0, 0); };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  const go = useCallback((screen) => {
+    setStack(st => [...st, screen]);
+    history.pushState({ wz: true }, "");
+    window.scrollTo(0, 0);
+  }, []);
+  const back = useCallback(() => { history.back(); }, []);   // drives popstate
+  return { current: stack[stack.length - 1], depth: stack.length, go, back };
+}
+
+function NavBar({ title, onBack }) {
   return (
-    <div style={s.app}>
-      <div style={s.grain}/>
+    <div style={NAV.bar}>
+      <button style={NAV.backBtn} onClick={onBack} aria-label="Back">‹ Back</button>
+      <span style={NAV.title}>{title}</span>
+      <span style={{width:56,flexShrink:0}}/>
+    </div>
+  );
+}
+
+const HOME_SECTIONS = [
+  { key:"rhymes",  icon:"📖", label:"Rhymes",  blurb:"Traditional nursery rhymes and poems, read aloud." },
+  { key:"sayings", icon:"💬", label:"Sayings", blurb:"Proverbs and folk wisdom, with the meaning behind them." },
+  { key:"jokes",   icon:"😄", label:"Jokes",   blurb:"Kawały by theme — Jaś, the doctor, highlanders, PRL." },
+  { key:"quiz",    icon:"🌍", label:"Quiz",    blurb:"Every rhyme question, shuffled. Misses come back more often." },
+];
+
+function HomeScreen({ onPick, onHelp }) {
+  return (
+    <div style={NAV.screen}>
       <header style={s.header}>
         <div style={s.headerInner}>
           <span style={s.headerIcon}>🪺</span>
@@ -4248,24 +4207,147 @@ function App() {
             <h1 style={s.headerTitle}>Wierszyki</h1>
             <p style={s.headerSub}>Polish for Learners</p>
           </div>
+          <button style={NAV.help} onClick={onHelp} aria-label="Help">?</button>
         </div>
       </header>
-      <nav style={s.modeBar}>
-        {[["rhymes","📖","Rhymes"],["sayings","💬","Sayings"],["jokes","😄","Jokes"],["global","🌍","Quiz"]].map(([m,ico,lbl])=>(
-          <button key={m} onClick={()=>setMode(m)}
-            style={{...s.modeBarBtn,...(mode===m?s.modeBarBtnActive:{})}}>
-            <span style={{fontSize:16,lineHeight:1}}>{ico}</span>
-            <span>{lbl}</span>
-          </button>
-        ))}
-      </nav>
-      {mode==="rhymes"  && <RhymesPanel isMobile={isMobile}/>}
-      {mode==="sayings" && <SayingsPanel isMobile={isMobile}/>}
-      {mode==="jokes"   && <JokesPanel isMobile={isMobile}/>}
-      {mode==="global"  && <GlobalQuizPanel isMobile={isMobile}/>}
+      <div style={NAV.body}>
+        <p style={NAV.intro}>Choose where to start.</p>
+        <div style={NAV.cardGrid}>
+          {HOME_SECTIONS.map(sec => (
+            <button key={sec.key} style={NAV.sectionCard} onClick={() => onPick(sec.key)}>
+              <span style={{fontSize:30,lineHeight:1}}>{sec.icon}</span>
+              <span style={{textAlign:"left",flex:1}}>
+                <span style={NAV.sectionLabel}>{sec.label}</span>
+                <span style={NAV.sectionBlurb}>{sec.blurb}</span>
+              </span>
+              <span style={NAV.chev}>›</span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
+
+function HelpModal({ onClose }) {
+  const P = ({ h, children }) => (
+    <section style={{marginBottom:16}}>
+      <h3 style={{fontFamily:"inherit",color:"#f5c842",fontSize:16,margin:"0 0 5px",fontStyle:"italic"}}>{h}</h3>
+      <div style={{fontSize:13.5,color:"#9a8060",lineHeight:1.6}}>{children}</div>
+    </section>
+  );
+  return (
+    <div style={NAV.overlay} onClick={onClose}>
+      <div style={NAV.helpCard} onClick={e => e.stopPropagation()}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline"}}>
+          <h2 style={{fontFamily:"inherit",color:"#f5c842",margin:"0 0 8px",fontSize:22}}>How to use Wierszyki</h2>
+          <button style={NAV.backBtn} onClick={onClose}>Close</button>
+        </div>
+        <P h="Getting around">Pick a section, then an item, then read it. Use ‹ Back or your phone's back button to step back up a level.</P>
+        <P h="Hearing the rhymes">Audio uses your device's Polish voice and works offline. If it sounds like English, install a Polish voice in Settings → System → Languages &amp; input → Text-to-speech.</P>
+        <P h="Speaking practice">Inside a rhyme, the Practice tab listens to you read each line and scores it. Allow the microphone when asked; Polish recognition needs internet on most phones.</P>
+        <P h="Saving &amp; progress">Tap ☆ to save a rhyme or saying. Quiz scores and saved items stay on your device only.</P>
+        <button style={NAV.primaryBtn} onClick={onClose}>Got it</button>
+      </div>
+    </div>
+  );
+}
+
+function QuizScreen({ isMobile, onBack }) {
+  return (
+    <div style={NAV.screen}>
+      <NavBar title="Global Quiz" onBack={onBack}/>
+      <div style={NAV.body}><GlobalQuizPanel isMobile={isMobile}/></div>
+    </div>
+  );
+}
+
+function App() {
+  const isMobile = useIsMobile();
+  const { current, go, back } = useNavStack({ view:"home" });
+  const [showHelp, setShowHelp] = useState(false);
+
+  const [bookmarks, setBookmarks] = useState(() => LS.get("bookmarks", {rhymes:[],sayings:[]}));
+  const [historyLog, setHistoryLog] = useState(() => LS.get("history", []));
+  const [wrongLog, setWrongLog] = useState(() => LS.get("wrongLog", {}));
+  const [rhymeFilter, setRhymeFilter] = useState({ diff:"All", saved:false });
+  const [sayingsSaved, setSayingsSaved] = useState(false);
+  const [jokeFilter, setJokeFilter] = useState("All");
+
+  // Nudge the speech engine so voices are loaded before the first "Listen".
+  useEffect(() => { try { window.speechSynthesis && window.speechSynthesis.getVoices(); } catch (e) {} }, []);
+
+  const toggleBookmark = useCallback((kind, id) => {
+    setBookmarks(prev => {
+      const ids = prev[kind] || [];
+      const next = ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id];
+      const updated = {...prev, [kind]:next};
+      LS.set("bookmarks", updated);
+      return updated;
+    });
+  }, []);
+  const addHistory = useCallback((entry) => {
+    setHistoryLog(prev => { const u = [entry, ...prev].slice(0, 100); LS.set("history", u); return u; });
+  }, []);
+  const addWrong = useCallback((qKey) => {
+    setWrongLog(prev => { const u = {...prev, [qKey]:(prev[qKey]||0)+1}; LS.set("wrongLog", u); return u; });
+  }, []);
+
+  const store = {
+    bookmarks, history: historyLog, wrongLog,
+    rhymeFilter, setRhymeFilter, sayingsSaved, setSayingsSaved,
+    toggleBookmark, addHistory, addWrong, isMobile,
+  };
+
+  const v = current.view;
+  let screen;
+  if (v === "home")
+    screen = <HomeScreen onHelp={() => setShowHelp(true)}
+      onPick={(k) => {
+        if (k === "rhymes") go({ view:"rhymes-list" });
+        else if (k === "sayings") go({ view:"sayings-list" });
+        else if (k === "jokes") go({ view:"jokes-cats" });
+        else if (k === "quiz") go({ view:"quiz" });
+      }}/>;
+  else if (v === "rhymes-list")    screen = <RhymesListScreen store={store} go={go} back={back}/>;
+  else if (v === "rhymes-detail")  screen = <RhymesDetailScreen id={current.id} store={store} back={back}/>;
+  else if (v === "sayings-list")   screen = <SayingsListScreen store={store} go={go} back={back}/>;
+  else if (v === "sayings-detail") screen = <SayingsDetailScreen id={current.id} store={store} back={back}/>;
+  else if (v === "sayings-quiz")   screen = <SayingsQuizScreen back={back}/>;
+  else if (v === "jokes-cats")     screen = <JokesCategoriesScreen go={go} back={back}/>;
+  else if (v === "jokes-list")     screen = <JokesListScreen category={current.category} jokeFilter={jokeFilter} setJokeFilter={setJokeFilter} back={back}/>;
+  else if (v === "quiz")           screen = <QuizScreen isMobile={isMobile} onBack={back}/>;
+
+  return (
+    <div style={s.app}>
+      <div style={s.grain}/>
+      <div style={{position:"relative",zIndex:1}}>{screen}</div>
+      {showHelp && <HelpModal onClose={() => setShowHelp(false)}/>}
+    </div>
+  );
+}
+
+const NAV = {
+  screen:{minHeight:"100vh",animation:"wzFade .22s ease both"},
+  bar:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,padding:"10px 12px",borderBottom:"1px solid #3a2a14",background:"rgba(26,18,8,0.96)",backdropFilter:"blur(8px)",position:"sticky",top:0,zIndex:20},
+  backBtn:{background:"transparent",border:"none",color:"#f5c842",fontFamily:"inherit",fontSize:15,cursor:"pointer",padding:"4px 6px",flexShrink:0,whiteSpace:"nowrap"},
+  title:{flex:1,textAlign:"center",color:"#f5e6a0",fontStyle:"italic",fontSize:16,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
+  body:{maxWidth:680,margin:"0 auto",padding:"16px 16px 48px"},
+  intro:{color:"#9a8060",fontSize:13.5,fontStyle:"italic",margin:"0 0 16px"},
+  cardGrid:{display:"grid",gap:12},
+  list:{display:"grid",gap:10},
+  sectionCard:{display:"flex",alignItems:"center",gap:14,width:"100%",textAlign:"left",background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:14,padding:"16px",cursor:"pointer",color:"#e8dcc8",fontFamily:"inherit"},
+  sectionLabel:{display:"block",color:"#f5e6a0",fontSize:18,fontStyle:"italic"},
+  sectionBlurb:{display:"block",color:"#9a8060",fontSize:13,marginTop:3,lineHeight:1.45},
+  itemCard:{display:"flex",alignItems:"center",gap:12,width:"100%",background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:12,padding:"14px",cursor:"pointer",color:"#e8dcc8",fontFamily:"inherit"},
+  itemTitle:{display:"block",color:"#f0e0b0",fontStyle:"italic",fontSize:16,lineHeight:1.25},
+  itemSub:{display:"block",color:"#7a6a4a",fontSize:12,marginTop:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"},
+  chev:{color:"#6a5a3a",fontSize:20,flexShrink:0},
+  help:{width:34,height:34,borderRadius:34,border:"1px solid #7a6020",background:"rgba(245,200,66,0.06)",color:"#f5c842",fontFamily:"inherit",fontSize:17,cursor:"pointer",flexShrink:0},
+  overlay:{position:"fixed",inset:0,background:"rgba(10,7,3,0.8)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:16,zIndex:9999},
+  helpCard:{width:"100%",maxWidth:440,maxHeight:"86vh",overflowY:"auto",background:"#241a0e",border:"1px solid #3a2a14",borderRadius:16,padding:"22px"},
+  primaryBtn:{marginTop:6,background:"#f5c842",color:"#1a1208",border:"none",borderRadius:10,fontFamily:"inherit",fontWeight:"bold",fontSize:15,padding:"10px 16px",cursor:"pointer"},
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STYLES
