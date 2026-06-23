@@ -57,7 +57,7 @@
               ind = document.createElement('div');
               ind.id = 'offline-indicator';
               ind.textContent = '📵 Offline mode';
-              ind.style.cssText = 'position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(60,40,20,0.92);color:#c0a040;border:1px solid #7a6020;border-radius:20px;padding:6px 14px;font-size:12px;font-family:Georgia,serif;z-index:9999;backdrop-filter:blur(8px);';
+              ind.style.cssText = 'position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(60,40,20,0.92);color:#c0a040;border:1px solid #7a6020;border-radius:20px;padding:6px 14px;font-size:14px;font-family:Georgia,serif;z-index:9999;backdrop-filter:blur(8px);';
               document.body.appendChild(ind);
             }
           } else if (ind) {
@@ -3226,26 +3226,121 @@ function RecognitionResult({ result, onReset }) {
 const HelpContext = React.createContext(() => {});
 
 // Reusable speak-and-score practice for any single Polish phrase (sayings, jokes…)
-function SpeakPractice({ target, en, title }) {
-  const [result, setResult] = useState(null);
+// Break any Polish phrase/joke into small, natural practice parts (clauses, then
+// long clauses into ~5-word groups) so it can be drilled like a rhyme's lines.
+function splitIntoSegments(text) {
+  if (!text) return [];
+  const raw = text
+    .split(/(?<=[.!?…:;,—–])\s+|\n+/)
+    .map(t => t.trim())
+    .filter(Boolean);
+  const parts = raw.length ? raw : [text.trim()];
+  const out = [];
+  parts.forEach(part => {
+    const words = part.split(/\s+/);
+    if (words.length <= 8) { out.push(part); return; }
+    for (let i = 0; i < words.length; i += 5) out.push(words.slice(i, i + 5).join(" "));
+  });
+  return out.map(pl => ({ pl }));
+}
+
+// Reusable guided speech practice (same layout as the rhyme Practice tab):
+// part-by-part drilling with prev/next + scores, plus a whole-text mode.
+function GuidedPractice({ segments, intro, segLabel = "Part", wholeLabel = "Whole text" }) {
+  const [mode, setMode] = useState("guided");
+  const [idx, setIdx] = useState(0);
+  const [results, setResults] = useState({});
+  const [freeformResult, setFreeformResult] = useState(null);
+
   if (!RECOGNITION_AVAILABLE) {
     return (
-      <div style={s.practiceUnsupported}>
-        <strong>Speech practice needs Chrome, Edge, or Safari (14.5+).</strong>
-        <br/>Polish recognition also needs an internet connection on most devices.
+      <div style={s.card}>
+        <div style={s.practiceUnsupported}>
+          <strong>Speech recognition isn't available in this browser.</strong>
+          <br/>This feature needs Chrome, Edge, or Safari (14.5+). It also requires an internet connection on most devices, because Polish speech recognition runs on a cloud service.
+        </div>
       </div>
     );
   }
+  if (!segments || segments.length === 0) return null;
+
+  const handleResult = (i, r) => setResults(prev => ({ ...prev, [i]: r }));
+  const goPrev = () => setIdx(i => Math.max(0, i - 1));
+  const goNext = () => setIdx(i => Math.min(segments.length - 1, i + 1));
+  const current = segments[idx];
+  const attemptedCount = Object.keys(results).length;
+  const avgScore = attemptedCount > 0
+    ? Math.round(Object.values(results).reduce((a, r) => a + r.score, 0) / attemptedCount) : null;
+  const fullPolish = segments.map(x => x.pl).join(" ");
+
   return (
-    <div style={s.practiceCurrentLine}>
-      {title && <div style={{fontSize:11,letterSpacing:"0.1em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:8}}>{title}</div>}
-      <div style={s.practicePolish}>{target}</div>
-      {en && <div style={s.practiceEnglish}>{en}</div>}
-      <div style={s.practiceControls}>
-        <button onClick={() => speak(target)} style={s.speakBtn}>🔊 Listen</button>
-        <MicButton expected={target} onResult={setResult} size="large"/>
+    <div style={s.card}>
+      {intro && <p style={s.practiceIntro}>{intro}</p>}
+
+      <div style={{display:"flex",gap:6,marginBottom:18,borderBottom:"1px solid #3a2a14"}}>
+        <button onClick={() => setMode("guided")} style={{...s.tabBtn,...(mode==="guided"?s.tabBtnActive:{})}}>Part by part</button>
+        <button onClick={() => setMode("freeform")} style={{...s.tabBtn,...(mode==="freeform"?s.tabBtnActive:{})}}>{wholeLabel}</button>
       </div>
-      {result && <RecognitionResult result={result} onReset={() => setResult(null)}/>}
+
+      {mode === "guided" && (
+        <>
+          <div style={s.practiceCurrentLine}>
+            <div style={s.practicePolish}>{current.pl}</div>
+            {current.en && <div style={s.practiceEnglish}>{current.en}</div>}
+            <div style={s.practiceControls}>
+              <button onClick={() => speak(current.pl)} style={s.speakBtn}>🔊 Listen</button>
+              <MicButton expected={current.pl} onResult={(r) => handleResult(idx, r)} size="large"/>
+            </div>
+          </div>
+
+          {results[idx] && (
+            <RecognitionResult result={results[idx]} onReset={() => setResults(prev => { const n = {...prev}; delete n[idx]; return n; })}/>
+          )}
+
+          <div style={s.practiceNav}>
+            <button onClick={goPrev} disabled={idx === 0}
+              style={{...s.practiceNavBtn,...(idx===0?s.practiceNavBtnDisabled:{})}}>← Prev</button>
+            <span style={s.practiceProgress}>{segLabel} {idx+1} of {segments.length}</span>
+            <button onClick={goNext} disabled={idx === segments.length - 1}
+              style={{...s.practiceNavBtn,...(idx===segments.length-1?s.practiceNavBtnDisabled:{})}}>Next →</button>
+          </div>
+
+          {attemptedCount > 0 && (
+            <div style={s.practiceLineScores}>
+              <div style={{fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:8}}>
+                Your scores ({attemptedCount} of {segments.length}, avg {avgScore}%)
+              </div>
+              {segments.map((seg, i) => {
+                const r = results[i];
+                if (!r) return null;
+                const color = r.score >= 80 ? "#6fcf6f" : r.score >= 50 ? "#f5c842" : "#cf6f6f";
+                return (
+                  <div key={i} style={s.practiceLineScoreRow}>
+                    <span style={s.practiceLineScoreLabel}>{i+1}. {seg.pl}</span>
+                    <div style={s.practiceLineScoreBar}><div style={{...s.practiceLineScoreBarFill, width:`${r.score}%`, background:color}}/></div>
+                    <span style={{...s.practiceLineScoreVal, color}}>{r.score}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+
+      {mode === "freeform" && (
+        <>
+          <div style={s.practiceCurrentLine}>
+            <div style={{...s.practicePolish, textAlign:"left", fontSize:"clamp(20px,4.5vw,25px)", lineHeight:1.5}}>
+              {segments.map((seg, i) => <div key={i}>{seg.pl}</div>)}
+            </div>
+            <div style={s.practiceControls}>
+              <button onClick={() => speak(fullPolish)} style={s.speakBtn}>🔊 Listen to all</button>
+              <MicButton expected={fullPolish} onResult={setFreeformResult} size="large"/>
+            </div>
+          </div>
+          {freeformResult && <RecognitionResult result={freeformResult} onReset={() => setFreeformResult(null)}/>}
+        </>
+      )}
     </div>
   );
 }
@@ -3429,7 +3524,7 @@ function QuizEngine({ questions, onComplete, rhyme, onWrong }) {
                 q.choices.forEach(c => { const r = compareText(c, heard); if (r.score > bestScore) { bestScore = r.score; best = c; } });
                 if (best) handleChoice(best);
               }} size="large"/>
-              <span style={{fontSize:12,color:"#7a6a4a"}}>or speak your answer</span>
+              <span style={{fontSize:14,color:"#7a6a4a"}}>or speak your answer</span>
             </div>
           )}
         </>
@@ -3492,7 +3587,7 @@ function SayingsQuiz({ onExit }) {
 
   if (done) return (
     <div style={s.globalIntroCard}>
-      <div style={{fontSize:40,marginBottom:8}}>{score===total?"🏆":score>=total*0.7?"⭐":"📚"}</div>
+      <div style={{fontSize:47,marginBottom:8}}>{score===total?"🏆":score>=total*0.7?"⭐":"📚"}</div>
       <h2 style={s.completionTitle}>{score}/{total} correct</h2>
       <p style={s.completionText}>
         {score===total?"Doskonale! You know all the sayings!"
@@ -3520,9 +3615,9 @@ function SayingsQuiz({ onExit }) {
         </div>
       </div>
       <div style={s.sayingQuizPrompt}>
-        <div style={{fontSize:11,letterSpacing:"0.1em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:8}}>What does this saying mean?</div>
+        <div style={{fontSize:13,letterSpacing:"0.1em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:8}}>What does this saying mean?</div>
         <div style={s.sayingQuizPl}>{q.pl}</div>
-        <button onClick={()=>speak(q.pl)} style={{...s.vocabSpeak,fontSize:16,marginTop:6}}>🔊</button>
+        <button onClick={()=>speak(q.pl)} style={{...s.vocabSpeak,fontSize:19,marginTop:6}}>🔊</button>
       </div>
       {!result && (
         <div style={{display:"flex",flexDirection:"column",gap:9,marginTop:16}}>
@@ -3617,7 +3712,7 @@ function JokesCategoriesScreen({ go, back }) {
             const n = counts[cat] || 0;
             return (
               <button key={cat} style={NAV.sectionCard} onClick={() => go({ view:"jokes-list", category:cat })}>
-                <span style={{fontSize:28,lineHeight:1}}>{label.split(" ")[0]}</span>
+                <span style={{fontSize:33,lineHeight:1}}>{label.split(" ")[0]}</span>
                 <span style={{textAlign:"left",flex:1}}>
                   <span style={NAV.sectionLabel}>{label.replace(/^\S+\s/,"")}</span>
                   <span style={NAV.sectionBlurb}>{n} joke{n!==1?"s":""}</span>
@@ -3651,7 +3746,7 @@ function JokesListScreen({ category, jokeFilter, setJokeFilter, go, back }) {
           : <div style={NAV.list}>
               {displayed.map(joke => (
                 <button key={joke.id} style={NAV.itemCard} onClick={() => go({ view:"joke-detail", id:joke.id })}>
-                  <span style={{fontSize:18,flexShrink:0}}>{joke.type === "pun" ? "😄" : "📖"}</span>
+                  <span style={{fontSize:21,flexShrink:0}}>{joke.type === "pun" ? "😄" : "📖"}</span>
                   <span style={{textAlign:"left",flex:1,minWidth:0}}>
                     <span style={NAV.itemTitle}>{joke.setup}</span>
                     <span style={NAV.itemSub}>{joke.type === "pun" ? "Pun" : "Story"}{joke.verified ? " · ✓ verified" : ""}</span>
@@ -3675,12 +3770,20 @@ function JokeDetailScreen({ id, back }) {
       <div style={NAV.body}>
         <JokeCard joke={joke}/>
         <div style={{marginTop:18}}>
-          <div style={{fontSize:11,letterSpacing:"0.1em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:10}}>🎤 Practise saying it</div>
-          <div style={{display:"flex",flexDirection:"column",gap:12}}>
-            <SpeakPractice target={joke.setup} title="The setup"/>
-            {showPunch
-              ? <SpeakPractice target={joke.punchline} title="The punchline"/>
-              : <button onClick={() => setShowPunch(true)} style={s.secondaryBtn}>Reveal punchline to practise it ▼</button>}
+          <div style={{fontSize:15,letterSpacing:"0.08em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:10,marginLeft:2}}>🎤 Practise saying it</div>
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <div>
+              <div style={{fontSize:15,color:"#9a8060",fontStyle:"italic",marginBottom:6,marginLeft:2}}>The setup</div>
+              <GuidedPractice segments={splitIntoSegments(joke.setup)} segLabel="Part" wholeLabel="Whole setup"/>
+            </div>
+            {showPunch ? (
+              <div>
+                <div style={{fontSize:15,color:"#9a8060",fontStyle:"italic",marginBottom:6,marginLeft:2}}>The punchline</div>
+                <GuidedPractice segments={splitIntoSegments(joke.punchline)} segLabel="Part" wholeLabel="Whole punchline"/>
+              </div>
+            ) : (
+              <button onClick={() => setShowPunch(true)} style={s.secondaryBtn}>Reveal punchline to practise it ▼</button>
+            )}
           </div>
         </div>
       </div>
@@ -3725,7 +3828,7 @@ function SayingsListScreen({ store, go, back }) {
                     <span style={s.sayingTheme}>{saying.theme}</span>
                     <button onClick={e => { e.stopPropagation(); speak(saying.pl); }} style={s.sayingSpeak}>🔊</button>
                     <button onClick={e => { e.stopPropagation(); toggleBookmark("sayings", saying.id); }}
-                      style={{...s.sayingSpeak,color:starred?"#f5c842":"#6a5a3a",fontSize:17}}>{starred?"★":"☆"}</button>
+                      style={{...s.sayingSpeak,color:starred?"#f5c842":"#6a5a3a",fontSize:20}}>{starred?"★":"☆"}</button>
                     <span style={s.sayingChevron}>›</span>
                   </div>
                 </div>
@@ -3750,13 +3853,13 @@ function SayingsDetailScreen({ id, store, back }) {
         <div style={s.card}>
           <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start"}}>
             <div style={{flex:1}}>
-              <div style={{...s.sayingPl,fontSize:"clamp(18px,5vw,24px)",marginBottom:8}}>{saying.pl}</div>
+              <div style={{...s.sayingPl,fontSize:"clamp(21px,5vw,28px)",marginBottom:8}}>{saying.pl}</div>
               <div style={s.sayingEn}>{saying.en}</div>
             </div>
             <div style={{display:"flex",gap:6,flexShrink:0}}>
               <button onClick={() => speak(saying.pl)} style={s.sayingSpeak}>🔊</button>
               <button onClick={() => toggleBookmark("sayings", id)}
-                style={{...s.sayingSpeak,color:starred?"#f5c842":"#6a5a3a",fontSize:18}}>{starred?"★":"☆"}</button>
+                style={{...s.sayingSpeak,color:starred?"#f5c842":"#6a5a3a",fontSize:21}}>{starred?"★":"☆"}</button>
             </div>
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center",margin:"14px 0",flexWrap:"wrap"}}>
@@ -3768,10 +3871,15 @@ function SayingsDetailScreen({ id, store, back }) {
           <div style={s.sayingMeaning}>
             <strong>{saying.meaning}</strong><br/>{saying.explanation}
           </div>
-          <div style={{marginTop:18,borderTop:"1px solid #2a1a08",paddingTop:16}}>
-            <div style={{fontSize:11,letterSpacing:"0.1em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:10}}>🎤 Say it yourself</div>
-            <SpeakPractice target={saying.pl}/>
-          </div>
+        </div>
+        <div style={{marginTop:16}}>
+          <div style={{fontSize:15,letterSpacing:"0.08em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:10,marginLeft:2}}>🎤 Practise saying it</div>
+          <GuidedPractice
+            segments={splitIntoSegments(saying.pl)}
+            intro="Read each part aloud and the app will score how close you are."
+            segLabel="Part"
+            wholeLabel="Whole saying"
+          />
         </div>
       </div>
     </div>
@@ -3841,7 +3949,7 @@ function GlobalQuizPanel({ isMobile }) {
       <div style={s.main}>
         {!pool && (
           <div style={s.globalIntroCard}>
-            <div style={{fontSize:40,marginBottom:8}}>🌍</div>
+            <div style={{fontSize:47,marginBottom:8}}>🌍</div>
             <h2 style={s.globalIntroTitle}>Global Quiz</h2>
             <p style={s.globalIntroText}>
               All {rhymes.reduce((n,r)=>n+r.questions.length,0)} questions from {rhymes.length} rhymes, shuffled.
@@ -3849,7 +3957,7 @@ function GlobalQuizPanel({ isMobile }) {
             </p>
             {totalWrong > 0 && (
               <div style={s.wrongSummary}>
-                <div style={{fontSize:13,color:"#e0a0a0",marginBottom:8}}>
+                <div style={{fontSize:15,color:"#e0a0a0",marginBottom:8}}>
                   ⚠ You have <strong>{totalWrong}</strong> logged wrong answer{totalWrong!==1?"s":""} — these will appear more often.
                 </div>
                 <div style={{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center",marginBottom:8}}>
@@ -3857,7 +3965,7 @@ function GlobalQuizPanel({ isMobile }) {
                     <span key={r.id} style={s.wrongBadge}>{r.emoji} {r.title} ×{wrongByRhyme[r.id]}</span>
                   ))}
                 </div>
-                <button onClick={clearLog} style={{...s.secondaryBtn,fontSize:11,padding:"4px 12px"}}>Clear wrong-answer log</button>
+                <button onClick={clearLog} style={{...s.secondaryBtn,fontSize:13,padding:"4px 12px"}}>Clear wrong-answer log</button>
               </div>
             )}
             <button onClick={start} style={s.startBtn}>Start Quiz</button>
@@ -3868,7 +3976,7 @@ function GlobalQuizPanel({ isMobile }) {
         )}
         {done && (
           <div style={s.globalIntroCard}>
-            <div style={{fontSize:40,marginBottom:8}}>{finalScore===finalTotal?"🏆":finalScore>=finalTotal*0.7?"⭐":"📚"}</div>
+            <div style={{fontSize:47,marginBottom:8}}>{finalScore===finalTotal?"🏆":finalScore>=finalTotal*0.7?"⭐":"📚"}</div>
             <h2 style={s.completionTitle}>{finalScore}/{finalTotal} correct</h2>
             <p style={s.completionText}>
               {finalScore===finalTotal?"Doskonale! Perfect score!"
@@ -3918,133 +4026,13 @@ function LineWithMic({ line, vocab, showTranslation, onWordTap }) {
 // ─── PRACTICE PANEL — full-rhyme speech repetition ──────────────────────────
 
 function PracticePanel({ rhyme }) {
-  const [mode, setMode] = useState("guided"); // "guided" | "freeform"
-  const [lineIdx, setLineIdx] = useState(0);
-  const [lineResults, setLineResults] = useState({});  // {idx: result}
-  const [freeformResult, setFreeformResult] = useState(null);
-
-  if (!RECOGNITION_AVAILABLE) {
-    return (
-      <div style={s.card}>
-        <div style={s.practiceUnsupported}>
-          <strong>Speech recognition isn't available in this browser.</strong>
-          <br/>This feature needs Chrome, Edge, or Safari (14.5+). It also requires an internet connection on most devices, because Polish speech recognition runs on a cloud service.
-        </div>
-      </div>
-    );
-  }
-
-  const handleLineResult = (idx, result) => {
-    setLineResults(prev => ({ ...prev, [idx]: result }));
-  };
-
-  const goPrev = () => { setLineIdx(i => Math.max(0, i - 1)); };
-  const goNext = () => { setLineIdx(i => Math.min(rhyme.lines.length - 1, i + 1)); };
-
-  const currentLine = rhyme.lines[lineIdx];
-
-  // Aggregate score across all attempted lines
-  const attemptedCount = Object.keys(lineResults).length;
-  const avgScore = attemptedCount > 0
-    ? Math.round(Object.values(lineResults).reduce((s, r) => s + r.score, 0) / attemptedCount)
-    : null;
-
-  // Full-text for free-form mode
-  const fullPolish = rhyme.lines.map(l => l.pl).join(" ");
-
   return (
-    <div style={s.card}>
-      <p style={s.practiceIntro}>
-        Practise your pronunciation. Read the line aloud and the app will compare what it heard to the original.
-      </p>
-
-      {/* Mode switcher */}
-      <div style={{display:"flex",gap:6,marginBottom:18,borderBottom:"1px solid #3a2a14"}}>
-        <button onClick={() => setMode("guided")}
-          style={{...s.tabBtn,...(mode==="guided"?s.tabBtnActive:{})}}>Line by line</button>
-        <button onClick={() => setMode("freeform")}
-          style={{...s.tabBtn,...(mode==="freeform"?s.tabBtnActive:{})}}>Whole rhyme</button>
-      </div>
-
-      {mode === "guided" && (
-        <>
-          <div style={s.practiceCurrentLine}>
-            <div style={s.practicePolish}>{currentLine.pl}</div>
-            <div style={s.practiceEnglish}>{currentLine.en}</div>
-            <div style={s.practiceControls}>
-              <button onClick={() => speak(currentLine.pl)} style={s.speakBtn}>🔊 Listen</button>
-              <MicButton
-                expected={currentLine.pl}
-                onResult={(r) => handleLineResult(lineIdx, r)}
-                size="large"
-              />
-            </div>
-          </div>
-
-          {lineResults[lineIdx] && (
-            <RecognitionResult
-              result={lineResults[lineIdx]}
-              onReset={() => setLineResults(prev => { const n = {...prev}; delete n[lineIdx]; return n; })}
-            />
-          )}
-
-          <div style={s.practiceNav}>
-            <button onClick={goPrev}
-              disabled={lineIdx === 0}
-              style={{...s.practiceNavBtn,...(lineIdx===0?s.practiceNavBtnDisabled:{})}}>← Prev</button>
-            <span style={s.practiceProgress}>Line {lineIdx+1} of {rhyme.lines.length}</span>
-            <button onClick={goNext}
-              disabled={lineIdx === rhyme.lines.length - 1}
-              style={{...s.practiceNavBtn,...(lineIdx===rhyme.lines.length-1?s.practiceNavBtnDisabled:{})}}>Next →</button>
-          </div>
-
-          {/* Aggregate scores across all attempted lines */}
-          {attemptedCount > 0 && (
-            <div style={s.practiceLineScores}>
-              <div style={{fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:8}}>
-                Your scores ({attemptedCount} of {rhyme.lines.length} lines, avg {avgScore}%)
-              </div>
-              {rhyme.lines.map((line, i) => {
-                const r = lineResults[i];
-                if (!r) return null;
-                const color = r.score >= 80 ? "#6fcf6f" : r.score >= 50 ? "#f5c842" : "#cf6f6f";
-                return (
-                  <div key={i} style={s.practiceLineScoreRow}>
-                    <span style={s.practiceLineScoreLabel}>{i+1}. {line.pl}</span>
-                    <div style={s.practiceLineScoreBar}>
-                      <div style={{...s.practiceLineScoreBarFill, width: `${r.score}%`, background: color}}/>
-                    </div>
-                    <span style={{...s.practiceLineScoreVal, color}}>{r.score}%</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </>
-      )}
-
-      {mode === "freeform" && (
-        <>
-          <div style={s.practiceCurrentLine}>
-            <div style={{...s.practicePolish, textAlign: "left", fontSize: "clamp(15px,4vw,18px)", lineHeight: 1.5}}>
-              {rhyme.lines.map((l, i) => <div key={i}>{l.pl}</div>)}
-            </div>
-            <div style={s.practiceControls}>
-              <button onClick={() => speak(fullPolish)} style={s.speakBtn}>🔊 Listen to all</button>
-              <MicButton
-                expected={fullPolish}
-                onResult={setFreeformResult}
-                size="large"
-              />
-            </div>
-          </div>
-
-          {freeformResult && (
-            <RecognitionResult result={freeformResult} onReset={() => setFreeformResult(null)}/>
-          )}
-        </>
-      )}
-    </div>
+    <GuidedPractice
+      segments={rhyme.lines}
+      intro="Practise your pronunciation. Read each line aloud and the app will compare what it heard to the original."
+      segLabel="Line"
+      wholeLabel="Whole rhyme"
+    />
   );
 }
 
@@ -4084,14 +4072,14 @@ function RhymesListScreen({ store, go, back }) {
           : <div style={NAV.list}>
               {displayed.map(r => (
                 <button key={r.id} style={NAV.itemCard} onClick={() => go({ view:"rhymes-detail", id:r.id })}>
-                  <span style={{fontSize:22}}>{r.emoji}</span>
+                  <span style={{fontSize:26}}>{r.emoji}</span>
                   <span style={{textAlign:"left",flex:1,minWidth:0}}>
                     <span style={NAV.itemTitle}>{r.title}</span>
                     <span style={NAV.itemSub}>{r.english_title}</span>
                   </span>
                   <span style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
                     <span style={{...s.diffPill,color:DIFF_COLORS[r.difficulty],borderColor:DIFF_COLORS[r.difficulty]}}>{r.difficulty}</span>
-                    {bookmarkedIds.includes(r.id) && <span style={{fontSize:11,color:"#f5c842"}}>★</span>}
+                    {bookmarkedIds.includes(r.id) && <span style={{fontSize:13,color:"#f5c842"}}>★</span>}
                   </span>
                 </button>
               ))}
@@ -4135,7 +4123,7 @@ function RhymesDetailScreen({ id, store, back }) {
           <div style={{flex:1,minWidth:0}}>
             <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
               <h2 style={s.rhymeTitle}>{rhyme.emoji} {rhyme.title}</h2>
-              <span style={{...s.diffPill,fontSize:11,color:DIFF_COLORS[rhyme.difficulty],borderColor:DIFF_COLORS[rhyme.difficulty]}}>{rhyme.difficulty}</span>
+              <span style={{...s.diffPill,fontSize:13,color:DIFF_COLORS[rhyme.difficulty],borderColor:DIFF_COLORS[rhyme.difficulty]}}>{rhyme.difficulty}</span>
               {rhyme.verified
                 ? <a href={rhyme.source_url} target="_blank" rel="noopener noreferrer" style={s.verifiedBadge} title={"Verified Polish source: " + rhyme.source_url}>✓ Verified</a>
                 : <span style={s.unverifiedBadge} title="Source not verified">⚠ Unverified</span>}
@@ -4146,7 +4134,7 @@ function RhymesDetailScreen({ id, store, back }) {
           </div>
           <div style={{display:"flex",gap:8,flexShrink:0,alignItems:"flex-start"}}>
             <button onClick={() => toggleBookmark("rhymes", id)}
-              style={{...s.speakBtn,color:starred?"#f5c842":"#6a5a3a",borderColor:starred?"#7a6020":"#3a2a14",fontSize:18}}>{starred?"★":"☆"}</button>
+              style={{...s.speakBtn,color:starred?"#f5c842":"#6a5a3a",borderColor:starred?"#7a6020":"#3a2a14",fontSize:21}}>{starred?"★":"☆"}</button>
             <button onClick={() => speak(rhyme.lines.map(l => l.pl).join(" "))} style={s.speakBtn}>🔊 Listen</button>
           </div>
         </div>
@@ -4209,18 +4197,18 @@ function RhymesDetailScreen({ id, store, back }) {
         {tab === "Quiz" && quizDone && (
           <div style={s.card}>
             <div style={{textAlign:"center",padding:"16px 0 8px"}}>
-              <div style={{fontSize:40,marginBottom:8}}>{quizScore===quizTotal?"🏆":quizScore>=quizTotal*0.6?"⭐":"📚"}</div>
+              <div style={{fontSize:47,marginBottom:8}}>{quizScore===quizTotal?"🏆":quizScore>=quizTotal*0.6?"⭐":"📚"}</div>
               <h3 style={s.completionTitle}>{quizScore}/{quizTotal} correct</h3>
               <p style={s.completionText}>{quizScore===quizTotal?"Doskonale! You aced this rhyme.":quizScore>=quizTotal*0.6?"Dobrze! Try again to get them all.":"Dobry początek! Read the rhyme again then retry."}</p>
               <div style={{...s.scoreBar,maxWidth:200,margin:"0 auto 8px"}}><div style={{...s.scoreBarFill,width:`${(quizScore/quizTotal)*100}%`}}/></div>
               {rhymeHistory.length > 0 && (
                 <div style={s.historyBox}>
-                  <div style={{fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:"#6a5a3a",marginBottom:8}}>Past attempts</div>
+                  <div style={{fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",color:"#6a5a3a",marginBottom:8}}>Past attempts</div>
                   {rhymeHistory.map((h, i) => (
                     <div key={i} style={s.historyRow}>
-                      <span style={{color:"#7a6a4a",fontSize:11}}>{new Date(h.date).toLocaleDateString()}</span>
+                      <span style={{color:"#7a6a4a",fontSize:13}}>{new Date(h.date).toLocaleDateString()}</span>
                       <div style={{...s.scoreBar,flex:1,height:6}}><div style={{...s.scoreBarFill,width:`${(h.score/h.total)*100}%`}}/></div>
-                      <span style={{color:"#f5c842",fontSize:12,fontWeight:700}}>{h.score}/{h.total}</span>
+                      <span style={{color:"#f5c842",fontSize:14,fontWeight:700}}>{h.score}/{h.total}</span>
                     </div>
                   ))}
                 </div>
@@ -4297,7 +4285,7 @@ function HomeScreen({ onPick, onHelp }) {
         <div style={NAV.cardGrid}>
           {HOME_SECTIONS.map(sec => (
             <button key={sec.key} style={NAV.sectionCard} onClick={() => onPick(sec.key)}>
-              <span style={{fontSize:30,lineHeight:1}}>{sec.icon}</span>
+              <span style={{fontSize:35,lineHeight:1}}>{sec.icon}</span>
               <span style={{textAlign:"left",flex:1}}>
                 <span style={NAV.sectionLabel}>{sec.label}</span>
                 <span style={NAV.sectionBlurb}>{sec.blurb}</span>
@@ -4314,15 +4302,15 @@ function HomeScreen({ onPick, onHelp }) {
 function HelpModal({ onClose }) {
   const P = ({ h, children }) => (
     <section style={{marginBottom:16}}>
-      <h3 style={{fontFamily:"inherit",color:"#f5c842",fontSize:16,margin:"0 0 5px",fontStyle:"italic"}}>{h}</h3>
-      <div style={{fontSize:13.5,color:"#9a8060",lineHeight:1.6}}>{children}</div>
+      <h3 style={{fontFamily:"inherit",color:"#f5c842",fontSize:19,margin:"0 0 5px",fontStyle:"italic"}}>{h}</h3>
+      <div style={{fontSize:16,color:"#9a8060",lineHeight:1.6}}>{children}</div>
     </section>
   );
   return (
     <div style={NAV.overlay} onClick={onClose}>
       <div style={NAV.helpCard} onClick={e => e.stopPropagation()}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline"}}>
-          <h2 style={{fontFamily:"inherit",color:"#f5c842",margin:"0 0 8px",fontSize:22}}>How to use Wierszyki</h2>
+          <h2 style={{fontFamily:"inherit",color:"#f5c842",margin:"0 0 8px",fontSize:26}}>How to use Wierszyki</h2>
           <button style={NAV.backBtn} onClick={onClose}>Close</button>
         </div>
         <P h="Getting around">Pick a section, then an item, then read it. Use ‹ Back or your phone's back button to step back up a level.</P>
@@ -4415,24 +4403,24 @@ function App() {
 const NAV = {
   screen:{minHeight:"100vh",animation:"wzFade .22s ease both"},
   bar:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,padding:"0 10px",height:52,boxSizing:"border-box",borderBottom:"1px solid #3a2a14",background:"rgba(26,18,8,0.96)",backdropFilter:"blur(8px)",position:"sticky",top:0,zIndex:20},
-  backBtn:{background:"transparent",border:"none",color:"#f5c842",fontFamily:"inherit",fontSize:15,cursor:"pointer",padding:"4px 6px",flexShrink:0,whiteSpace:"nowrap"},
-  helpSmall:{width:30,height:30,borderRadius:30,border:"1px solid #5a4a20",background:"rgba(245,200,66,0.06)",color:"#f5c842",fontFamily:"inherit",fontSize:15,cursor:"pointer",flexShrink:0,padding:0},
-  title:{flex:1,textAlign:"center",color:"#f5e6a0",fontStyle:"italic",fontSize:16,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
+  backBtn:{background:"transparent",border:"none",color:"#f5c842",fontFamily:"inherit",fontSize:18,cursor:"pointer",padding:"4px 6px",flexShrink:0,whiteSpace:"nowrap"},
+  helpSmall:{width:30,height:30,borderRadius:30,border:"1px solid #5a4a20",background:"rgba(245,200,66,0.06)",color:"#f5c842",fontFamily:"inherit",fontSize:18,cursor:"pointer",flexShrink:0,padding:0},
+  title:{flex:1,textAlign:"center",color:"#f5e6a0",fontStyle:"italic",fontSize:19,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
   body:{maxWidth:680,margin:"0 auto",padding:"16px 16px 48px"},
-  intro:{color:"#9a8060",fontSize:13.5,fontStyle:"italic",margin:"0 0 16px"},
+  intro:{color:"#9a8060",fontSize:16,fontStyle:"italic",margin:"0 0 16px"},
   cardGrid:{display:"grid",gap:12},
   list:{display:"grid",gap:10},
   sectionCard:{display:"flex",alignItems:"center",gap:14,width:"100%",textAlign:"left",background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:14,padding:"16px",cursor:"pointer",color:"#e8dcc8",fontFamily:"inherit"},
-  sectionLabel:{display:"block",color:"#f5e6a0",fontSize:18,fontStyle:"italic"},
-  sectionBlurb:{display:"block",color:"#9a8060",fontSize:13,marginTop:3,lineHeight:1.45},
+  sectionLabel:{display:"block",color:"#f5e6a0",fontSize:21,fontStyle:"italic"},
+  sectionBlurb:{display:"block",color:"#9a8060",fontSize:15,marginTop:3,lineHeight:1.45},
   itemCard:{display:"flex",alignItems:"center",gap:12,width:"100%",background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:12,padding:"14px",cursor:"pointer",color:"#e8dcc8",fontFamily:"inherit"},
-  itemTitle:{display:"block",color:"#f0e0b0",fontStyle:"italic",fontSize:16,lineHeight:1.25},
-  itemSub:{display:"block",color:"#7a6a4a",fontSize:12,marginTop:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"},
-  chev:{color:"#6a5a3a",fontSize:20,flexShrink:0},
-  help:{width:34,height:34,borderRadius:34,border:"1px solid #7a6020",background:"rgba(245,200,66,0.06)",color:"#f5c842",fontFamily:"inherit",fontSize:17,cursor:"pointer",flexShrink:0},
+  itemTitle:{display:"block",color:"#f0e0b0",fontStyle:"italic",fontSize:19,lineHeight:1.25},
+  itemSub:{display:"block",color:"#7a6a4a",fontSize:14,marginTop:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"},
+  chev:{color:"#6a5a3a",fontSize:24,flexShrink:0},
+  help:{width:34,height:34,borderRadius:34,border:"1px solid #7a6020",background:"rgba(245,200,66,0.06)",color:"#f5c842",fontFamily:"inherit",fontSize:20,cursor:"pointer",flexShrink:0},
   overlay:{position:"fixed",inset:0,background:"rgba(10,7,3,0.8)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:16,zIndex:9999},
   helpCard:{width:"100%",maxWidth:440,maxHeight:"86vh",overflowY:"auto",background:"#241a0e",border:"1px solid #3a2a14",borderRadius:16,padding:"22px"},
-  primaryBtn:{marginTop:6,background:"#f5c842",color:"#1a1208",border:"none",borderRadius:10,fontFamily:"inherit",fontWeight:"bold",fontSize:15,padding:"10px 16px",cursor:"pointer"},
+  primaryBtn:{marginTop:6,background:"#f5c842",color:"#1a1208",border:"none",borderRadius:10,fontFamily:"inherit",fontWeight:"bold",fontSize:18,padding:"10px 16px",cursor:"pointer"},
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4444,12 +4432,12 @@ const s = {
   grain:{position:"fixed",inset:0,backgroundImage:"url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E\")",pointerEvents:"none",zIndex:0,opacity:0.6},
   header:{borderBottom:"1px solid #3a2a14",padding:"10px 16px",background:"rgba(26,18,8,0.95)",backdropFilter:"blur(8px)",position:"sticky",top:0,zIndex:20},
   headerInner:{display:"flex",alignItems:"center",gap:10,maxWidth:1100,margin:"0 auto"},
-  headerIcon:{fontSize:24,flexShrink:0},
-  headerTitle:{margin:0,fontSize:19,fontWeight:700,letterSpacing:"0.04em",color:"#f5c842",whiteSpace:"nowrap"},
-  headerSub:{margin:0,fontSize:10,color:"#7a6a4a",letterSpacing:"0.1em",textTransform:"uppercase",whiteSpace:"nowrap"},
+  headerIcon:{fontSize:28,flexShrink:0},
+  headerTitle:{margin:0,fontSize:22,fontWeight:700,letterSpacing:"0.04em",color:"#f5c842",whiteSpace:"nowrap"},
+  headerSub:{margin:0,fontSize:12,color:"#7a6a4a",letterSpacing:"0.1em",textTransform:"uppercase",whiteSpace:"nowrap"},
   // Mode bar (below header)
   modeBar:{display:"flex",borderBottom:"1px solid #3a2a14",background:"rgba(26,18,8,0.95)",backdropFilter:"blur(8px)",position:"sticky",top:53,zIndex:19},
-  modeBarBtn:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"transparent",border:"none",borderBottom:"2px solid transparent",color:"#6a5a3a",fontSize:12,padding:"8px 4px",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:-1,transition:"all 0.15s"},
+  modeBarBtn:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"transparent",border:"none",borderBottom:"2px solid transparent",color:"#6a5a3a",fontSize:14,padding:"8px 4px",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:-1,transition:"all 0.15s"},
   modeBarBtnActive:{color:"#f5c842",borderBottomColor:"#f5c842"},
   // kept for legacy, unused
   modeSwitcher:{display:"none"},
@@ -4458,172 +4446,172 @@ const s = {
   // Filter bar
   filterBar:{display:"flex",gap:8,padding:"10px 14px",borderBottom:"1px solid #3a2a14",background:"rgba(26,18,8,0.96)",backdropFilter:"blur(8px)",flexWrap:"wrap",alignItems:"center",position:"sticky",top:52,zIndex:16},
   filterGroup:{display:"flex",gap:5},
-  filterBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:6,color:"#6a5a3a",fontSize:11,padding:"4px 10px",cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"},
-  diffPill:{fontSize:10,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid",borderRadius:4,padding:"1px 5px",whiteSpace:"nowrap"},
+  filterBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:6,color:"#6a5a3a",fontSize:13,padding:"4px 10px",cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"},
+  diffPill:{fontSize:12,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid",borderRadius:4,padding:"1px 5px",whiteSpace:"nowrap"},
   pickerStrip:{display:"flex",overflowX:"auto",gap:8,padding:"10px 14px",borderBottom:"1px solid #3a2a14",background:"rgba(26,18,8,0.7)",WebkitOverflowScrolling:"touch",scrollbarWidth:"none",position:"sticky",top:149,zIndex:15},
   pickerBtn:{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"transparent",border:"1px solid #3a2a14",borderRadius:10,padding:"8px 12px",cursor:"pointer",color:"#9a8a6a",minWidth:110,maxWidth:140,textAlign:"center",transition:"all 0.15s"},
   pickerBtnActive:{background:"rgba(245,200,66,0.08)",borderColor:"#f5c842",color:"#f5e6a0"},
-  pickerEmoji:{fontSize:20},
-  pickerBtnTitle:{fontSize:11,fontWeight:600,fontStyle:"italic",lineHeight:1.2,wordBreak:"break-word"},
+  pickerEmoji:{fontSize:24},
+  pickerBtnTitle:{fontSize:13,fontWeight:600,fontStyle:"italic",lineHeight:1.2,wordBreak:"break-word"},
   layoutDesktop:{display:"flex",maxWidth:1100,margin:"0 auto",padding:"28px 24px",gap:24,alignItems:"flex-start",position:"relative",zIndex:1},
   layoutMobile:{display:"flex",flexDirection:"column",padding:"14px 12px 32px",position:"relative",zIndex:1},
   sidebar:{width:220,flexShrink:0},
-  sidebarLabel:{fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",color:"#6a5a3a",marginBottom:10,marginTop:0},
+  sidebarLabel:{fontSize:12,letterSpacing:"0.15em",textTransform:"uppercase",color:"#6a5a3a",marginBottom:10,marginTop:0},
   sidebarBtn:{display:"flex",alignItems:"center",gap:10,width:"100%",background:"transparent",border:"1px solid #3a2a14",borderRadius:8,padding:"10px 12px",marginBottom:7,cursor:"pointer",textAlign:"left",color:"#b0a080",transition:"all 0.15s"},
   sidebarBtnActive:{background:"rgba(245,200,66,0.08)",borderColor:"#f5c842",color:"#f5e6a0"},
-  sidebarEmoji:{fontSize:20,flexShrink:0},
-  sidebarBtnTitle:{display:"block",fontSize:13,fontWeight:600,fontStyle:"italic",marginBottom:2},
+  sidebarEmoji:{fontSize:24,flexShrink:0},
+  sidebarBtnTitle:{display:"block",fontSize:15,fontWeight:600,fontStyle:"italic",marginBottom:2},
   main:{flex:1,minWidth:0},
   rhymeHeader:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10,gap:8},
-  rhymeTitle:{margin:0,fontSize:"clamp(17px,5vw,26px)",fontWeight:700,fontStyle:"italic",color:"#f5e6a0",lineHeight:1.2,wordBreak:"break-word"},
-  rhymeSubtitle:{margin:"4px 0 0",fontSize:12,color:"#7a6a4a",letterSpacing:"0.04em"},
-  speakBtn:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:8,color:"#f5c842",padding:"7px 13px",fontSize:13,cursor:"pointer",fontFamily:"inherit",flexShrink:0},
-  wrongAlert:{background:"rgba(160,60,60,0.08)",border:"1px solid #6a3a3a",borderRadius:8,padding:"9px 12px",fontSize:12,color:"#e0a0a0",marginBottom:12,lineHeight:1.5},
+  rhymeTitle:{margin:0,fontSize:"clamp(20px,5vw,31px)",fontWeight:700,fontStyle:"italic",color:"#f5e6a0",lineHeight:1.2,wordBreak:"break-word"},
+  rhymeSubtitle:{margin:"4px 0 0",fontSize:14,color:"#7a6a4a",letterSpacing:"0.04em"},
+  speakBtn:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:8,color:"#f5c842",padding:"7px 13px",fontSize:15,cursor:"pointer",fontFamily:"inherit",flexShrink:0},
+  wrongAlert:{background:"rgba(160,60,60,0.08)",border:"1px solid #6a3a3a",borderRadius:8,padding:"9px 12px",fontSize:14,color:"#e0a0a0",marginBottom:12,lineHeight:1.5},
   tabs:{display:"flex",marginBottom:14,borderBottom:"1px solid #3a2a14"},
-  tabBtn:{flex:1,background:"transparent",border:"none",borderBottom:"2px solid transparent",color:"#6a5a3a",fontSize:"clamp(10px,2.5vw,13px)",letterSpacing:"0.04em",padding:"10px 2px",cursor:"pointer",fontFamily:"inherit",textTransform:"uppercase",marginBottom:-1,transition:"all 0.15s"},
+  tabBtn:{flex:1,background:"transparent",border:"none",borderBottom:"2px solid transparent",color:"#6a5a3a",fontSize:"clamp(12px,2.5vw,15px)",letterSpacing:"0.04em",padding:"10px 2px",cursor:"pointer",fontFamily:"inherit",textTransform:"uppercase",marginBottom:-1,transition:"all 0.15s"},
   tabBtnActive:{color:"#f5c842",borderBottomColor:"#f5c842"},
   card:{background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:12,padding:"18px 14px"},
-  toggleBtn:{background:"transparent",border:"1px solid #4a3520",borderRadius:6,color:"#9a8060",fontSize:12,padding:"7px 14px",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em",flex:1,textAlign:"center"},
+  toggleBtn:{background:"transparent",border:"1px solid #4a3520",borderRadius:6,color:"#9a8060",fontSize:14,padding:"7px 14px",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em",flex:1,textAlign:"center"},
   linesContainer:{display:"flex",flexDirection:"column",gap:14},
   lineRow:{display:"flex",alignItems:"flex-start",gap:10},
-  miniSpeakBtn:{background:"rgba(245,200,66,0.08)",border:"1px solid #4a3520",borderRadius:6,fontSize:15,cursor:"pointer",padding:"5px 8px",lineHeight:1,flexShrink:0,marginTop:3},
+  miniSpeakBtn:{background:"rgba(245,200,66,0.08)",border:"1px solid #4a3520",borderRadius:6,fontSize:18,cursor:"pointer",padding:"5px 8px",lineHeight:1,flexShrink:0,marginTop:3},
   lineText:{display:"flex",flexDirection:"column",gap:3,flex:1},
-  linePl:{fontSize:"clamp(15px,4.5vw,21px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.35},
+  linePl:{fontSize:"clamp(18px,4.5vw,25px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.35},
   clickableWord:{cursor:"pointer",borderRadius:3,padding:"0 1px",transition:"background-color 0.12s",WebkitTapHighlightColor:"rgba(245,200,66,0.3)"},
   // Speech recognition
-  micBtn:{background:"rgba(245,200,66,0.08)",border:"1px solid #4a3520",borderRadius:6,fontSize:14,cursor:"pointer",padding:"4px 7px",lineHeight:1,flexShrink:0,marginTop:3,color:"#c0a040",transition:"all 0.15s"},
-  micBtnLarge:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:10,fontSize:24,cursor:"pointer",padding:"14px 22px",lineHeight:1,color:"#f5c842",transition:"all 0.15s",minWidth:64,minHeight:54,display:"inline-flex",alignItems:"center",justifyContent:"center"},
+  micBtn:{background:"rgba(245,200,66,0.08)",border:"1px solid #4a3520",borderRadius:6,fontSize:17,cursor:"pointer",padding:"4px 7px",lineHeight:1,flexShrink:0,marginTop:3,color:"#c0a040",transition:"all 0.15s"},
+  micBtnLarge:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:10,fontSize:28,cursor:"pointer",padding:"14px 22px",lineHeight:1,color:"#f5c842",transition:"all 0.15s",minWidth:64,minHeight:54,display:"inline-flex",alignItems:"center",justifyContent:"center"},
   micBtnActive:{background:"rgba(207,80,80,0.18)",borderColor:"#cf6f6f",color:"#e08080",animation:"pulse 1.4s infinite"},
   micBtnError:{borderColor:"#cf6f6f",color:"#e08080"},
-  micError:{position:"absolute",top:"calc(100% + 4px)",left:"50%",transform:"translateX(-50%)",background:"rgba(80,30,30,0.95)",border:"1px solid #6a3a3a",borderRadius:6,padding:"5px 10px",fontSize:11,color:"#e0a0a0",whiteSpace:"nowrap",zIndex:50,pointerEvents:"none"},
+  micError:{position:"absolute",top:"calc(100% + 4px)",left:"50%",transform:"translateX(-50%)",background:"rgba(80,30,30,0.95)",border:"1px solid #6a3a3a",borderRadius:6,padding:"5px 10px",fontSize:13,color:"#e0a0a0",whiteSpace:"nowrap",zIndex:50,pointerEvents:"none"},
   recogResult:{background:"rgba(0,0,0,0.22)",border:"1px solid #3a2a14",borderRadius:8,padding:"12px 14px",marginTop:8,marginLeft:32},
   recogScoreRow:{display:"flex",alignItems:"baseline",gap:10,marginBottom:8,flexWrap:"wrap"},
-  recogScore:{fontSize:22,fontWeight:700,fontFamily:"'Playfair Display',serif"},
-  recogScoreLabel:{fontSize:11,color:"#7a6a4a",letterSpacing:"0.04em",flex:1},
-  recogResetBtn:{background:"transparent",border:"1px solid #4a3520",borderRadius:6,color:"#9a8060",fontSize:14,cursor:"pointer",padding:"2px 9px",lineHeight:1,fontFamily:"inherit"},
-  recogWords:{display:"flex",flexWrap:"wrap",gap:"6px 6px",fontSize:"clamp(13px,3.5vw,16px)",fontFamily:"'Playfair Display',serif",fontStyle:"italic",lineHeight:1.5},
+  recogScore:{fontSize:26,fontWeight:700,fontFamily:"'Playfair Display',serif"},
+  recogScoreLabel:{fontSize:13,color:"#7a6a4a",letterSpacing:"0.04em",flex:1},
+  recogResetBtn:{background:"transparent",border:"1px solid #4a3520",borderRadius:6,color:"#9a8060",fontSize:17,cursor:"pointer",padding:"2px 9px",lineHeight:1,fontFamily:"inherit"},
+  recogWords:{display:"flex",flexWrap:"wrap",gap:"6px 6px",fontSize:"clamp(15px,3.5vw,19px)",fontFamily:"'Playfair Display',serif",fontStyle:"italic",lineHeight:1.5},
   recogWord:{padding:"1px 5px",borderRadius:4,position:"relative"},
   recogWordExact:{background:"rgba(80,160,80,0.18)",color:"#a0e0a0"},
   recogWordClose:{background:"rgba(200,160,40,0.18)",color:"#f5d870"},
   recogWordMissing:{background:"rgba(160,60,60,0.15)",color:"#e0a0a0",textDecoration:"line-through",textDecorationStyle:"solid"},
-  recogHeard:{fontSize:9,opacity:0.7,marginLeft:3,fontStyle:"normal",verticalAlign:"sub"},
-  recogHeardLine:{marginTop:8,fontSize:12,color:"#9a8060",lineHeight:1.5,fontStyle:"normal"},
+  recogHeard:{fontSize:11,opacity:0.7,marginLeft:3,fontStyle:"normal",verticalAlign:"sub"},
+  recogHeardLine:{marginTop:8,fontSize:14,color:"#9a8060",lineHeight:1.5,fontStyle:"normal"},
   // Practice tab
-  practiceIntro:{fontSize:13,color:"#9a8060",marginTop:0,marginBottom:18,lineHeight:1.6},
+  practiceIntro:{fontSize:15,color:"#9a8060",marginTop:0,marginBottom:18,lineHeight:1.6},
   practiceCurrentLine:{background:"rgba(245,200,66,0.06)",border:"1px solid #5a4020",borderRadius:10,padding:"18px 16px",marginBottom:16,textAlign:"center"},
-  practicePolish:{fontSize:"clamp(18px,5vw,24px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.4,marginBottom:6,fontFamily:"'Playfair Display',serif"},
-  practiceEnglish:{fontSize:13,color:"#7a6a4a",marginBottom:14},
+  practicePolish:{fontSize:"clamp(21px,5vw,28px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.4,marginBottom:6,fontFamily:"'Playfair Display',serif"},
+  practiceEnglish:{fontSize:15,color:"#7a6a4a",marginBottom:14},
   practiceControls:{display:"flex",gap:10,justifyContent:"center",alignItems:"center",flexWrap:"wrap",marginTop:10},
   practiceNav:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14,gap:10},
-  practiceNavBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:8,color:"#9a8060",fontSize:13,padding:"8px 16px",cursor:"pointer",fontFamily:"inherit"},
+  practiceNavBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:8,color:"#9a8060",fontSize:15,padding:"8px 16px",cursor:"pointer",fontFamily:"inherit"},
   practiceNavBtnDisabled:{opacity:0.35,cursor:"not-allowed"},
-  practiceProgress:{fontSize:11,color:"#7a6a4a",letterSpacing:"0.06em",textTransform:"uppercase"},
+  practiceProgress:{fontSize:13,color:"#7a6a4a",letterSpacing:"0.06em",textTransform:"uppercase"},
   practiceLineScores:{marginTop:18,padding:"14px",background:"rgba(0,0,0,0.2)",borderRadius:8},
-  practiceLineScoreRow:{display:"flex",alignItems:"center",gap:10,padding:"6px 0",fontSize:12,borderBottom:"1px solid #2a1a08"},
+  practiceLineScoreRow:{display:"flex",alignItems:"center",gap:10,padding:"6px 0",fontSize:14,borderBottom:"1px solid #2a1a08"},
   practiceLineScoreLabel:{flex:1,color:"#9a8060",fontStyle:"italic",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"},
   practiceLineScoreBar:{width:80,height:6,background:"#2a1a08",borderRadius:3,overflow:"hidden",flexShrink:0},
   practiceLineScoreBarFill:{height:"100%",borderRadius:3,transition:"width 0.4s"},
-  practiceLineScoreVal:{width:36,textAlign:"right",fontWeight:700,fontSize:12,flexShrink:0},
-  practiceUnsupported:{background:"rgba(160,120,60,0.08)",border:"1px solid #6a5a3a",borderRadius:8,padding:"14px",fontSize:13,color:"#c09060",lineHeight:1.6,marginBottom:16},
+  practiceLineScoreVal:{width:36,textAlign:"right",fontWeight:700,fontSize:14,flexShrink:0},
+  practiceUnsupported:{background:"rgba(160,120,60,0.08)",border:"1px solid #6a5a3a",borderRadius:8,padding:"14px",fontSize:15,color:"#c09060",lineHeight:1.6,marginBottom:16},
   tooltipBackdrop:{position:"fixed",inset:0,zIndex:998,background:"transparent"},
   tooltipBox:{position:"absolute",zIndex:999,maxWidth:260,minWidth:160,background:"rgba(32,22,10,0.98)",border:"1px solid #7a6020",borderRadius:10,padding:"12px 14px",boxShadow:"0 8px 28px rgba(0,0,0,0.6)",backdropFilter:"blur(12px)",fontFamily:"'Playfair Display','Palatino Linotype',Georgia,serif"},
-  tooltipWord:{display:"flex",alignItems:"center",gap:8,fontSize:18,fontWeight:700,fontStyle:"italic",color:"#f5c842",marginBottom:6},
-  tooltipSpeak:{background:"transparent",border:"none",fontSize:14,cursor:"pointer",opacity:0.7,padding:0,lineHeight:1,marginLeft:"auto"},
-  tooltipMeaning:{fontSize:13,color:"#e0c890",lineHeight:1.5},
-  tooltipMeaningDim:{fontSize:12,color:"#9a8060",lineHeight:1.5,fontStyle:"italic"},
-  tooltipRelated:{fontSize:11,color:"#7a6a4a",marginTop:6,fontStyle:"italic"},
-  lineEn:{fontSize:12,color:"#7a6a4a",letterSpacing:"0.02em"},
-  vocabIntro:{fontSize:13,color:"#7a6a4a",marginTop:0,marginBottom:14,fontStyle:"italic"},
+  tooltipWord:{display:"flex",alignItems:"center",gap:8,fontSize:21,fontWeight:700,fontStyle:"italic",color:"#f5c842",marginBottom:6},
+  tooltipSpeak:{background:"transparent",border:"none",fontSize:17,cursor:"pointer",opacity:0.7,padding:0,lineHeight:1,marginLeft:"auto"},
+  tooltipMeaning:{fontSize:15,color:"#e0c890",lineHeight:1.5},
+  tooltipMeaningDim:{fontSize:14,color:"#9a8060",lineHeight:1.5,fontStyle:"italic"},
+  tooltipRelated:{fontSize:13,color:"#7a6a4a",marginTop:6,fontStyle:"italic"},
+  lineEn:{fontSize:14,color:"#7a6a4a",letterSpacing:"0.02em"},
+  vocabIntro:{fontSize:15,color:"#7a6a4a",marginTop:0,marginBottom:14,fontStyle:"italic"},
   vocabGrid:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:9},
   vocabCard:{background:"rgba(245,200,66,0.05)",border:"1px solid #3a2a14",borderRadius:8,padding:"10px 12px"},
-  vocabWord:{fontSize:16,fontWeight:700,fontStyle:"italic",color:"#f5c842",marginBottom:5,display:"flex",alignItems:"center",gap:7},
-  vocabSpeak:{background:"transparent",border:"none",fontSize:12,cursor:"pointer",opacity:0.55,padding:0,lineHeight:1},
-  vocabMeaning:{fontSize:12,color:"#9a8060",lineHeight:1.4},
+  vocabWord:{fontSize:19,fontWeight:700,fontStyle:"italic",color:"#f5c842",marginBottom:5,display:"flex",alignItems:"center",gap:7},
+  vocabSpeak:{background:"transparent",border:"none",fontSize:14,cursor:"pointer",opacity:0.55,padding:0,lineHeight:1},
+  vocabMeaning:{fontSize:14,color:"#9a8060",lineHeight:1.4},
   // Grammar
   grammarCard:{background:"rgba(245,200,66,0.04)",border:"1px solid #3a2a14",borderRadius:8,padding:"14px"},
-  grammarPoint:{fontSize:14,fontWeight:700,color:"#f5c842",marginBottom:7,fontStyle:"italic"},
-  grammarNote:{fontSize:13,color:"#c0a878",lineHeight:1.65},
+  grammarPoint:{fontSize:17,fontWeight:700,color:"#f5c842",marginBottom:7,fontStyle:"italic"},
+  grammarNote:{fontSize:15,color:"#c0a878",lineHeight:1.65},
   // Progress
   progressRow:{display:"flex",alignItems:"center",gap:10,marginBottom:16,flexWrap:"wrap"},
-  progressLabel:{fontSize:11,color:"#7a6a4a",letterSpacing:"0.06em",textTransform:"uppercase",flexShrink:0},
-  progressSource:{fontSize:11,color:"#9a8060",fontStyle:"italic",flex:1,minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"},
+  progressLabel:{fontSize:13,color:"#7a6a4a",letterSpacing:"0.06em",textTransform:"uppercase",flexShrink:0},
+  progressSource:{fontSize:13,color:"#9a8060",fontStyle:"italic",flex:1,minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"},
   progressTrack:{display:"flex",gap:5,flexShrink:0,flexWrap:"wrap"},
   progressDot:{width:8,height:8,borderRadius:"50%",background:"#3a2a14",transition:"all 0.2s"},
   dotDone:{background:"#6fcf6f"},
   dotCurrent:{background:"#f5c842",transform:"scale(1.3)"},
   // Quiz
   quizBlock:{background:"rgba(0,0,0,0.22)",borderRadius:8,padding:"12px 14px",marginBottom:18},
-  quizLine:{fontSize:"clamp(13px,4vw,17px)",fontStyle:"italic",color:"#6a5a3a",margin:"5px 0",lineHeight:1.4},
-  quizLineHL:{color:"#f0e0b0",fontSize:"clamp(14px,4.5vw,19px)"},
+  quizLine:{fontSize:"clamp(15px,4vw,20px)",fontStyle:"italic",color:"#6a5a3a",margin:"5px 0",lineHeight:1.4},
+  quizLineHL:{color:"#f0e0b0",fontSize:"clamp(17px,4.5vw,22px)"},
   quizBlank:{display:"inline-block",minWidth:65,borderBottom:"2px solid #f5c842",color:"#f5c842",textAlign:"center",padding:"0 5px",fontStyle:"normal",letterSpacing:"0.05em",transition:"all 0.2s"},
   blankOk:{color:"#6fcf6f",borderBottomColor:"#6fcf6f"},
   blankBad:{color:"#cf6f6f",borderBottomColor:"#cf6f6f"},
   choicesGrid:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10},
-  choiceBtn:{background:"rgba(245,200,66,0.06)",border:"1px solid #5a4020",borderRadius:10,color:"#f0e0b0",fontSize:"clamp(13px,4vw,17px)",fontStyle:"italic",fontFamily:"inherit",padding:"13px 8px",cursor:"pointer",transition:"all 0.15s",textAlign:"center",minHeight:50},
-  resultBox:{borderRadius:10,padding:"14px",display:"flex",alignItems:"flex-start",gap:10,fontSize:14,border:"1px solid",lineHeight:1.5,flexWrap:"wrap"},
+  choiceBtn:{background:"rgba(245,200,66,0.06)",border:"1px solid #5a4020",borderRadius:10,color:"#f0e0b0",fontSize:"clamp(15px,4vw,20px)",fontStyle:"italic",fontFamily:"inherit",padding:"13px 8px",cursor:"pointer",transition:"all 0.15s",textAlign:"center",minHeight:50},
+  resultBox:{borderRadius:10,padding:"14px",display:"flex",alignItems:"flex-start",gap:10,fontSize:17,border:"1px solid",lineHeight:1.5,flexWrap:"wrap"},
   resultOk:{background:"rgba(80,160,80,0.1)",borderColor:"#4a8a4a",color:"#a0e0a0"},
   resultBad:{background:"rgba(160,60,60,0.1)",borderColor:"#8a3a3a",color:"#e0a0a0"},
-  resultIcon:{fontSize:20,flexShrink:0,marginTop:1},
-  resultDetail:{fontSize:12,opacity:0.8},
-  nextBtn:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:6,color:"#f5c842",fontSize:13,padding:"7px 14px",cursor:"pointer",fontFamily:"inherit",flexShrink:0,alignSelf:"center"},
+  resultIcon:{fontSize:24,flexShrink:0,marginTop:1},
+  resultDetail:{fontSize:14,opacity:0.8},
+  nextBtn:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:6,color:"#f5c842",fontSize:15,padding:"7px 14px",cursor:"pointer",fontFamily:"inherit",flexShrink:0,alignSelf:"center"},
   // Completion & history
-  completionTitle:{margin:"0 0 8px",fontSize:22,color:"#f5c842",fontWeight:700},
-  completionText:{fontSize:13,color:"#9a8060",lineHeight:1.6,margin:"0 0 12px"},
+  completionTitle:{margin:"0 0 8px",fontSize:26,color:"#f5c842",fontWeight:700},
+  completionText:{fontSize:15,color:"#9a8060",lineHeight:1.6,margin:"0 0 12px"},
   scoreBar:{height:8,background:"#2a1a08",borderRadius:4,overflow:"hidden"},
   scoreBarFill:{height:"100%",background:"linear-gradient(90deg,#7a6020,#f5c842)",borderRadius:4,transition:"width 0.6s ease"},
   historyBox:{background:"rgba(0,0,0,0.2)",borderRadius:8,padding:"12px",margin:"12px 0",textAlign:"left"},
   historyRow:{display:"flex",alignItems:"center",gap:8,marginBottom:6},
-  startBtn:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:8,color:"#f5c842",fontSize:13,padding:"9px 22px",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em"},
-  secondaryBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:8,color:"#9a8060",fontSize:13,padding:"9px 22px",cursor:"pointer",fontFamily:"inherit"},
+  startBtn:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:8,color:"#f5c842",fontSize:15,padding:"9px 22px",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em"},
+  secondaryBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:8,color:"#9a8060",fontSize:15,padding:"9px 22px",cursor:"pointer",fontFamily:"inherit"},
   globalIntroCard:{background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:12,padding:"36px 24px",textAlign:"center",maxWidth:480,margin:"0 auto"},
-  globalIntroTitle:{margin:"0 0 12px",fontSize:24,color:"#f5e6a0",fontWeight:700,fontStyle:"italic"},
-  globalIntroText:{fontSize:14,color:"#9a8060",lineHeight:1.7,margin:"0 0 16px"},
+  globalIntroTitle:{margin:"0 0 12px",fontSize:28,color:"#f5e6a0",fontWeight:700,fontStyle:"italic"},
+  globalIntroText:{fontSize:17,color:"#9a8060",lineHeight:1.7,margin:"0 0 16px"},
   wrongSummary:{background:"rgba(160,60,60,0.07)",border:"1px solid #6a3a3a",borderRadius:8,padding:"12px",marginBottom:16},
-  wrongBadge:{fontSize:11,color:"#e0a0a0",background:"rgba(160,60,60,0.12)",border:"1px solid #6a3a3a",borderRadius:4,padding:"2px 7px"},
+  wrongBadge:{fontSize:13,color:"#e0a0a0",background:"rgba(160,60,60,0.12)",border:"1px solid #6a3a3a",borderRadius:4,padding:"2px 7px"},
   // Jokes
   jokeCard:{background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:12,padding:"16px"},
   jokeCardOpen:{borderColor:"#7a6020",background:"rgba(245,200,66,0.03)"},
   jokeTop:{display:"flex",alignItems:"center",gap:8,marginBottom:10},
-  jokePill:{fontSize:10,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid",borderRadius:4,padding:"2px 7px",whiteSpace:"nowrap"},
-  jokeSetup:{fontSize:"clamp(14px,4vw,17px)",color:"#f0e0b0",lineHeight:1.55,fontStyle:"italic",marginBottom:10},
-  jokeRevealBtn:{background:"rgba(245,200,66,0.08)",border:"1px solid #5a4020",borderRadius:6,color:"#c0a040",fontSize:12,padding:"6px 14px",cursor:"pointer",fontFamily:"inherit",width:"100%",textAlign:"center"},
-  jokePunchline:{fontSize:"clamp(14px,4vw,17px)",color:"#f5c842",lineHeight:1.55,fontWeight:700,fontStyle:"italic",marginBottom:10},
+  jokePill:{fontSize:12,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid",borderRadius:4,padding:"2px 7px",whiteSpace:"nowrap"},
+  jokeSetup:{fontSize:"clamp(17px,4vw,20px)",color:"#f0e0b0",lineHeight:1.55,fontStyle:"italic",marginBottom:10},
+  jokeRevealBtn:{background:"rgba(245,200,66,0.08)",border:"1px solid #5a4020",borderRadius:6,color:"#c0a040",fontSize:14,padding:"6px 14px",cursor:"pointer",fontFamily:"inherit",width:"100%",textAlign:"center"},
+  jokePunchline:{fontSize:"clamp(17px,4vw,20px)",color:"#f5c842",lineHeight:1.55,fontWeight:700,fontStyle:"italic",marginBottom:10},
   jokePunchlineRow:{display:"flex",alignItems:"flex-start",gap:10,marginBottom:10},
-  punchlineSpeak:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:6,color:"#f5c842",fontSize:14,cursor:"pointer",padding:"6px 9px",lineHeight:1,flexShrink:0,marginTop:2},
+  punchlineSpeak:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:6,color:"#f5c842",fontSize:17,cursor:"pointer",padding:"6px 9px",lineHeight:1,flexShrink:0,marginTop:2},
   jokeDivider:{height:1,background:"#2a1a08",margin:"10px 0"},
   jokeTranslation:{background:"rgba(0,0,0,0.15)",borderRadius:6,padding:"10px 12px"},
-  jokeTransLabel:{fontSize:10,letterSpacing:"0.1em",textTransform:"uppercase",color:"#6a5a3a",marginBottom:6},
-  jokeTransSetup:{fontSize:13,color:"#9a8060",marginBottom:4,lineHeight:1.4},
-  jokeTransPunch:{fontSize:13,color:"#c0a040",lineHeight:1.4,fontStyle:"italic"},
-  jokeExplanation:{fontSize:13,color:"#c0a878",lineHeight:1.65,marginBottom:8},
+  jokeTransLabel:{fontSize:12,letterSpacing:"0.1em",textTransform:"uppercase",color:"#6a5a3a",marginBottom:6},
+  jokeTransSetup:{fontSize:15,color:"#9a8060",marginBottom:4,lineHeight:1.4},
+  jokeTransPunch:{fontSize:15,color:"#c0a040",lineHeight:1.4,fontStyle:"italic"},
+  jokeExplanation:{fontSize:15,color:"#c0a878",lineHeight:1.65,marginBottom:8},
   jokeVocab:{display:"flex",flexDirection:"column",gap:4,marginBottom:10},
-  jokeVocabItem:{fontSize:12,color:"#9a8060",lineHeight:1.4},
-  jokeHideBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:6,color:"#6a5a3a",fontSize:11,padding:"5px 14px",cursor:"pointer",fontFamily:"inherit",width:"100%",textAlign:"center"},
+  jokeVocabItem:{fontSize:14,color:"#9a8060",lineHeight:1.4},
+  jokeHideBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:6,color:"#6a5a3a",fontSize:13,padding:"5px 14px",cursor:"pointer",fontFamily:"inherit",width:"100%",textAlign:"center"},
   // Sayings
-  sayingsIntro:{fontSize:13,color:"#7a6a4a",fontStyle:"italic",marginTop:0,marginBottom:16},
+  sayingsIntro:{fontSize:15,color:"#7a6a4a",fontStyle:"italic",marginTop:0,marginBottom:16},
   sayingsList:{display:"flex",flexDirection:"column",gap:10},
   sayingCard:{background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:12,padding:"16px",cursor:"pointer",transition:"border-color 0.15s"},
   sayingCardOpen:{borderColor:"#7a6020",background:"rgba(245,200,66,0.04)"},
   sayingTop:{display:"flex",gap:12,alignItems:"flex-start"},
-  sayingPl:{fontSize:"clamp(14px,4vw,18px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.3,marginBottom:5},
-  sayingEn:{fontSize:12,color:"#7a6a4a",lineHeight:1.4},
+  sayingPl:{fontSize:"clamp(17px,4vw,21px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.3,marginBottom:5},
+  sayingEn:{fontSize:14,color:"#7a6a4a",lineHeight:1.4},
   sayingMeta:{display:"flex",alignItems:"center",gap:8,flexShrink:0},
-  sayingTheme:{fontSize:10,letterSpacing:"0.08em",textTransform:"uppercase",color:"#6a5a3a",background:"rgba(245,200,66,0.08)",border:"1px solid #3a2a14",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap"},
-  sayingSpeak:{background:"transparent",border:"none",fontSize:15,cursor:"pointer",opacity:0.6,padding:0,lineHeight:1,color:"inherit"},
-  sayingChevron:{fontSize:10,color:"#7a6a4a",userSelect:"none"},
-  sayingMeaning:{marginTop:12,paddingTop:12,borderTop:"1px solid #3a2a14",fontSize:13,color:"#c0a878",lineHeight:1.65},
+  sayingTheme:{fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase",color:"#6a5a3a",background:"rgba(245,200,66,0.08)",border:"1px solid #3a2a14",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap"},
+  sayingSpeak:{background:"transparent",border:"none",fontSize:18,cursor:"pointer",opacity:0.6,padding:0,lineHeight:1,color:"inherit"},
+  sayingChevron:{fontSize:12,color:"#7a6a4a",userSelect:"none"},
+  sayingMeaning:{marginTop:12,paddingTop:12,borderTop:"1px solid #3a2a14",fontSize:15,color:"#c0a878",lineHeight:1.65},
   // Sayings quiz
   sayingQuizPrompt:{background:"rgba(0,0,0,0.22)",borderRadius:8,padding:"16px",textAlign:"center"},
-  sayingQuizPl:{fontSize:"clamp(16px,4.5vw,22px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.4},
+  sayingQuizPl:{fontSize:"clamp(19px,4.5vw,26px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.4},
 
   // Verification badges
-  verifiedBadge:{fontSize:10,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid #4a8a4a",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap",color:"#7ac07a",background:"rgba(80,160,80,0.1)",textDecoration:"none",cursor:"pointer"},
-  unverifiedBadge:{fontSize:10,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid #8a6a3a",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap",color:"#c09060",background:"rgba(160,120,60,0.08)"},
-  unverifiedBadgeSm:{fontSize:11,color:"#c09060"},
-  attribution:{margin:"6px 0 0",fontSize:11,color:"#9a8060",fontStyle:"italic",letterSpacing:"0.02em"},
-  cultureNote:{margin:"4px 0 0",fontSize:11,color:"#8a7a5a",lineHeight:1.5,fontStyle:"italic",borderLeft:"2px solid #4a3520",paddingLeft:8,maxWidth:"90%"},
-  categoryPill:{fontSize:10,letterSpacing:"0.06em",border:"1px solid #4a3520",borderRadius:4,padding:"2px 7px",whiteSpace:"nowrap",color:"#a09070",background:"rgba(255,240,200,0.04)"},
-  sayingChoiceBtn:{background:"rgba(245,200,66,0.04)",border:"1px solid #3a2a14",borderRadius:10,color:"#c0a878",fontSize:"clamp(12px,3.5vw,14px)",fontFamily:"inherit",padding:"12px 14px",cursor:"pointer",textAlign:"left",lineHeight:1.5,transition:"all 0.15s"},
+  verifiedBadge:{fontSize:12,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid #4a8a4a",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap",color:"#7ac07a",background:"rgba(80,160,80,0.1)",textDecoration:"none",cursor:"pointer"},
+  unverifiedBadge:{fontSize:12,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid #8a6a3a",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap",color:"#c09060",background:"rgba(160,120,60,0.08)"},
+  unverifiedBadgeSm:{fontSize:13,color:"#c09060"},
+  attribution:{margin:"6px 0 0",fontSize:13,color:"#9a8060",fontStyle:"italic",letterSpacing:"0.02em"},
+  cultureNote:{margin:"4px 0 0",fontSize:13,color:"#8a7a5a",lineHeight:1.5,fontStyle:"italic",borderLeft:"2px solid #4a3520",paddingLeft:8,maxWidth:"90%"},
+  categoryPill:{fontSize:12,letterSpacing:"0.06em",border:"1px solid #4a3520",borderRadius:4,padding:"2px 7px",whiteSpace:"nowrap",color:"#a09070",background:"rgba(255,240,200,0.04)"},
+  sayingChoiceBtn:{background:"rgba(245,200,66,0.04)",border:"1px solid #3a2a14",borderRadius:10,color:"#c0a878",fontSize:"clamp(14px,3.5vw,17px)",fontFamily:"inherit",padding:"12px 14px",cursor:"pointer",textAlign:"left",lineHeight:1.5,transition:"all 0.15s"},
 };
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
