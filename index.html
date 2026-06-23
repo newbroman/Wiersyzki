@@ -83,6 +83,7 @@
       50% { box-shadow: 0 0 0 8px rgba(207, 80, 80, 0); }
     }
   @keyframes wzFade{from{opacity:0}to{opacity:1}}
+  @keyframes wzSlideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
@@ -3224,6 +3225,7 @@ function RecognitionResult({ result, onReset }) {
 }
 
 const HelpContext = React.createContext(() => {});
+const MenuContext = React.createContext(() => {});
 
 // Reusable speak-and-score practice for any single Polish phrase (sayings, jokes…)
 // Break any Polish phrase/joke into small, natural practice parts (clauses, then
@@ -3307,7 +3309,7 @@ function GuidedPractice({ segments, intro, segLabel = "Part", wholeLabel = "Whol
 
           {attemptedCount > 0 && (
             <div style={s.practiceLineScores}>
-              <div style={{fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:8}}>
+              <div style={{fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",color:"#a29780",marginBottom:8}}>
                 Your scores ({attemptedCount} of {segments.length}, avg {avgScore}%)
               </div>
               {segments.map((seg, i) => {
@@ -3524,7 +3526,7 @@ function QuizEngine({ questions, onComplete, rhyme, onWrong }) {
                 q.choices.forEach(c => { const r = compareText(c, heard); if (r.score > bestScore) { bestScore = r.score; best = c; } });
                 if (best) handleChoice(best);
               }} size="large"/>
-              <span style={{fontSize:14,color:"#7a6a4a"}}>or speak your answer</span>
+              <span style={{fontSize:14,color:"#a29780"}}>or speak your answer</span>
             </div>
           )}
         </>
@@ -3615,7 +3617,7 @@ function SayingsQuiz({ onExit }) {
         </div>
       </div>
       <div style={s.sayingQuizPrompt}>
-        <div style={{fontSize:13,letterSpacing:"0.1em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:8}}>What does this saying mean?</div>
+        <div style={{fontSize:13,letterSpacing:"0.1em",textTransform:"uppercase",color:"#a29780",marginBottom:8}}>What does this saying mean?</div>
         <div style={s.sayingQuizPl}>{q.pl}</div>
         <button onClick={()=>speak(q.pl)} style={{...s.vocabSpeak,fontSize:19,marginTop:6}}>🔊</button>
       </div>
@@ -3649,7 +3651,7 @@ function JokeCard({ joke }) {
   const [revealed, setRevealed] = useState(false);
   const typePill = joke.type === "pun"
     ? {label:"😄 Pun", bg:"rgba(245,200,66,0.08)", color:"#c0a040", border:"#6a5a20"}
-    : {label:"📖 Story", bg:"rgba(80,160,200,0.08)", color:"#6090c0", border:"#304060"};
+    : {label:"📖 Story", bg:"rgba(80,160,200,0.08)", color:"#90b1d3", border:"#304060"};
   return (
     <div style={{...s.jokeCard,...(revealed?s.jokeCardOpen:{})}}>
       <div style={s.jokeTop}>
@@ -3770,15 +3772,15 @@ function JokeDetailScreen({ id, back }) {
       <div style={NAV.body}>
         <JokeCard joke={joke}/>
         <div style={{marginTop:18}}>
-          <div style={{fontSize:15,letterSpacing:"0.08em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:10,marginLeft:2}}>🎤 Practise saying it</div>
+          <div style={{fontSize:15,letterSpacing:"0.08em",textTransform:"uppercase",color:"#a29780",marginBottom:10,marginLeft:2}}>🎤 Practise saying it</div>
           <div style={{display:"flex",flexDirection:"column",gap:16}}>
             <div>
-              <div style={{fontSize:15,color:"#9a8060",fontStyle:"italic",marginBottom:6,marginLeft:2}}>The setup</div>
+              <div style={{fontSize:15,color:"#b8a690",fontStyle:"italic",marginBottom:6,marginLeft:2}}>The setup</div>
               <GuidedPractice segments={splitIntoSegments(joke.setup)} segLabel="Part" wholeLabel="Whole setup"/>
             </div>
             {showPunch ? (
               <div>
-                <div style={{fontSize:15,color:"#9a8060",fontStyle:"italic",marginBottom:6,marginLeft:2}}>The punchline</div>
+                <div style={{fontSize:15,color:"#b8a690",fontStyle:"italic",marginBottom:6,marginLeft:2}}>The punchline</div>
                 <GuidedPractice segments={splitIntoSegments(joke.punchline)} segLabel="Part" wholeLabel="Whole punchline"/>
               </div>
             ) : (
@@ -3873,7 +3875,7 @@ function SayingsDetailScreen({ id, store, back }) {
           </div>
         </div>
         <div style={{marginTop:16}}>
-          <div style={{fontSize:15,letterSpacing:"0.08em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:10,marginLeft:2}}>🎤 Practise saying it</div>
+          <div style={{fontSize:15,letterSpacing:"0.08em",textTransform:"uppercase",color:"#a29780",marginBottom:10,marginLeft:2}}>🎤 Practise saying it</div>
           <GuidedPractice
             segments={splitIntoSegments(saying.pl)}
             intro="Read each part aloud and the app will score how close you are."
@@ -4203,10 +4205,10 @@ function RhymesDetailScreen({ id, store, back }) {
               <div style={{...s.scoreBar,maxWidth:200,margin:"0 auto 8px"}}><div style={{...s.scoreBarFill,width:`${(quizScore/quizTotal)*100}%`}}/></div>
               {rhymeHistory.length > 0 && (
                 <div style={s.historyBox}>
-                  <div style={{fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",color:"#6a5a3a",marginBottom:8}}>Past attempts</div>
+                  <div style={{fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",color:"#a69c89",marginBottom:8}}>Past attempts</div>
                   {rhymeHistory.map((h, i) => (
                     <div key={i} style={s.historyRow}>
-                      <span style={{color:"#7a6a4a",fontSize:13}}>{new Date(h.date).toLocaleDateString()}</span>
+                      <span style={{color:"#a29780",fontSize:13}}>{new Date(h.date).toLocaleDateString()}</span>
                       <div style={{...s.scoreBar,flex:1,height:6}}><div style={{...s.scoreBarFill,width:`${(h.score/h.total)*100}%`}}/></div>
                       <span style={{color:"#f5c842",fontSize:14,fontWeight:700}}>{h.score}/{h.total}</span>
                     </div>
@@ -4246,16 +4248,24 @@ function useNavStack(initial) {
     window.scrollTo(0, 0);
   }, []);
   const back = useCallback(() => { history.back(); }, []);   // drives popstate
-  return { current: stack[stack.length - 1], depth: stack.length, go, back };
+  // Jump straight to a section from the menu: reset to a clean home→target stack.
+  const jump = useCallback((screen) => {
+    if (screen.view === "home") { setStack([{ view:"home" }]); }
+    else { setStack([{ view:"home" }, screen]); history.pushState({ wz:true }, ""); }
+    window.scrollTo(0, 0);
+  }, []);
+  return { current: stack[stack.length - 1], depth: stack.length, go, back, jump };
 }
 
 function NavBar({ title, onBack }) {
   const openHelp = React.useContext(HelpContext);
+  const openMenu = React.useContext(MenuContext);
   return (
     <div style={NAV.bar}>
       <button style={NAV.backBtn} onClick={onBack} aria-label="Back">‹ Back</button>
       <span style={NAV.title}>{title}</span>
       <button style={NAV.helpSmall} onClick={openHelp} aria-label="Help">?</button>
+      <button style={NAV.menuBtn} onClick={openMenu} aria-label="Menu">☰</button>
     </div>
   );
 }
@@ -4267,7 +4277,7 @@ const HOME_SECTIONS = [
   { key:"quiz",    icon:"🌍", label:"Quiz",    blurb:"Every rhyme question, shuffled. Misses come back more often." },
 ];
 
-function HomeScreen({ onPick, onHelp }) {
+function HomeScreen({ onPick, onHelp, onMenu }) {
   return (
     <div style={NAV.screen}>
       <header style={s.header}>
@@ -4278,6 +4288,7 @@ function HomeScreen({ onPick, onHelp }) {
             <p style={s.headerSub}>Polish for Learners</p>
           </div>
           <button style={NAV.help} onClick={onHelp} aria-label="Help">?</button>
+          <button style={NAV.help} onClick={onMenu} aria-label="Menu">☰</button>
         </div>
       </header>
       <div style={NAV.body}>
@@ -4303,7 +4314,7 @@ function HelpModal({ onClose }) {
   const P = ({ h, children }) => (
     <section style={{marginBottom:16}}>
       <h3 style={{fontFamily:"inherit",color:"#f5c842",fontSize:19,margin:"0 0 5px",fontStyle:"italic"}}>{h}</h3>
-      <div style={{fontSize:16,color:"#9a8060",lineHeight:1.6}}>{children}</div>
+      <div style={{fontSize:16,color:"#b8a690",lineHeight:1.6}}>{children}</div>
     </section>
   );
   return (
@@ -4313,7 +4324,7 @@ function HelpModal({ onClose }) {
           <h2 style={{fontFamily:"inherit",color:"#f5c842",margin:"0 0 8px",fontSize:26}}>How to use Wierszyki</h2>
           <button style={NAV.backBtn} onClick={onClose}>Close</button>
         </div>
-        <P h="Getting around">Pick a section, then an item, then read it. Use ‹ Back or your phone's back button to step back up a level.</P>
+        <P h="Getting around">Pick a section, then an item, then read it. Use ‹ Back (or your phone's back button) to step back a level, or the ☰ menu in the top corner to jump straight to any section.</P>
         <P h="Hearing the rhymes">Audio uses your device's Polish voice and works offline. If it sounds like English, install a Polish voice in Settings → System → Languages &amp; input → Text-to-speech.</P>
         <P h="Speaking practice">Rhymes have a Practice tab, and every saying and joke has a 🎤 section. Tap the mic, read the Polish aloud, and it scores you word by word. In a quiz you can also speak your answer. Allow the microphone when asked; Polish recognition needs internet on most phones.</P>
         <P h="Saving &amp; progress">Tap ☆ to save a rhyme or saying. Quiz scores and saved items stay on your device only.</P>
@@ -4332,10 +4343,79 @@ function QuizScreen({ isMobile, onBack }) {
   );
 }
 
+function MenuDrawer({ onClose, onNavigate, onHelp, onShowWelcome }) {
+  const Item = ({ icon, label, onClick }) => (
+    <button style={NAV.menuItem} onClick={onClick}>
+      <span style={{fontSize:22,width:28,textAlign:"center",flexShrink:0}}>{icon}</span>
+      <span style={{flex:1,textAlign:"left"}}>{label}</span>
+      <span style={NAV.chev}>›</span>
+    </button>
+  );
+  return (
+    <div style={NAV.menuOverlay} onClick={onClose}>
+      <div style={NAV.menuPanel} onClick={e => e.stopPropagation()}>
+        <div style={NAV.menuHeader}>
+          <span style={{fontSize:21,color:"#f5c842",fontStyle:"italic"}}>Menu</span>
+          <button style={NAV.helpSmall} onClick={onClose} aria-label="Close menu">✕</button>
+        </div>
+        <Item icon="🏠" label="Home" onClick={() => onNavigate({ view:"home" })}/>
+        <Item icon="📖" label="Rhymes" onClick={() => onNavigate({ view:"rhymes-list" })}/>
+        <Item icon="💬" label="Sayings" onClick={() => onNavigate({ view:"sayings-list" })}/>
+        <Item icon="😄" label="Jokes" onClick={() => onNavigate({ view:"jokes-cats" })}/>
+        <Item icon="🌍" label="Quiz" onClick={() => onNavigate({ view:"quiz" })}/>
+        <div style={{height:1,background:"#3a2a14",margin:"8px 4px"}}/>
+        <Item icon="❓" label="How to use Wierszyki" onClick={onHelp}/>
+        <Item icon="👋" label="Show welcome screen" onClick={onShowWelcome}/>
+      </div>
+    </div>
+  );
+}
+
+function WelcomeScreen({ enabled, setEnabled, onClose }) {
+  const Point = ({ icon, title, children }) => (
+    <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+      <span style={{fontSize:24,flexShrink:0,lineHeight:1.2}}>{icon}</span>
+      <div>
+        <div style={{color:"#f0e0b0",fontSize:17,fontStyle:"italic"}}>{title}</div>
+        <div style={{color:"#b8a690",fontSize:15,lineHeight:1.5,marginTop:2}}>{children}</div>
+      </div>
+    </div>
+  );
+  return (
+    <div style={NAV.introOverlay}>
+      <div style={NAV.introCard}>
+        <div style={{textAlign:"center",marginBottom:18}}>
+          <div style={{fontSize:52,marginBottom:6}}>🪺</div>
+          <h1 style={{margin:0,fontSize:32,color:"#f5c842",letterSpacing:"0.04em"}}>Wierszyki</h1>
+          <p style={{margin:"4px 0 0",fontSize:14,color:"#a29780",letterSpacing:"0.1em",textTransform:"uppercase"}}>Polish for Learners</p>
+        </div>
+        <p style={{fontSize:17,color:"#c8b890",lineHeight:1.6,marginTop:0}}>
+          Learn Polish through traditional nursery rhymes, proverbs and jokes — read aloud, translated, and broken into small pieces you can practise by voice.
+        </p>
+        <div style={{display:"flex",flexDirection:"column",gap:14,margin:"18px 0"}}>
+          <Point icon="📖" title="Rhymes, sayings & jokes">Browse by section, then tap any item to read it with a literal translation.</Point>
+          <Point icon="🔊" title="Hear it spoken">Polish audio works offline. Tap 🔊 anywhere to listen.</Point>
+          <Point icon="🎤" title="Practise speaking">Read each part aloud and the app scores your pronunciation word by word. Needs Chrome, Edge or Safari, plus internet.</Point>
+          <Point icon="🌍" title="Quiz yourself">Fill-in quizzes bring back what you miss more often — you can even speak your answer.</Point>
+        </div>
+        <button style={NAV.introToggle} onClick={() => setEnabled(!enabled)} aria-pressed={enabled}>
+          <span style={{...NAV.checkbox,...(enabled?NAV.checkboxOn:{})}}>{enabled ? "✓" : ""}</span>
+          <span>Show this welcome each time the app opens</span>
+        </button>
+        <button style={{...NAV.primaryBtn,width:"100%",marginTop:14,fontSize:19,padding:"12px"}} onClick={onClose}>Get started →</button>
+        <p style={{fontSize:13,color:"#a69c89",textAlign:"center",margin:"12px 0 0"}}>You can reopen this anytime from the ☰ menu.</p>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const isMobile = useIsMobile();
-  const { current, go, back } = useNavStack({ view:"home" });
+  const { current, go, back, jump } = useNavStack({ view:"home" });
   const [showHelp, setShowHelp] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [welcomeEnabled, setWelcomeEnabled] = useState(() => LS.get("showWelcome", true));
+  const [introOpen, setIntroOpen] = useState(() => LS.get("showWelcome", true));
 
   const [bookmarks, setBookmarks] = useState(() => LS.get("bookmarks", {rhymes:[],sayings:[]}));
   const [historyLog, setHistoryLog] = useState(() => LS.get("history", []));
@@ -4363,6 +4443,8 @@ function App() {
     setWrongLog(prev => { const u = {...prev, [qKey]:(prev[qKey]||0)+1}; LS.set("wrongLog", u); return u; });
   }, []);
 
+  const setWelcomePref = useCallback((val) => { setWelcomeEnabled(val); LS.set("showWelcome", val); }, []);
+
   const store = {
     bookmarks, history: historyLog, wrongLog,
     rhymeFilter, setRhymeFilter, sayingsSaved, setSayingsSaved,
@@ -4372,7 +4454,7 @@ function App() {
   const v = current.view;
   let screen;
   if (v === "home")
-    screen = <HomeScreen onHelp={() => setShowHelp(true)}
+    screen = <HomeScreen onHelp={() => setShowHelp(true)} onMenu={() => setMenuOpen(true)}
       onPick={(k) => {
         if (k === "rhymes") go({ view:"rhymes-list" });
         else if (k === "sayings") go({ view:"sayings-list" });
@@ -4393,9 +4475,26 @@ function App() {
     <div style={s.app}>
       <div style={s.grain}/>
       <HelpContext.Provider value={() => setShowHelp(true)}>
-        <div style={{position:"relative",zIndex:1}}>{screen}</div>
+        <MenuContext.Provider value={() => setMenuOpen(true)}>
+          <div style={{position:"relative",zIndex:1}}>{screen}</div>
+        </MenuContext.Provider>
       </HelpContext.Provider>
+      {menuOpen && (
+        <MenuDrawer
+          onClose={() => setMenuOpen(false)}
+          onNavigate={(scr) => { setMenuOpen(false); jump(scr); }}
+          onHelp={() => { setMenuOpen(false); setShowHelp(true); }}
+          onShowWelcome={() => { setMenuOpen(false); setIntroOpen(true); }}
+        />
+      )}
       {showHelp && <HelpModal onClose={() => setShowHelp(false)}/>}
+      {introOpen && (
+        <WelcomeScreen
+          enabled={welcomeEnabled}
+          setEnabled={setWelcomePref}
+          onClose={() => setIntroOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -4407,20 +4506,30 @@ const NAV = {
   helpSmall:{width:30,height:30,borderRadius:30,border:"1px solid #5a4a20",background:"rgba(245,200,66,0.06)",color:"#f5c842",fontFamily:"inherit",fontSize:18,cursor:"pointer",flexShrink:0,padding:0},
   title:{flex:1,textAlign:"center",color:"#f5e6a0",fontStyle:"italic",fontSize:19,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
   body:{maxWidth:680,margin:"0 auto",padding:"16px 16px 48px"},
-  intro:{color:"#9a8060",fontSize:16,fontStyle:"italic",margin:"0 0 16px"},
+  intro:{color:"#b8a690",fontSize:16,fontStyle:"italic",margin:"0 0 16px"},
   cardGrid:{display:"grid",gap:12},
   list:{display:"grid",gap:10},
   sectionCard:{display:"flex",alignItems:"center",gap:14,width:"100%",textAlign:"left",background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:14,padding:"16px",cursor:"pointer",color:"#e8dcc8",fontFamily:"inherit"},
   sectionLabel:{display:"block",color:"#f5e6a0",fontSize:21,fontStyle:"italic"},
-  sectionBlurb:{display:"block",color:"#9a8060",fontSize:15,marginTop:3,lineHeight:1.45},
+  sectionBlurb:{display:"block",color:"#b8a690",fontSize:15,marginTop:3,lineHeight:1.45},
   itemCard:{display:"flex",alignItems:"center",gap:12,width:"100%",background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:12,padding:"14px",cursor:"pointer",color:"#e8dcc8",fontFamily:"inherit"},
   itemTitle:{display:"block",color:"#f0e0b0",fontStyle:"italic",fontSize:19,lineHeight:1.25},
-  itemSub:{display:"block",color:"#7a6a4a",fontSize:14,marginTop:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"},
-  chev:{color:"#6a5a3a",fontSize:24,flexShrink:0},
+  itemSub:{display:"block",color:"#a29780",fontSize:14,marginTop:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"},
+  chev:{color:"#a69c89",fontSize:24,flexShrink:0},
   help:{width:34,height:34,borderRadius:34,border:"1px solid #7a6020",background:"rgba(245,200,66,0.06)",color:"#f5c842",fontFamily:"inherit",fontSize:20,cursor:"pointer",flexShrink:0},
   overlay:{position:"fixed",inset:0,background:"rgba(10,7,3,0.8)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:16,zIndex:9999},
   helpCard:{width:"100%",maxWidth:440,maxHeight:"86vh",overflowY:"auto",background:"#241a0e",border:"1px solid #3a2a14",borderRadius:16,padding:"22px"},
   primaryBtn:{marginTop:6,background:"#f5c842",color:"#1a1208",border:"none",borderRadius:10,fontFamily:"inherit",fontWeight:"bold",fontSize:18,padding:"10px 16px",cursor:"pointer"},
+  menuBtn:{width:30,height:30,borderRadius:8,border:"1px solid #5a4a20",background:"rgba(245,200,66,0.06)",color:"#f5c842",fontFamily:"inherit",fontSize:18,cursor:"pointer",flexShrink:0,padding:0},
+  menuOverlay:{position:"fixed",inset:0,background:"rgba(10,7,3,0.6)",backdropFilter:"blur(3px)",display:"flex",justifyContent:"flex-end",zIndex:10000},
+  menuPanel:{width:"min(82vw,300px)",height:"100%",overflowY:"auto",background:"#241a0e",borderLeft:"1px solid #3a2a14",boxShadow:"-8px 0 24px rgba(0,0,0,0.4)",padding:"12px",display:"flex",flexDirection:"column",gap:4,animation:"wzSlideIn .2s ease both"},
+  menuHeader:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 6px 12px",borderBottom:"1px solid #3a2a14",marginBottom:6},
+  menuItem:{display:"flex",alignItems:"center",gap:12,width:"100%",background:"transparent",border:"none",borderRadius:10,padding:"13px 10px",cursor:"pointer",color:"#e8dcc8",fontFamily:"inherit",fontSize:17},
+  introOverlay:{position:"fixed",inset:0,background:"rgba(16,11,4,0.94)",backdropFilter:"blur(6px)",display:"flex",alignItems:"flex-start",justifyContent:"center",padding:16,overflowY:"auto",zIndex:10001},
+  introCard:{width:"100%",maxWidth:460,margin:"auto",background:"#241a0e",border:"1px solid #3a2a14",borderRadius:18,padding:"26px 22px",boxShadow:"0 12px 40px rgba(0,0,0,0.5)"},
+  introToggle:{display:"flex",alignItems:"center",gap:10,fontSize:15,color:"#c8b890",cursor:"pointer",padding:"12px 2px",borderTop:"1px solid #3a2a14",lineHeight:1.4,width:"100%",background:"transparent",border:"none",borderTopWidth:1,borderTopStyle:"solid",borderTopColor:"#3a2a14",textAlign:"left",fontFamily:"inherit"},
+  checkbox:{width:22,height:22,flexShrink:0,borderRadius:6,border:"1.5px solid #6a5a3a",display:"flex",alignItems:"center",justifyContent:"center",color:"#1a1208",fontSize:15,fontWeight:"bold"},
+  checkboxOn:{background:"#f5c842",borderColor:"#f5c842"},
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -4434,10 +4543,10 @@ const s = {
   headerInner:{display:"flex",alignItems:"center",gap:10,maxWidth:1100,margin:"0 auto"},
   headerIcon:{fontSize:28,flexShrink:0},
   headerTitle:{margin:0,fontSize:22,fontWeight:700,letterSpacing:"0.04em",color:"#f5c842",whiteSpace:"nowrap"},
-  headerSub:{margin:0,fontSize:12,color:"#7a6a4a",letterSpacing:"0.1em",textTransform:"uppercase",whiteSpace:"nowrap"},
+  headerSub:{margin:0,fontSize:12,color:"#a29780",letterSpacing:"0.1em",textTransform:"uppercase",whiteSpace:"nowrap"},
   // Mode bar (below header)
   modeBar:{display:"flex",borderBottom:"1px solid #3a2a14",background:"rgba(26,18,8,0.95)",backdropFilter:"blur(8px)",position:"sticky",top:53,zIndex:19},
-  modeBarBtn:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"transparent",border:"none",borderBottom:"2px solid transparent",color:"#6a5a3a",fontSize:14,padding:"8px 4px",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:-1,transition:"all 0.15s"},
+  modeBarBtn:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"transparent",border:"none",borderBottom:"2px solid transparent",color:"#a69c89",fontSize:14,padding:"8px 4px",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:-1,transition:"all 0.15s"},
   modeBarBtnActive:{color:"#f5c842",borderBottomColor:"#f5c842"},
   // kept for legacy, unused
   modeSwitcher:{display:"none"},
@@ -4446,17 +4555,17 @@ const s = {
   // Filter bar
   filterBar:{display:"flex",gap:8,padding:"10px 14px",borderBottom:"1px solid #3a2a14",background:"rgba(26,18,8,0.96)",backdropFilter:"blur(8px)",flexWrap:"wrap",alignItems:"center",position:"sticky",top:52,zIndex:16},
   filterGroup:{display:"flex",gap:5},
-  filterBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:6,color:"#6a5a3a",fontSize:13,padding:"4px 10px",cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"},
+  filterBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:6,color:"#a69c89",fontSize:13,padding:"4px 10px",cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"},
   diffPill:{fontSize:12,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid",borderRadius:4,padding:"1px 5px",whiteSpace:"nowrap"},
   pickerStrip:{display:"flex",overflowX:"auto",gap:8,padding:"10px 14px",borderBottom:"1px solid #3a2a14",background:"rgba(26,18,8,0.7)",WebkitOverflowScrolling:"touch",scrollbarWidth:"none",position:"sticky",top:149,zIndex:15},
-  pickerBtn:{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"transparent",border:"1px solid #3a2a14",borderRadius:10,padding:"8px 12px",cursor:"pointer",color:"#9a8a6a",minWidth:110,maxWidth:140,textAlign:"center",transition:"all 0.15s"},
+  pickerBtn:{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"transparent",border:"1px solid #3a2a14",borderRadius:10,padding:"8px 12px",cursor:"pointer",color:"#b8ad97",minWidth:110,maxWidth:140,textAlign:"center",transition:"all 0.15s"},
   pickerBtnActive:{background:"rgba(245,200,66,0.08)",borderColor:"#f5c842",color:"#f5e6a0"},
   pickerEmoji:{fontSize:24},
   pickerBtnTitle:{fontSize:13,fontWeight:600,fontStyle:"italic",lineHeight:1.2,wordBreak:"break-word"},
   layoutDesktop:{display:"flex",maxWidth:1100,margin:"0 auto",padding:"28px 24px",gap:24,alignItems:"flex-start",position:"relative",zIndex:1},
   layoutMobile:{display:"flex",flexDirection:"column",padding:"14px 12px 32px",position:"relative",zIndex:1},
   sidebar:{width:220,flexShrink:0},
-  sidebarLabel:{fontSize:12,letterSpacing:"0.15em",textTransform:"uppercase",color:"#6a5a3a",marginBottom:10,marginTop:0},
+  sidebarLabel:{fontSize:12,letterSpacing:"0.15em",textTransform:"uppercase",color:"#a69c89",marginBottom:10,marginTop:0},
   sidebarBtn:{display:"flex",alignItems:"center",gap:10,width:"100%",background:"transparent",border:"1px solid #3a2a14",borderRadius:8,padding:"10px 12px",marginBottom:7,cursor:"pointer",textAlign:"left",color:"#b0a080",transition:"all 0.15s"},
   sidebarBtnActive:{background:"rgba(245,200,66,0.08)",borderColor:"#f5c842",color:"#f5e6a0"},
   sidebarEmoji:{fontSize:24,flexShrink:0},
@@ -4464,14 +4573,14 @@ const s = {
   main:{flex:1,minWidth:0},
   rhymeHeader:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10,gap:8},
   rhymeTitle:{margin:0,fontSize:"clamp(20px,5vw,31px)",fontWeight:700,fontStyle:"italic",color:"#f5e6a0",lineHeight:1.2,wordBreak:"break-word"},
-  rhymeSubtitle:{margin:"4px 0 0",fontSize:14,color:"#7a6a4a",letterSpacing:"0.04em"},
+  rhymeSubtitle:{margin:"4px 0 0",fontSize:14,color:"#a29780",letterSpacing:"0.04em"},
   speakBtn:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:8,color:"#f5c842",padding:"7px 13px",fontSize:15,cursor:"pointer",fontFamily:"inherit",flexShrink:0},
   wrongAlert:{background:"rgba(160,60,60,0.08)",border:"1px solid #6a3a3a",borderRadius:8,padding:"9px 12px",fontSize:14,color:"#e0a0a0",marginBottom:12,lineHeight:1.5},
   tabs:{display:"flex",marginBottom:14,borderBottom:"1px solid #3a2a14"},
-  tabBtn:{flex:1,background:"transparent",border:"none",borderBottom:"2px solid transparent",color:"#6a5a3a",fontSize:"clamp(12px,2.5vw,15px)",letterSpacing:"0.04em",padding:"10px 2px",cursor:"pointer",fontFamily:"inherit",textTransform:"uppercase",marginBottom:-1,transition:"all 0.15s"},
+  tabBtn:{flex:1,background:"transparent",border:"none",borderBottom:"2px solid transparent",color:"#a69c89",fontSize:"clamp(12px,2.5vw,15px)",letterSpacing:"0.04em",padding:"10px 2px",cursor:"pointer",fontFamily:"inherit",textTransform:"uppercase",marginBottom:-1,transition:"all 0.15s"},
   tabBtnActive:{color:"#f5c842",borderBottomColor:"#f5c842"},
   card:{background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:12,padding:"18px 14px"},
-  toggleBtn:{background:"transparent",border:"1px solid #4a3520",borderRadius:6,color:"#9a8060",fontSize:14,padding:"7px 14px",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em",flex:1,textAlign:"center"},
+  toggleBtn:{background:"transparent",border:"1px solid #4a3520",borderRadius:6,color:"#b8a690",fontSize:14,padding:"7px 14px",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em",flex:1,textAlign:"center"},
   linesContainer:{display:"flex",flexDirection:"column",gap:14},
   lineRow:{display:"flex",alignItems:"flex-start",gap:10},
   miniSpeakBtn:{background:"rgba(245,200,66,0.08)",border:"1px solid #4a3520",borderRadius:6,fontSize:18,cursor:"pointer",padding:"5px 8px",lineHeight:1,flexShrink:0,marginTop:3},
@@ -4481,34 +4590,34 @@ const s = {
   // Speech recognition
   micBtn:{background:"rgba(245,200,66,0.08)",border:"1px solid #4a3520",borderRadius:6,fontSize:17,cursor:"pointer",padding:"4px 7px",lineHeight:1,flexShrink:0,marginTop:3,color:"#c0a040",transition:"all 0.15s"},
   micBtnLarge:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:10,fontSize:28,cursor:"pointer",padding:"14px 22px",lineHeight:1,color:"#f5c842",transition:"all 0.15s",minWidth:64,minHeight:54,display:"inline-flex",alignItems:"center",justifyContent:"center"},
-  micBtnActive:{background:"rgba(207,80,80,0.18)",borderColor:"#cf6f6f",color:"#e08080",animation:"pulse 1.4s infinite"},
-  micBtnError:{borderColor:"#cf6f6f",color:"#e08080"},
+  micBtnActive:{background:"rgba(207,80,80,0.18)",borderColor:"#cf6f6f",color:"#e9a6a6",animation:"pulse 1.4s infinite"},
+  micBtnError:{borderColor:"#cf6f6f",color:"#e9a6a6"},
   micError:{position:"absolute",top:"calc(100% + 4px)",left:"50%",transform:"translateX(-50%)",background:"rgba(80,30,30,0.95)",border:"1px solid #6a3a3a",borderRadius:6,padding:"5px 10px",fontSize:13,color:"#e0a0a0",whiteSpace:"nowrap",zIndex:50,pointerEvents:"none"},
   recogResult:{background:"rgba(0,0,0,0.22)",border:"1px solid #3a2a14",borderRadius:8,padding:"12px 14px",marginTop:8,marginLeft:32},
   recogScoreRow:{display:"flex",alignItems:"baseline",gap:10,marginBottom:8,flexWrap:"wrap"},
   recogScore:{fontSize:26,fontWeight:700,fontFamily:"'Playfair Display',serif"},
-  recogScoreLabel:{fontSize:13,color:"#7a6a4a",letterSpacing:"0.04em",flex:1},
-  recogResetBtn:{background:"transparent",border:"1px solid #4a3520",borderRadius:6,color:"#9a8060",fontSize:17,cursor:"pointer",padding:"2px 9px",lineHeight:1,fontFamily:"inherit"},
+  recogScoreLabel:{fontSize:13,color:"#a29780",letterSpacing:"0.04em",flex:1},
+  recogResetBtn:{background:"transparent",border:"1px solid #4a3520",borderRadius:6,color:"#b8a690",fontSize:17,cursor:"pointer",padding:"2px 9px",lineHeight:1,fontFamily:"inherit"},
   recogWords:{display:"flex",flexWrap:"wrap",gap:"6px 6px",fontSize:"clamp(15px,3.5vw,19px)",fontFamily:"'Playfair Display',serif",fontStyle:"italic",lineHeight:1.5},
   recogWord:{padding:"1px 5px",borderRadius:4,position:"relative"},
   recogWordExact:{background:"rgba(80,160,80,0.18)",color:"#a0e0a0"},
   recogWordClose:{background:"rgba(200,160,40,0.18)",color:"#f5d870"},
   recogWordMissing:{background:"rgba(160,60,60,0.15)",color:"#e0a0a0",textDecoration:"line-through",textDecorationStyle:"solid"},
   recogHeard:{fontSize:11,opacity:0.7,marginLeft:3,fontStyle:"normal",verticalAlign:"sub"},
-  recogHeardLine:{marginTop:8,fontSize:14,color:"#9a8060",lineHeight:1.5,fontStyle:"normal"},
+  recogHeardLine:{marginTop:8,fontSize:14,color:"#b8a690",lineHeight:1.5,fontStyle:"normal"},
   // Practice tab
-  practiceIntro:{fontSize:15,color:"#9a8060",marginTop:0,marginBottom:18,lineHeight:1.6},
+  practiceIntro:{fontSize:15,color:"#b8a690",marginTop:0,marginBottom:18,lineHeight:1.6},
   practiceCurrentLine:{background:"rgba(245,200,66,0.06)",border:"1px solid #5a4020",borderRadius:10,padding:"18px 16px",marginBottom:16,textAlign:"center"},
   practicePolish:{fontSize:"clamp(21px,5vw,28px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.4,marginBottom:6,fontFamily:"'Playfair Display',serif"},
-  practiceEnglish:{fontSize:15,color:"#7a6a4a",marginBottom:14},
+  practiceEnglish:{fontSize:15,color:"#a29780",marginBottom:14},
   practiceControls:{display:"flex",gap:10,justifyContent:"center",alignItems:"center",flexWrap:"wrap",marginTop:10},
   practiceNav:{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14,gap:10},
-  practiceNavBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:8,color:"#9a8060",fontSize:15,padding:"8px 16px",cursor:"pointer",fontFamily:"inherit"},
+  practiceNavBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:8,color:"#b8a690",fontSize:15,padding:"8px 16px",cursor:"pointer",fontFamily:"inherit"},
   practiceNavBtnDisabled:{opacity:0.35,cursor:"not-allowed"},
-  practiceProgress:{fontSize:13,color:"#7a6a4a",letterSpacing:"0.06em",textTransform:"uppercase"},
+  practiceProgress:{fontSize:13,color:"#a29780",letterSpacing:"0.06em",textTransform:"uppercase"},
   practiceLineScores:{marginTop:18,padding:"14px",background:"rgba(0,0,0,0.2)",borderRadius:8},
   practiceLineScoreRow:{display:"flex",alignItems:"center",gap:10,padding:"6px 0",fontSize:14,borderBottom:"1px solid #2a1a08"},
-  practiceLineScoreLabel:{flex:1,color:"#9a8060",fontStyle:"italic",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"},
+  practiceLineScoreLabel:{flex:1,color:"#b8a690",fontStyle:"italic",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"},
   practiceLineScoreBar:{width:80,height:6,background:"#2a1a08",borderRadius:3,overflow:"hidden",flexShrink:0},
   practiceLineScoreBarFill:{height:"100%",borderRadius:3,transition:"width 0.4s"},
   practiceLineScoreVal:{width:36,textAlign:"right",fontWeight:700,fontSize:14,flexShrink:0},
@@ -4518,34 +4627,34 @@ const s = {
   tooltipWord:{display:"flex",alignItems:"center",gap:8,fontSize:21,fontWeight:700,fontStyle:"italic",color:"#f5c842",marginBottom:6},
   tooltipSpeak:{background:"transparent",border:"none",fontSize:17,cursor:"pointer",opacity:0.7,padding:0,lineHeight:1,marginLeft:"auto"},
   tooltipMeaning:{fontSize:15,color:"#e0c890",lineHeight:1.5},
-  tooltipMeaningDim:{fontSize:14,color:"#9a8060",lineHeight:1.5,fontStyle:"italic"},
-  tooltipRelated:{fontSize:13,color:"#7a6a4a",marginTop:6,fontStyle:"italic"},
-  lineEn:{fontSize:14,color:"#7a6a4a",letterSpacing:"0.02em"},
-  vocabIntro:{fontSize:15,color:"#7a6a4a",marginTop:0,marginBottom:14,fontStyle:"italic"},
+  tooltipMeaningDim:{fontSize:14,color:"#b8a690",lineHeight:1.5,fontStyle:"italic"},
+  tooltipRelated:{fontSize:13,color:"#a29780",marginTop:6,fontStyle:"italic"},
+  lineEn:{fontSize:14,color:"#a29780",letterSpacing:"0.02em"},
+  vocabIntro:{fontSize:15,color:"#a29780",marginTop:0,marginBottom:14,fontStyle:"italic"},
   vocabGrid:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(140px,1fr))",gap:9},
   vocabCard:{background:"rgba(245,200,66,0.05)",border:"1px solid #3a2a14",borderRadius:8,padding:"10px 12px"},
   vocabWord:{fontSize:19,fontWeight:700,fontStyle:"italic",color:"#f5c842",marginBottom:5,display:"flex",alignItems:"center",gap:7},
   vocabSpeak:{background:"transparent",border:"none",fontSize:14,cursor:"pointer",opacity:0.55,padding:0,lineHeight:1},
-  vocabMeaning:{fontSize:14,color:"#9a8060",lineHeight:1.4},
+  vocabMeaning:{fontSize:14,color:"#b8a690",lineHeight:1.4},
   // Grammar
   grammarCard:{background:"rgba(245,200,66,0.04)",border:"1px solid #3a2a14",borderRadius:8,padding:"14px"},
   grammarPoint:{fontSize:17,fontWeight:700,color:"#f5c842",marginBottom:7,fontStyle:"italic"},
   grammarNote:{fontSize:15,color:"#c0a878",lineHeight:1.65},
   // Progress
   progressRow:{display:"flex",alignItems:"center",gap:10,marginBottom:16,flexWrap:"wrap"},
-  progressLabel:{fontSize:13,color:"#7a6a4a",letterSpacing:"0.06em",textTransform:"uppercase",flexShrink:0},
-  progressSource:{fontSize:13,color:"#9a8060",fontStyle:"italic",flex:1,minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"},
+  progressLabel:{fontSize:13,color:"#a29780",letterSpacing:"0.06em",textTransform:"uppercase",flexShrink:0},
+  progressSource:{fontSize:13,color:"#b8a690",fontStyle:"italic",flex:1,minWidth:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"},
   progressTrack:{display:"flex",gap:5,flexShrink:0,flexWrap:"wrap"},
   progressDot:{width:8,height:8,borderRadius:"50%",background:"#3a2a14",transition:"all 0.2s"},
   dotDone:{background:"#6fcf6f"},
   dotCurrent:{background:"#f5c842",transform:"scale(1.3)"},
   // Quiz
   quizBlock:{background:"rgba(0,0,0,0.22)",borderRadius:8,padding:"12px 14px",marginBottom:18},
-  quizLine:{fontSize:"clamp(15px,4vw,20px)",fontStyle:"italic",color:"#6a5a3a",margin:"5px 0",lineHeight:1.4},
+  quizLine:{fontSize:"clamp(15px,4vw,20px)",fontStyle:"italic",color:"#a69c89",margin:"5px 0",lineHeight:1.4},
   quizLineHL:{color:"#f0e0b0",fontSize:"clamp(17px,4.5vw,22px)"},
   quizBlank:{display:"inline-block",minWidth:65,borderBottom:"2px solid #f5c842",color:"#f5c842",textAlign:"center",padding:"0 5px",fontStyle:"normal",letterSpacing:"0.05em",transition:"all 0.2s"},
   blankOk:{color:"#6fcf6f",borderBottomColor:"#6fcf6f"},
-  blankBad:{color:"#cf6f6f",borderBottomColor:"#cf6f6f"},
+  blankBad:{color:"#dd9a9a",borderBottomColor:"#cf6f6f"},
   choicesGrid:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10},
   choiceBtn:{background:"rgba(245,200,66,0.06)",border:"1px solid #5a4020",borderRadius:10,color:"#f0e0b0",fontSize:"clamp(15px,4vw,20px)",fontStyle:"italic",fontFamily:"inherit",padding:"13px 8px",cursor:"pointer",transition:"all 0.15s",textAlign:"center",minHeight:50},
   resultBox:{borderRadius:10,padding:"14px",display:"flex",alignItems:"flex-start",gap:10,fontSize:17,border:"1px solid",lineHeight:1.5,flexWrap:"wrap"},
@@ -4556,16 +4665,16 @@ const s = {
   nextBtn:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:6,color:"#f5c842",fontSize:15,padding:"7px 14px",cursor:"pointer",fontFamily:"inherit",flexShrink:0,alignSelf:"center"},
   // Completion & history
   completionTitle:{margin:"0 0 8px",fontSize:26,color:"#f5c842",fontWeight:700},
-  completionText:{fontSize:15,color:"#9a8060",lineHeight:1.6,margin:"0 0 12px"},
+  completionText:{fontSize:15,color:"#b8a690",lineHeight:1.6,margin:"0 0 12px"},
   scoreBar:{height:8,background:"#2a1a08",borderRadius:4,overflow:"hidden"},
   scoreBarFill:{height:"100%",background:"linear-gradient(90deg,#7a6020,#f5c842)",borderRadius:4,transition:"width 0.6s ease"},
   historyBox:{background:"rgba(0,0,0,0.2)",borderRadius:8,padding:"12px",margin:"12px 0",textAlign:"left"},
   historyRow:{display:"flex",alignItems:"center",gap:8,marginBottom:6},
   startBtn:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:8,color:"#f5c842",fontSize:15,padding:"9px 22px",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em"},
-  secondaryBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:8,color:"#9a8060",fontSize:15,padding:"9px 22px",cursor:"pointer",fontFamily:"inherit"},
+  secondaryBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:8,color:"#b8a690",fontSize:15,padding:"9px 22px",cursor:"pointer",fontFamily:"inherit"},
   globalIntroCard:{background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:12,padding:"36px 24px",textAlign:"center",maxWidth:480,margin:"0 auto"},
   globalIntroTitle:{margin:"0 0 12px",fontSize:28,color:"#f5e6a0",fontWeight:700,fontStyle:"italic"},
-  globalIntroText:{fontSize:17,color:"#9a8060",lineHeight:1.7,margin:"0 0 16px"},
+  globalIntroText:{fontSize:17,color:"#b8a690",lineHeight:1.7,margin:"0 0 16px"},
   wrongSummary:{background:"rgba(160,60,60,0.07)",border:"1px solid #6a3a3a",borderRadius:8,padding:"12px",marginBottom:16},
   wrongBadge:{fontSize:13,color:"#e0a0a0",background:"rgba(160,60,60,0.12)",border:"1px solid #6a3a3a",borderRadius:4,padding:"2px 7px"},
   // Jokes
@@ -4580,25 +4689,25 @@ const s = {
   punchlineSpeak:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:6,color:"#f5c842",fontSize:17,cursor:"pointer",padding:"6px 9px",lineHeight:1,flexShrink:0,marginTop:2},
   jokeDivider:{height:1,background:"#2a1a08",margin:"10px 0"},
   jokeTranslation:{background:"rgba(0,0,0,0.15)",borderRadius:6,padding:"10px 12px"},
-  jokeTransLabel:{fontSize:12,letterSpacing:"0.1em",textTransform:"uppercase",color:"#6a5a3a",marginBottom:6},
-  jokeTransSetup:{fontSize:15,color:"#9a8060",marginBottom:4,lineHeight:1.4},
+  jokeTransLabel:{fontSize:12,letterSpacing:"0.1em",textTransform:"uppercase",color:"#a69c89",marginBottom:6},
+  jokeTransSetup:{fontSize:15,color:"#b8a690",marginBottom:4,lineHeight:1.4},
   jokeTransPunch:{fontSize:15,color:"#c0a040",lineHeight:1.4,fontStyle:"italic"},
   jokeExplanation:{fontSize:15,color:"#c0a878",lineHeight:1.65,marginBottom:8},
   jokeVocab:{display:"flex",flexDirection:"column",gap:4,marginBottom:10},
-  jokeVocabItem:{fontSize:14,color:"#9a8060",lineHeight:1.4},
-  jokeHideBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:6,color:"#6a5a3a",fontSize:13,padding:"5px 14px",cursor:"pointer",fontFamily:"inherit",width:"100%",textAlign:"center"},
+  jokeVocabItem:{fontSize:14,color:"#b8a690",lineHeight:1.4},
+  jokeHideBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:6,color:"#a69c89",fontSize:13,padding:"5px 14px",cursor:"pointer",fontFamily:"inherit",width:"100%",textAlign:"center"},
   // Sayings
-  sayingsIntro:{fontSize:15,color:"#7a6a4a",fontStyle:"italic",marginTop:0,marginBottom:16},
+  sayingsIntro:{fontSize:15,color:"#a29780",fontStyle:"italic",marginTop:0,marginBottom:16},
   sayingsList:{display:"flex",flexDirection:"column",gap:10},
   sayingCard:{background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:12,padding:"16px",cursor:"pointer",transition:"border-color 0.15s"},
   sayingCardOpen:{borderColor:"#7a6020",background:"rgba(245,200,66,0.04)"},
   sayingTop:{display:"flex",gap:12,alignItems:"flex-start"},
   sayingPl:{fontSize:"clamp(17px,4vw,21px)",fontStyle:"italic",color:"#f0e0b0",lineHeight:1.3,marginBottom:5},
-  sayingEn:{fontSize:14,color:"#7a6a4a",lineHeight:1.4},
+  sayingEn:{fontSize:14,color:"#a29780",lineHeight:1.4},
   sayingMeta:{display:"flex",alignItems:"center",gap:8,flexShrink:0},
-  sayingTheme:{fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase",color:"#6a5a3a",background:"rgba(245,200,66,0.08)",border:"1px solid #3a2a14",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap"},
+  sayingTheme:{fontSize:12,letterSpacing:"0.08em",textTransform:"uppercase",color:"#a69c89",background:"rgba(245,200,66,0.08)",border:"1px solid #3a2a14",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap"},
   sayingSpeak:{background:"transparent",border:"none",fontSize:18,cursor:"pointer",opacity:0.6,padding:0,lineHeight:1,color:"inherit"},
-  sayingChevron:{fontSize:12,color:"#7a6a4a",userSelect:"none"},
+  sayingChevron:{fontSize:12,color:"#a29780",userSelect:"none"},
   sayingMeaning:{marginTop:12,paddingTop:12,borderTop:"1px solid #3a2a14",fontSize:15,color:"#c0a878",lineHeight:1.65},
   // Sayings quiz
   sayingQuizPrompt:{background:"rgba(0,0,0,0.22)",borderRadius:8,padding:"16px",textAlign:"center"},
@@ -4608,9 +4717,9 @@ const s = {
   verifiedBadge:{fontSize:12,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid #4a8a4a",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap",color:"#7ac07a",background:"rgba(80,160,80,0.1)",textDecoration:"none",cursor:"pointer"},
   unverifiedBadge:{fontSize:12,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid #8a6a3a",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap",color:"#c09060",background:"rgba(160,120,60,0.08)"},
   unverifiedBadgeSm:{fontSize:13,color:"#c09060"},
-  attribution:{margin:"6px 0 0",fontSize:13,color:"#9a8060",fontStyle:"italic",letterSpacing:"0.02em"},
-  cultureNote:{margin:"4px 0 0",fontSize:13,color:"#8a7a5a",lineHeight:1.5,fontStyle:"italic",borderLeft:"2px solid #4a3520",paddingLeft:8,maxWidth:"90%"},
-  categoryPill:{fontSize:12,letterSpacing:"0.06em",border:"1px solid #4a3520",borderRadius:4,padding:"2px 7px",whiteSpace:"nowrap",color:"#a09070",background:"rgba(255,240,200,0.04)"},
+  attribution:{margin:"6px 0 0",fontSize:13,color:"#b8a690",fontStyle:"italic",letterSpacing:"0.02em"},
+  cultureNote:{margin:"4px 0 0",fontSize:13,color:"#ada28c",lineHeight:1.5,fontStyle:"italic",borderLeft:"2px solid #4a3520",paddingLeft:8,maxWidth:"90%"},
+  categoryPill:{fontSize:12,letterSpacing:"0.06em",border:"1px solid #4a3520",borderRadius:4,padding:"2px 7px",whiteSpace:"nowrap",color:"#bcb19b",background:"rgba(255,240,200,0.04)"},
   sayingChoiceBtn:{background:"rgba(245,200,66,0.04)",border:"1px solid #3a2a14",borderRadius:10,color:"#c0a878",fontSize:"clamp(14px,3.5vw,17px)",fontFamily:"inherit",padding:"12px 14px",cursor:"pointer",textAlign:"left",lineHeight:1.5,transition:"all 0.15s"},
 };
 
