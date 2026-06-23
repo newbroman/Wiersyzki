@@ -1,7 +1,7 @@
 // Wierszyki Service Worker
 // Caches the app shell so it works fully offline once loaded.
 
-const CACHE_NAME = 'wierszyki-v11';
+const CACHE_NAME = 'wierszyki-v12';
 const PRECACHE_URLS = [
   './',
   './index.html',
