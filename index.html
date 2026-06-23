@@ -3223,6 +3223,33 @@ function RecognitionResult({ result, onReset }) {
   );
 }
 
+const HelpContext = React.createContext(() => {});
+
+// Reusable speak-and-score practice for any single Polish phrase (sayings, jokes…)
+function SpeakPractice({ target, en, title }) {
+  const [result, setResult] = useState(null);
+  if (!RECOGNITION_AVAILABLE) {
+    return (
+      <div style={s.practiceUnsupported}>
+        <strong>Speech practice needs Chrome, Edge, or Safari (14.5+).</strong>
+        <br/>Polish recognition also needs an internet connection on most devices.
+      </div>
+    );
+  }
+  return (
+    <div style={s.practiceCurrentLine}>
+      {title && <div style={{fontSize:11,letterSpacing:"0.1em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:8}}>{title}</div>}
+      <div style={s.practicePolish}>{target}</div>
+      {en && <div style={s.practiceEnglish}>{en}</div>}
+      <div style={s.practiceControls}>
+        <button onClick={() => speak(target)} style={s.speakBtn}>🔊 Listen</button>
+        <MicButton expected={target} onResult={setResult} size="large"/>
+      </div>
+      {result && <RecognitionResult result={result} onReset={() => setResult(null)}/>}
+    </div>
+  );
+}
+
 function speak(text) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
@@ -3383,11 +3410,29 @@ function QuizEngine({ questions, onComplete, rhyme, onWrong }) {
           </p>
         ))}
       </div>
+      {/* Listen to the poem */}
+      {lines.length > 0 && (
+        <div style={{display:"flex",justifyContent:"center",marginBottom:14}}>
+          <button onClick={() => speak(lines.map(l => l.pl).join(" "))} style={s.toggleBtn}>🔊 Listen to the poem</button>
+        </div>
+      )}
       {/* Choices */}
       {!result && (
-        <div style={s.choicesGrid}>
-          {q.choices.map(c => <button key={c} onClick={()=>handleChoice(c)} style={s.choiceBtn}>{c}</button>)}
-        </div>
+        <>
+          <div style={s.choicesGrid}>
+            {q.choices.map(c => <button key={c} onClick={()=>handleChoice(c)} style={s.choiceBtn}>{c}</button>)}
+          </div>
+          {RECOGNITION_AVAILABLE && (
+            <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,marginTop:16}}>
+              <MicButton expected={q.answer} onResult={({ heard }) => {
+                let best = null, bestScore = -1;
+                q.choices.forEach(c => { const r = compareText(c, heard); if (r.score > bestScore) { bestScore = r.score; best = c; } });
+                if (best) handleChoice(best);
+              }} size="large"/>
+              <span style={{fontSize:12,color:"#7a6a4a"}}>or speak your answer</span>
+            </div>
+          )}
+        </>
       )}
       {/* Result */}
       {result && (
@@ -3587,7 +3632,7 @@ function JokesCategoriesScreen({ go, back }) {
   );
 }
 
-function JokesListScreen({ category, jokeFilter, setJokeFilter, back }) {
+function JokesListScreen({ category, jokeFilter, setJokeFilter, go, back }) {
   const inCat = jokes.filter(j => j.category === category);
   const displayed = jokeFilter === "All" ? inCat
     : inCat.filter(j => j.type === (jokeFilter === "Puns" ? "pun" : "narrative"));
@@ -3603,9 +3648,41 @@ function JokesListScreen({ category, jokeFilter, setJokeFilter, back }) {
       <div style={NAV.body}>
         {displayed.length === 0
           ? <p style={s.vocabIntro}>No jokes match this filter.</p>
-          : <div style={{display:"flex",flexDirection:"column",gap:12}}>
-              {displayed.map(joke => <JokeCard key={joke.id} joke={joke}/>)}
+          : <div style={NAV.list}>
+              {displayed.map(joke => (
+                <button key={joke.id} style={NAV.itemCard} onClick={() => go({ view:"joke-detail", id:joke.id })}>
+                  <span style={{fontSize:18,flexShrink:0}}>{joke.type === "pun" ? "😄" : "📖"}</span>
+                  <span style={{textAlign:"left",flex:1,minWidth:0}}>
+                    <span style={NAV.itemTitle}>{joke.setup}</span>
+                    <span style={NAV.itemSub}>{joke.type === "pun" ? "Pun" : "Story"}{joke.verified ? " · ✓ verified" : ""}</span>
+                  </span>
+                  <span style={NAV.chev}>›</span>
+                </button>
+              ))}
             </div>}
+      </div>
+    </div>
+  );
+}
+
+function JokeDetailScreen({ id, back }) {
+  const joke = jokes.find(j => j.id === id);
+  const [showPunch, setShowPunch] = useState(false);
+  if (!joke) return null;
+  return (
+    <div style={NAV.screen}>
+      <NavBar title={JOKE_CAT_LABELS[joke.category] || "Joke"} onBack={back}/>
+      <div style={NAV.body}>
+        <JokeCard joke={joke}/>
+        <div style={{marginTop:18}}>
+          <div style={{fontSize:11,letterSpacing:"0.1em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:10}}>🎤 Practise saying it</div>
+          <div style={{display:"flex",flexDirection:"column",gap:12}}>
+            <SpeakPractice target={joke.setup} title="The setup"/>
+            {showPunch
+              ? <SpeakPractice target={joke.punchline} title="The punchline"/>
+              : <button onClick={() => setShowPunch(true)} style={s.secondaryBtn}>Reveal punchline to practise it ▼</button>}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -3690,6 +3767,10 @@ function SayingsDetailScreen({ id, store, back }) {
           </div>
           <div style={s.sayingMeaning}>
             <strong>{saying.meaning}</strong><br/>{saying.explanation}
+          </div>
+          <div style={{marginTop:18,borderTop:"1px solid #2a1a08",paddingTop:16}}>
+            <div style={{fontSize:11,letterSpacing:"0.1em",textTransform:"uppercase",color:"#7a6a4a",marginBottom:10}}>🎤 Say it yourself</div>
+            <SpeakPractice target={saying.pl}/>
           </div>
         </div>
       </div>
@@ -4181,11 +4262,12 @@ function useNavStack(initial) {
 }
 
 function NavBar({ title, onBack }) {
+  const openHelp = React.useContext(HelpContext);
   return (
     <div style={NAV.bar}>
       <button style={NAV.backBtn} onClick={onBack} aria-label="Back">‹ Back</button>
       <span style={NAV.title}>{title}</span>
-      <span style={{width:56,flexShrink:0}}/>
+      <button style={NAV.helpSmall} onClick={openHelp} aria-label="Help">?</button>
     </div>
   );
 }
@@ -4245,7 +4327,7 @@ function HelpModal({ onClose }) {
         </div>
         <P h="Getting around">Pick a section, then an item, then read it. Use ‹ Back or your phone's back button to step back up a level.</P>
         <P h="Hearing the rhymes">Audio uses your device's Polish voice and works offline. If it sounds like English, install a Polish voice in Settings → System → Languages &amp; input → Text-to-speech.</P>
-        <P h="Speaking practice">Inside a rhyme, the Practice tab listens to you read each line and scores it. Allow the microphone when asked; Polish recognition needs internet on most phones.</P>
+        <P h="Speaking practice">Rhymes have a Practice tab, and every saying and joke has a 🎤 section. Tap the mic, read the Polish aloud, and it scores you word by word. In a quiz you can also speak your answer. Allow the microphone when asked; Polish recognition needs internet on most phones.</P>
         <P h="Saving &amp; progress">Tap ☆ to save a rhyme or saying. Quiz scores and saved items stay on your device only.</P>
         <button style={NAV.primaryBtn} onClick={onClose}>Got it</button>
       </div>
@@ -4315,13 +4397,16 @@ function App() {
   else if (v === "sayings-detail") screen = <SayingsDetailScreen id={current.id} store={store} back={back}/>;
   else if (v === "sayings-quiz")   screen = <SayingsQuizScreen back={back}/>;
   else if (v === "jokes-cats")     screen = <JokesCategoriesScreen go={go} back={back}/>;
-  else if (v === "jokes-list")     screen = <JokesListScreen category={current.category} jokeFilter={jokeFilter} setJokeFilter={setJokeFilter} back={back}/>;
+  else if (v === "jokes-list")     screen = <JokesListScreen category={current.category} jokeFilter={jokeFilter} setJokeFilter={setJokeFilter} go={go} back={back}/>;
+  else if (v === "joke-detail")    screen = <JokeDetailScreen id={current.id} back={back}/>;
   else if (v === "quiz")           screen = <QuizScreen isMobile={isMobile} onBack={back}/>;
 
   return (
     <div style={s.app}>
       <div style={s.grain}/>
-      <div style={{position:"relative",zIndex:1}}>{screen}</div>
+      <HelpContext.Provider value={() => setShowHelp(true)}>
+        <div style={{position:"relative",zIndex:1}}>{screen}</div>
+      </HelpContext.Provider>
       {showHelp && <HelpModal onClose={() => setShowHelp(false)}/>}
     </div>
   );
@@ -4329,8 +4414,9 @@ function App() {
 
 const NAV = {
   screen:{minHeight:"100vh",animation:"wzFade .22s ease both"},
-  bar:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,padding:"10px 12px",borderBottom:"1px solid #3a2a14",background:"rgba(26,18,8,0.96)",backdropFilter:"blur(8px)",position:"sticky",top:0,zIndex:20},
+  bar:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,padding:"0 10px",height:52,boxSizing:"border-box",borderBottom:"1px solid #3a2a14",background:"rgba(26,18,8,0.96)",backdropFilter:"blur(8px)",position:"sticky",top:0,zIndex:20},
   backBtn:{background:"transparent",border:"none",color:"#f5c842",fontFamily:"inherit",fontSize:15,cursor:"pointer",padding:"4px 6px",flexShrink:0,whiteSpace:"nowrap"},
+  helpSmall:{width:30,height:30,borderRadius:30,border:"1px solid #5a4a20",background:"rgba(245,200,66,0.06)",color:"#f5c842",fontFamily:"inherit",fontSize:15,cursor:"pointer",flexShrink:0,padding:0},
   title:{flex:1,textAlign:"center",color:"#f5e6a0",fontStyle:"italic",fontSize:16,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"},
   body:{maxWidth:680,margin:"0 auto",padding:"16px 16px 48px"},
   intro:{color:"#9a8060",fontSize:13.5,fontStyle:"italic",margin:"0 0 16px"},
@@ -4370,7 +4456,7 @@ const s = {
   modeBtn:{display:"none"},
   modeBtnActive:{},
   // Filter bar
-  filterBar:{display:"flex",gap:8,padding:"10px 14px",borderBottom:"1px solid #3a2a14",background:"rgba(26,18,8,0.6)",flexWrap:"wrap",alignItems:"center",position:"sticky",top:106,zIndex:16},
+  filterBar:{display:"flex",gap:8,padding:"10px 14px",borderBottom:"1px solid #3a2a14",background:"rgba(26,18,8,0.96)",backdropFilter:"blur(8px)",flexWrap:"wrap",alignItems:"center",position:"sticky",top:52,zIndex:16},
   filterGroup:{display:"flex",gap:5},
   filterBtn:{background:"transparent",border:"1px solid #3a2a14",borderRadius:6,color:"#6a5a3a",fontSize:11,padding:"4px 10px",cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"},
   diffPill:{fontSize:10,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid",borderRadius:4,padding:"1px 5px",whiteSpace:"nowrap"},
