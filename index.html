@@ -146,12 +146,14 @@ const rhymes = [
     english_title:"The Old Bear Is Fast Asleep",
     lines:[
       {pl:"Stary niedźwiedź mocno śpi,",en:"Old bear strongly sleeps (= is fast asleep)"},
-      {pl:"Stary niedźwiedź mocno śpi.",en:"We [refl.] of-him are-afraid ('bać się' takes genitive: 'go')"},
-      {pl:"My się go boimy,",en:"On our toes we-walk ('palcach' locative pl.)"},
-      {pl:"Na palcach chodzimy.",en:"When he wakes up, then he'll eat us ('nas' accusative)"},
-      {pl:"Jak się zbudzi, to nas zje,",en:"First hour — the bear sleeps"},
-      {pl:"Jak się zbudzi, to nas zje!",en:"Second hour — the bear snores"},
-      {pl:"",en:"Third hour — the bear CATCHES!"}
+      {pl:"stary niedźwiedź mocno śpi.",en:"old bear strongly sleeps (line repeated)"},
+      {pl:"My się go boimy,",en:"We [refl.] of-him are-afraid ('bać się' takes genitive: 'go')"},
+      {pl:"na palcach chodzimy.",en:"On our toes we-walk ('palcach' locative pl.)"},
+      {pl:"Jak się zbudzi, to nas zje,",en:"When he wakes up, then he'll eat us ('nas' accusative)"},
+      {pl:"jak się zbudzi, to nas zje!",en:"When he wakes up, then he'll eat us! (repeated, emphatic)"},
+      {pl:"Pierwsza godzina — niedźwiedź śpi,",en:"First hour — the bear sleeps"},
+      {pl:"druga godzina — niedźwiedź chrapie,",en:"Second hour — the bear snores ('chrapie')"},
+      {pl:"trzecia godzina — niedźwiedź łapie!",en:"Third hour — the bear CATCHES! ('łapie')"}
     ],
     vocab:[
       {word:"niedźwiedź",meaning:"bear (masc., nominative); famously tricky to spell/pronounce"},
@@ -1206,7 +1208,7 @@ const sayings = [
     pl:"Mądry Polak po szkodzie.",
     en:"A Pole [is] wise after the damage/loss.",
     meaning:"People only work out how to avoid a misfortune once it has already happened.",
-    explanation:"Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",
+    explanation:"Wry national self-criticism about learning the hard way and failing to act preventively, often quoted reproachfully after an avoidable disaster. Jan Kochanowski sharpened it in his 16th-c. 'Pieśń o spustoszeniu Podola' ('że i przed szkodą, i po szkodzie głupi'). Closest English: 'wise after the event' / 'hindsight is 20/20'.",meaning_pl:"Ludzie zwykle dopiero po fakcie wymyślają, jak można było uniknąć nieszczęścia.",explanation_pl:"Ironiczna, narodowa autokrytyka: uczymy się na własnych błędach i nie działamy zawczasu. Często cytowane z wyrzutem po możliwej do uniknięcia katastrofie. Jan Kochanowski wyostrzył tę myśl w XVI-wiecznej „Pieśni o spustoszeniu Podola” („że i przed szkodą, i po szkodzie głupi”). Najbliższe angielskie: 'wise after the event' / 'hindsight is 20/20'.",
     theme:"Hindsight",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1221,7 +1223,7 @@ const sayings = [
     pl:"Gość w dom, Bóg w dom.",
     en:"A guest into the house, God into the house.",
     meaning:"A guest should be welcomed and honoured as though God himself had entered.",
-    explanation:"Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",
+    explanation:"Encapsulates the celebrated Polish ethos of 'gościnność' (hospitality): a visitor brings blessing and must be fed and treated generously, however modest the household. Said warmly when welcoming people or to justify going all-out for guests. No exact English equivalent; 'the guest is sacred' captures the spirit.",meaning_pl:"Gościa należy przyjąć i uhonorować tak, jakby do domu wszedł sam Bóg.",explanation_pl:"Ujmuje słynny polski etos gościnności: przybysz przynosi błogosławieństwo i trzeba go nakarmić oraz ugościć hojnie, nawet w skromnym domu. Mówione serdecznie przy witaniu gości lub dla usprawiedliwienia wystawnego przyjęcia. Brak dokładnego odpowiednika angielskiego; ducha oddaje 'the guest is sacred'.",
     theme:"Hospitality",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1236,7 +1238,7 @@ const sayings = [
     pl:"Wyjdzie szydło z worka.",
     en:"The awl will come out of the sack.",
     meaning:"A hidden truth or secret will eventually reveal itself.",
-    explanation:"A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'.",
+    explanation:"A sharp awl can't stay hidden in a sack for long — it pokes through. Said when someone's concealed intentions, lies or true nature are bound to surface. Closest English: 'the truth will out' / 'it'll all come out in the wash'.",meaning_pl:"Ukryta prawda lub tajemnica w końcu sama wyjdzie na jaw.",explanation_pl:"Ostre szydło nie utrzyma się długo w worku — przebije się na zewnątrz. Mówione, gdy czyjeś ukryte zamiary, kłamstwa czy prawdziwa natura na pewno się ujawnią. Najbliższe angielskie: 'the truth will out' / 'it'll all come out in the wash'.",
     theme:"Truth",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1251,7 +1253,7 @@ const sayings = [
     pl:"Pańskie oko konia tuczy.",
     en:"The master's eye fattens the horse.",
     meaning:"Things prosper when the owner personally keeps an eye on them.",
-    explanation:"Rooted in manorial farm life: livestock thrives when the master himself supervises rather than leaving everything to hired hands. Used to argue that personal oversight beats hands-off delegation. Closest English: 'the master's eye makes the horse fat' / 'if you want a thing done well, do it yourself'.",
+    explanation:"Rooted in manorial farm life: livestock thrives when the master himself supervises rather than leaving everything to hired hands. Used to argue that personal oversight beats hands-off delegation. Closest English: 'the master's eye makes the horse fat' / 'if you want a thing done well, do it yourself'.",meaning_pl:"Sprawy idą dobrze, gdy właściciel sam ich pilnuje.",explanation_pl:"Wywodzi się z życia na dworskim folwarku: inwentarz dobrze się chowa, gdy sam gospodarz dogląda, zamiast zdawać się wyłącznie na najemników. Używane na poparcie tezy, że osobisty nadzór bije bierne delegowanie. Najbliższe angielskie: 'the master's eye makes the horse fat' / 'if you want a thing done well, do it yourself'.",
     theme:"Diligence / Oversight",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1266,7 +1268,7 @@ const sayings = [
     pl:"Co kraj, to obyczaj.",
     en:"What country, that custom.",
     meaning:"Every country (or region) has its own customs, which one should respect.",
-    explanation:"Invoked to explain or accept that practices differ from place to place, and that travellers should adapt rather than judge. Overlaps with 'when in Rome…' but has a long-standing fixed Polish form. Closest English: 'when in Rome, do as the Romans do' / 'different strokes for different folks'.",
+    explanation:"Invoked to explain or accept that practices differ from place to place, and that travellers should adapt rather than judge. Overlaps with 'when in Rome…' but has a long-standing fixed Polish form. Closest English: 'when in Rome, do as the Romans do' / 'different strokes for different folks'.",meaning_pl:"Każdy kraj (czy region) ma własne zwyczaje, które należy szanować.",explanation_pl:"Przywoływane, by wyjaśnić lub zaakceptować, że obyczaje różnią się w zależności od miejsca, a podróżny powinien się dostosować, a nie oceniać. Pokrywa się z 'when in Rome…', ale ma utrwaloną, polską formę. Najbliższe angielskie: 'when in Rome, do as the Romans do' / 'different strokes for different folks'.",
     theme:"Custom",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1281,7 +1283,7 @@ const sayings = [
     pl:"Cudze chwalicie, swego nie znacie.",
     en:"You praise what is foreign, you don't know your own.",
     meaning:"People admire foreign things while overlooking the worth of their own.",
-    explanation:"A gentle reproach against prizing the exotic over the home-grown; the full couplet continues 'Sami nie wiecie, co posiadacie' ('you yourselves don't know what you possess'). Originates in the early-19th-c. verse of Stanisław Jachowicz and is now fully proverbial. Closest English: 'the grass is always greener on the other side'.",
+    explanation:"A gentle reproach against prizing the exotic over the home-grown; the full couplet continues 'Sami nie wiecie, co posiadacie' ('you yourselves don't know what you possess'). Originates in the early-19th-c. verse of Stanisław Jachowicz and is now fully proverbial. Closest English: 'the grass is always greener on the other side'.",meaning_pl:"Ludzie podziwiają cudze, a nie dostrzegają wartości tego, co własne.",explanation_pl:"Łagodny wyrzut wobec przedkładania egzotyki nad to, co rodzime; pełny dwuwiersz brzmi dalej „Sami nie wiecie, co posiadacie”. Pochodzi z wczesnego XIX wieku, z wiersza Stanisława Jachowicza, i jest dziś w pełni przysłowiowy. Najbliższe angielskie: 'the grass is always greener on the other side'.",
     theme:"Patriotism / Appreciation",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1296,7 +1298,7 @@ const sayings = [
     pl:"Gdzie kucharek sześć, tam nie ma co jeść.",
     en:"Where there are six [female] cooks, there's nothing to eat.",
     meaning:"When too many people take charge of one task, it gets botched.",
-    explanation:"Distinctly Polish in its rhyming shape and its specifically female cooks ('kucharki'). Used when overlapping responsibility produces chaos or nothing gets finished. Closest English: 'too many cooks spoil the broth'.",
+    explanation:"Distinctly Polish in its rhyming shape and its specifically female cooks ('kucharki'). Used when overlapping responsibility produces chaos or nothing gets finished. Closest English: 'too many cooks spoil the broth'.",meaning_pl:"Gdy zbyt wiele osób zajmuje się jednym zadaniem, kończy się ono niepowodzeniem.",explanation_pl:"Wyraźnie polskie w rymowanej formie i w odwołaniu do kucharek. Używane, gdy nakładające się obowiązki rodzą chaos albo nic nie zostaje dokończone. Najbliższe angielskie: 'too many cooks spoil the broth'.",
     theme:"Cooperation",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1311,7 +1313,7 @@ const sayings = [
     pl:"Bez pracy nie ma kołaczy.",
     en:"Without work there are no kołacze [festive cakes].",
     meaning:"You can't get rewards without effort.",
-    explanation:"Distinctly Polish thanks to the 'kołacz' — a traditional wedding/festive cake — standing in for 'the good things in life'. A staple lesson aimed at children and the idle alike. Closest English: 'no pain, no gain' / 'no bees, no honey; no work, no money'.",
+    explanation:"Distinctly Polish thanks to the 'kołacz' — a traditional wedding/festive cake — standing in for 'the good things in life'. A staple lesson aimed at children and the idle alike. Closest English: 'no pain, no gain' / 'no bees, no honey; no work, no money'.",meaning_pl:"Bez wysiłku nie zdobędzie się nagrody.",explanation_pl:"Wyraźnie polskie za sprawą „kołacza” — tradycyjnego ciasta weselnego i świątecznego — który symbolizuje „dobra tego świata”. Sztandarowa nauka kierowana do dzieci i do leniwych. Najbliższe angielskie: 'no pain, no gain' / 'no bees, no honey; no work, no money'.",
     theme:"Work / Reward",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1326,7 +1328,7 @@ const sayings = [
     pl:"Szlachcic na zagrodzie równy wojewodzie.",
     en:"A nobleman on his [small] farmstead [is] equal to the voivode.",
     meaning:"Even the poorest gentleman has the same noble status and dignity as the greatest magnate.",
-    explanation:"A motto of the old Polish 'szlachta' ethos of legal equality among all nobles, however rich or poor — a cornerstone of the Nobles' Democracy of the Polish-Lithuanian Commonwealth. Today used to say that rank or wealth doesn't make one person inherently better than another. Distinctly Polish; no neat English equivalent.",
+    explanation:"A motto of the old Polish 'szlachta' ethos of legal equality among all nobles, however rich or poor — a cornerstone of the Nobles' Democracy of the Polish-Lithuanian Commonwealth. Today used to say that rank or wealth doesn't make one person inherently better than another. Distinctly Polish; no neat English equivalent.",meaning_pl:"Nawet najuboższy szlachcic ma ten sam status i godność co najpotężniejszy magnat.",explanation_pl:"Hasło dawnego etosu szlacheckiego o równości wobec prawa wszystkich szlachciców, bogatych i biednych — fundament demokracji szlacheckiej Rzeczypospolitej. Dziś używane, by powiedzieć, że ranga ani majątek nie czynią nikogo z natury lepszym. Wyraźnie polskie; brak zgrabnego odpowiednika angielskiego.",
     theme:"Equality / Dignity",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1341,7 +1343,7 @@ const sayings = [
     pl:"Nie od razu Kraków zbudowano.",
     en:"Kraków was not built at once.",
     meaning:"Great things take time — be patient.",
-    explanation:"The Polish counterpart of 'Rome wasn't built in a day', using the historic royal capital Kraków instead of Rome. Said to reassure someone that worthwhile achievements need time and persistence. Closest English: 'Rome wasn't built in a day'.",
+    explanation:"The Polish counterpart of 'Rome wasn't built in a day', using the historic royal capital Kraków instead of Rome. Said to reassure someone that worthwhile achievements need time and persistence. Closest English: 'Rome wasn't built in a day'.",meaning_pl:"Wielkie rzeczy wymagają czasu — bądź cierpliwy.",explanation_pl:"Polski odpowiednik 'Rome wasn't built in a day', z historyczną stolicą królewską, Krakowem, w miejsce Rzymu. Mówione, by zapewnić kogoś, że wartościowe osiągnięcia wymagają czasu i wytrwałości. Najbliższe angielskie: 'Rome wasn't built in a day'.",
     theme:"Patience",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1356,7 +1358,7 @@ const sayings = [
     pl:"Polak, Węgier, dwa bratanki, i do szabli, i do szklanki.",
     en:"A Pole, a Hungarian — two cousins, both for the sabre and for the glass.",
     meaning:"Poles and Hungarians are natural friends, alike in both fighting and feasting.",
-    explanation:"Celebrates the centuries-old Polish–Hungarian friendship; 'bratanki' means close kin. Both nations take pride in valour in war ('szabla') and conviviality in drink ('szklanka'). No English equivalent.",
+    explanation:"Celebrates the centuries-old Polish–Hungarian friendship; 'bratanki' means close kin. Both nations take pride in valour in war ('szabla') and conviviality in drink ('szklanka'). No English equivalent.",meaning_pl:"Polacy i Węgrzy to naturalni przyjaciele, podobni i w boju, i w biesiadzie.",explanation_pl:"Sławi wielowiekową przyjaźń polsko-węgierską; „bratanki” oznacza bliskich krewnych. Oba narody szczycą się męstwem na wojnie („szabla”) i towarzyskością przy kielichu („szklanka”). Brak odpowiednika angielskiego.",
     theme:"Friendship / Nations",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1371,7 +1373,7 @@ const sayings = [
     pl:"Co ma wisieć, nie utonie.",
     en:"What is to hang will not drown.",
     meaning:"If something is fated, it will happen — you can't escape your destiny.",
-    explanation:"A fatalistic saying: a person destined to die one way won't perish another. Said with grim humour about inevitable outcomes or lucky escapes. Closest English: 'he that's born to be hanged shall never be drowned' / 'what's meant to be will be'.",
+    explanation:"A fatalistic saying: a person destined to die one way won't perish another. Said with grim humour about inevitable outcomes or lucky escapes. Closest English: 'he that's born to be hanged shall never be drowned' / 'what's meant to be will be'.",meaning_pl:"Jeśli coś jest przeznaczone, to się stanie — przed losem nie uciekniesz.",explanation_pl:"Fatalistyczne powiedzenie: komu pisana jedna śmierć, ten nie zginie inaczej. Mówione z ponurym humorem o nieuniknionych skutkach lub o szczęśliwym ocaleniu. Najbliższe angielskie: 'he that's born to be hanged shall never be drowned' / 'what's meant to be will be'.",
     theme:"Fate",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"polish_form_of_shared",
@@ -1386,7 +1388,7 @@ const sayings = [
     pl:"Jak trwoga, to do Boga.",
     en:"When [there's] fear, then to God.",
     meaning:"People turn to God only when frightened or in trouble.",
-    explanation:"A slightly cynical observation about fair-weather faith — people ignore God until danger strikes, then suddenly pray. The rhyme 'trwoga/Boga' makes it memorable. Closest English: 'there are no atheists in foxholes' / 'danger past, God forgotten'.",
+    explanation:"A slightly cynical observation about fair-weather faith — people ignore God until danger strikes, then suddenly pray. The rhyme 'trwoga/Boga' makes it memorable. Closest English: 'there are no atheists in foxholes' / 'danger past, God forgotten'.",meaning_pl:"Ludzie zwracają się do Boga dopiero w strachu lub w kłopotach.",explanation_pl:"Lekko cyniczna uwaga o wierze „na pogodę” — ludzie nie pamiętają o Bogu, póki nie przyjdzie niebezpieczeństwo, a wtedy nagle się modlą. Rym „trwoga/Boga” czyni je łatwym do zapamiętania. Najbliższe angielskie: 'there are no atheists in foxholes' / 'danger past, God forgotten'.",
     theme:"Faith / Human nature",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1401,7 +1403,7 @@ const sayings = [
     pl:"Czym chata bogata, tym (gościom) rada.",
     en:"With whatever the cottage is rich, with that [it] gladly [serves its guests].",
     meaning:"A host offers guests whatever they have, however humble.",
-    explanation:"A hospitality formula said when welcoming visitors to a modest table — 'we'll gladly share what little we've got'. Pairs naturally with 'Gość w dom, Bóg w dom'. Closest English: 'you're welcome to what we have' / 'pot luck'.",
+    explanation:"A hospitality formula said when welcoming visitors to a modest table — 'we'll gladly share what little we've got'. Pairs naturally with 'Gość w dom, Bóg w dom'. Closest English: 'you're welcome to what we have' / 'pot luck'.",meaning_pl:"Gospodarz częstuje gości tym, co ma, choćby było skromne.",explanation_pl:"Formuła gościnności wypowiadana przy witaniu gości przy skromnym stole — „podzielimy się chętnie tym, co mamy”. Naturalnie łączy się z „Gość w dom, Bóg w dom”. Najbliższe angielskie: 'you're welcome to what we have' / 'pot luck'.",
     theme:"Hospitality",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1416,7 +1418,7 @@ const sayings = [
     pl:"Wolnoć Tomku w swoim domku.",
     en:"[It's] freedom for you, Tom, in your own little house.",
     meaning:"In your own home you may do as you please.",
-    explanation:"A folk saying immortalised by Fredro's fable 'Paweł i Gaweł', where a selfish neighbour justifies his racket this way — until it's turned back on him ('jak ty komu, tak on tobie'). Used, often ironically, to assert one's right to do as one likes at home. Closest English: 'an Englishman's home is his castle' / 'my house, my rules'.",
+    explanation:"A folk saying immortalised by Fredro's fable 'Paweł i Gaweł', where a selfish neighbour justifies his racket this way — until it's turned back on him ('jak ty komu, tak on tobie'). Used, often ironically, to assert one's right to do as one likes at home. Closest English: 'an Englishman's home is his castle' / 'my house, my rules'.",meaning_pl:"We własnym domu możesz robić, co ci się podoba.",explanation_pl:"Ludowe powiedzenie unieśmiertelnione bajką Fredry „Paweł i Gaweł”, w której samolubny sąsiad tak usprawiedliwia swoje hałasy — póki nie zwróci się to przeciw niemu („jak ty komu, tak on tobie”). Używane, często ironicznie, by podkreślić prawo do robienia po swojemu u siebie. Najbliższe angielskie: 'an Englishman's home is his castle' / 'my house, my rules'.",
     theme:"Property / Autonomy",
     source_url:"https://wsjp.pl/haslo/podglad/48134/wolnoc-tomku-w-swoim-domku",
     origin_class:"distinctly_polish",
@@ -1431,7 +1433,7 @@ const sayings = [
     pl:"Co wolno wojewodzie, to nie tobie, smrodzie.",
     en:"What's allowed to the voivode is not [allowed] to you, [you] stinker.",
     meaning:"The powerful get away with things ordinary people can't.",
-    explanation:"A rhyming Polish version of the Latin 'Quod licet Iovi, non licet bovi' — a sarcastic complaint about double standards and privilege; the crude 'smrodzie' gives it bite. Closest English: 'one rule for the rich, another for the poor'.",
+    explanation:"A rhyming Polish version of the Latin 'Quod licet Iovi, non licet bovi' — a sarcastic complaint about double standards and privilege; the crude 'smrodzie' gives it bite. Closest English: 'one rule for the rich, another for the poor'.",meaning_pl:"Możnym uchodzi to, czego nie wolno zwykłym ludziom.",explanation_pl:"Rymowana polska wersja łacińskiego 'Quod licet Iovi, non licet bovi' — sarkastyczna skarga na podwójne standardy i przywileje; dosadne „smrodzie” dodaje jej pazura. Najbliższe angielskie: 'one rule for the rich, another for the poor'.",
     theme:"Privilege / Double standards",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1446,7 +1448,7 @@ const sayings = [
     pl:"Każdy sobie rzepkę skrobie.",
     en:"Everyone scrapes their own little turnip.",
     meaning:"Everyone looks after their own interests.",
-    explanation:"A homely image — each person peeling their own turnip instead of helping others — for self-interest and every-man-for-himself behaviour, usually said with mild disapproval of a lack of solidarity. Closest English: 'every man for himself' / 'I'm all right, Jack'.",
+    explanation:"A homely image — each person peeling their own turnip instead of helping others — for self-interest and every-man-for-himself behaviour, usually said with mild disapproval of a lack of solidarity. Closest English: 'every man for himself' / 'I'm all right, Jack'.",meaning_pl:"Każdy dba o własny interes.",explanation_pl:"Swojski obraz — każdy skrobie własną rzepę, zamiast pomagać innym — oddający egoizm i postawę „każdy sobie”, zwykle z lekką dezaprobatą wobec braku solidarności. Najbliższe angielskie: 'every man for himself' / 'I'm all right, Jack'.",
     theme:"Self-interest",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1461,7 +1463,7 @@ const sayings = [
     pl:"Baba z wozu, koniom lżej.",
     en:"[With] the woman off the cart, [it's] lighter for the horses.",
     meaning:"Good riddance — when a troublesome person leaves, things get easier for everyone.",
-    explanation:"A blunt, slightly rude saying: once the burdensome person (or thing) is gone, everyone else gets on more easily. Said with relief when an awkward person quits or a problem departs. Closest English: 'good riddance' / 'no great loss'.",
+    explanation:"A blunt, slightly rude saying: once the burdensome person (or thing) is gone, everyone else gets on more easily. Said with relief when an awkward person quits or a problem departs. Closest English: 'good riddance' / 'no great loss'.",meaning_pl:"Krzyżyk na drogę — gdy uciążliwa osoba odchodzi, wszystkim robi się lżej.",explanation_pl:"Dosadne, lekko niegrzeczne powiedzenie: gdy zniknie ciężar (osoba lub rzecz), reszcie idzie łatwiej. Mówione z ulgą, gdy kłopotliwa osoba rezygnuje albo problem znika. Najbliższe angielskie: 'good riddance' / 'no great loss'.",
     theme:"Relief / Good riddance",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1476,7 +1478,7 @@ const sayings = [
     pl:"Nie miała baba kłopotu, [to] kupiła sobie prosię.",
     en:"The woman had no trouble, [so] she bought herself a piglet.",
     meaning:"Someone needlessly takes on a problem they didn't have to.",
-    explanation:"A wry comment on self-inflicted hassle — everything was fine until you went and created a new burden for yourself. Said when someone volunteers for unnecessary trouble. Closest English: 'asking for trouble' / 'why make a rod for your own back?'",
+    explanation:"A wry comment on self-inflicted hassle — everything was fine until you went and created a new burden for yourself. Said when someone volunteers for unnecessary trouble. Closest English: 'asking for trouble' / 'why make a rod for your own back?'",meaning_pl:"Ktoś niepotrzebnie bierze na siebie kłopot, którego mógł uniknąć.",explanation_pl:"Ironiczny komentarz o kłopocie na własne życzenie — wszystko było dobrze, póki sam nie stworzyłeś sobie nowego ciężaru. Mówione, gdy ktoś pakuje się w niepotrzebne tarapaty. Najbliższe angielskie: 'asking for trouble' / 'why make a rod for your own back?'",
     theme:"Self-inflicted trouble",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"distinctly_polish",
@@ -1491,7 +1493,7 @@ const sayings = [
     pl:"Tonący brzytwy się chwyta.",
     en:"A drowning man clutches at a razor.",
     meaning:"In desperation, people grasp at anything, even something dangerous or hopeless.",
-    explanation:"Where English says 'clutches at a straw', Polish says 'razor' — sharpening the desperation, since a razor would cut the hand. Said of someone trying any last, futile remedy. Closest English: 'a drowning man clutches at straws'.",
+    explanation:"Where English says 'clutches at a straw', Polish says 'razor' — sharpening the desperation, since a razor would cut the hand. Said of someone trying any last, futile remedy. Closest English: 'a drowning man clutches at straws'.",meaning_pl:"W desperacji człowiek chwyta się wszystkiego, nawet rzeczy groźnej lub beznadziejnej.",explanation_pl:"Tam, gdzie angielski mówi o „źdźble słomy”, polski mówi o „brzytwie” — co wyostrza desperację, bo brzytwa kaleczy dłoń. Mówione o kimś, kto próbuje każdego, ostatniego, daremnego ratunku. Najbliższe angielskie: 'a drowning man clutches at straws'.",
     theme:"Desperation",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"polish_form_of_shared",
@@ -1506,7 +1508,7 @@ const sayings = [
     pl:"Nie chwal dnia przed zachodem słońca.",
     en:"Don't praise the day before sunset.",
     meaning:"Don't celebrate or judge an outcome before it's truly finished.",
-    explanation:"Warns against premature triumph — much can still go wrong before the day is out. Closest English: 'don't count your chickens before they hatch'.",
+    explanation:"Warns against premature triumph — much can still go wrong before the day is out. Closest English: 'don't count your chickens before they hatch'.",meaning_pl:"Nie świętuj ani nie oceniaj wyniku, zanim naprawdę się dopełni.",explanation_pl:"Ostrzega przed przedwczesnym triumfem — wiele jeszcze może się nie udać, zanim dzień się skończy. Najbliższe angielskie: 'don't count your chickens before they hatch'.",
     theme:"Caution",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"polish_form_of_shared",
@@ -1521,7 +1523,7 @@ const sayings = [
     pl:"Kto pod kim dołki kopie, ten sam w nie wpada.",
     en:"He who digs pits under someone falls into them himself.",
     meaning:"Those who scheme to harm others often bring harm on themselves.",
-    explanation:"A moral warning that malice rebounds on its author; it has a Biblical ring and exists across Europe, but the Polish wording is fixed and common. Closest English: 'he who digs a pit for others falls into it' / 'what goes around comes around'.",
+    explanation:"A moral warning that malice rebounds on its author; it has a Biblical ring and exists across Europe, but the Polish wording is fixed and common. Closest English: 'he who digs a pit for others falls into it' / 'what goes around comes around'.",meaning_pl:"Kto knuje, by zaszkodzić innym, często sam ściąga na siebie nieszczęście.",explanation_pl:"Moralne ostrzeżenie, że złość obraca się przeciw temu, kto ją sieje; ma biblijny wydźwięk i istnieje w całej Europie, ale polskie brzmienie jest utrwalone i powszechne. Najbliższe angielskie: 'he who digs a pit for others falls into it' / 'what goes around comes around'.",
     theme:"Karma",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"polish_form_of_shared",
@@ -1536,7 +1538,7 @@ const sayings = [
     pl:"Niedaleko pada jabłko od jabłoni.",
     en:"The apple doesn't fall far from the apple tree.",
     meaning:"Children resemble their parents (often in their faults).",
-    explanation:"A pan-European proverb with a standard Polish form, said when someone clearly takes after a parent. Closest English: 'the apple doesn't fall far from the tree' / 'like father, like son'.",
+    explanation:"A pan-European proverb with a standard Polish form, said when someone clearly takes after a parent. Closest English: 'the apple doesn't fall far from the tree' / 'like father, like son'.",meaning_pl:"Dzieci są podobne do rodziców (często w wadach).",explanation_pl:"Ogólnoeuropejskie przysłowie o utrwalonej polskiej formie, mówione, gdy ktoś wyraźnie wdał się w rodzica. Najbliższe angielskie: 'the apple doesn't fall far from the tree' / 'like father, like son'.",
     theme:"Family / Heredity",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"polish_form_of_shared",
@@ -1551,7 +1553,7 @@ const sayings = [
     pl:"Kruk krukowi oka nie wykole.",
     en:"A raven won't peck out another raven's eye.",
     meaning:"People of the same kind — especially rogues — won't harm one another.",
-    explanation:"Said of solidarity among those of one trade or clique who protect their own, often with a cynical edge about officials or crooks. Closest English: 'there's honour among thieves' / 'dog doesn't eat dog'.",
+    explanation:"Said of solidarity among those of one trade or clique who protect their own, often with a cynical edge about officials or crooks. Closest English: 'there's honour among thieves' / 'dog doesn't eat dog'.",meaning_pl:"Ludzie tego samego pokroju — zwłaszcza łotry — nie skrzywdzą się nawzajem.",explanation_pl:"Mówione o solidarności tych z jednego fachu lub kliki, którzy kryją swoich, często z cynicznym przytykiem do urzędników czy oszustów. Najbliższe angielskie: 'there's honour among thieves' / 'dog doesn't eat dog'.",
     theme:"Loyalty / Complicity",
     source_url:"https://pl.wikiquote.org/wiki/Przys%C5%82owia_polskie",
     origin_class:"polish_form_of_shared",
@@ -1566,7 +1568,7 @@ const sayings = [
     pl:"Bez pracy nie ma kołaczy.",
     en:"Without work there are no rolls.",
     meaning:"Nothing comes for free — you have to earn what you want.",
-    explanation:"The equivalent of 'no pain, no gain'. Kołacze (sweet rolls) represent rewards — they don't appear unless someone works for them.",
+    explanation:"The equivalent of 'no pain, no gain'. Kołacze (sweet rolls) represent rewards — they don't appear unless someone works for them.",meaning_pl:"Nic nie ma za darmo — na to, czego chcesz, trzeba zapracować.",explanation_pl:"Odpowiednik 'no pain, no gain'. Kołacze (słodkie bułki) symbolizują nagrody — nie pojawią się, jeśli ktoś na nie nie zapracuje.",
     theme:"Work & Effort",
     wrongChoices:[
       "Haste makes waste — rushing a task ruins the result.",
@@ -1579,7 +1581,7 @@ const sayings = [
     pl:"Co nagle, to po diable.",
     en:"What is done in haste is the devil's work.",
     meaning:"Rushing leads to poor results. Take your time.",
-    explanation:"'Nagle' means suddenly or hastily. The devil is blamed for anything botched through impatience — a vivid way of saying slow down.",
+    explanation:"'Nagle' means suddenly or hastily. The devil is blamed for anything botched through impatience — a vivid way of saying slow down.",meaning_pl:"Pośpiech prowadzi do złych efektów. Nie spiesz się.",explanation_pl:"„Nagle” znaczy raptownie, w pośpiechu. O wszystko, co spartaczone z niecierpliwości, obwinia się diabła — to obrazowy sposób, by powiedzieć: zwolnij.",
     theme:"Patience",
     wrongChoices:[
       "You reap what you sow — consequences follow actions directly.",
@@ -1592,7 +1594,7 @@ const sayings = [
     pl:"Nie ma tego złego, co by na dobre nie wyszło.",
     en:"There is no bad that does not turn out for good.",
     meaning:"Every cloud has a silver lining.",
-    explanation:"An optimistic proverb urging patience after misfortune. The double negative ('nie ma… co by nie') is standard Polish grammar, not a mistake.",
+    explanation:"An optimistic proverb urging patience after misfortune. The double negative ('nie ma… co by nie') is standard Polish grammar, not a mistake.",meaning_pl:"Nie ma tego złego, co by na dobre nie wyszło (każda chmura ma srebrną podszewkę).",explanation_pl:"Optymistyczne przysłowie zachęcające do cierpliwości po niepowodzeniu. Podwójne przeczenie („nie ma… co by nie”) to poprawna polska gramatyka, nie błąd.",
     theme:"Optimism",
     wrongChoices:[
       "Without effort there is no reward — hard work is always necessary.",
@@ -1605,7 +1607,7 @@ const sayings = [
     pl:"Mądry Polak po szkodzie.",
     en:"A Pole is wise after the damage is done.",
     meaning:"People often learn only after making mistakes — hindsight wisdom.",
-    explanation:"A self-deprecating Polish proverb. 'Szkoda' means damage or loss. It gently mocks the tendency to understand a problem only once it's too late to fix it.",
+    explanation:"A self-deprecating Polish proverb. 'Szkoda' means damage or loss. It gently mocks the tendency to understand a problem only once it's too late to fix it.",meaning_pl:"Ludzie często uczą się dopiero po popełnieniu błędu — mądrość po fakcie.",explanation_pl:"Autoironiczne polskie przysłowie. „Szkoda” oznacza stratę lub uszczerbek. Łagodnie kpi ze skłonności do rozumienia problemu dopiero wtedy, gdy na naprawę jest już za późno.",
     theme:"Wisdom",
     wrongChoices:[
       "Every cloud has a silver lining — bad things lead to good.",
@@ -1618,7 +1620,7 @@ const sayings = [
     pl:"Kto pod kim dołki kopie, sam w nie wpada.",
     en:"Whoever digs a pit for another falls into it himself.",
     meaning:"Plotting against others tends to backfire on the plotter.",
-    explanation:"'Dołki kopie' means 'digs little pits'. The image is vivid: traps set for enemies catch the trapper. The Polish equivalent of 'what goes around comes around'.",
+    explanation:"'Dołki kopie' means 'digs little pits'. The image is vivid: traps set for enemies catch the trapper. The Polish equivalent of 'what goes around comes around'.",meaning_pl:"Knucie przeciw innym zwykle obraca się przeciw knującemu.",explanation_pl:"„Dołki kopie” znaczy „kopie małe doły”. Obraz jest wyrazisty: pułapki zastawione na wrogów łapią samego zastawiającego. Polski odpowiednik 'what goes around comes around'.",
     theme:"Karma",
     wrongChoices:[
       "You only grow wise after suffering a loss yourself.",
@@ -1631,7 +1633,7 @@ const sayings = [
     pl:"Nie wszystko złoto, co się świeci.",
     en:"Not all that glitters is gold.",
     meaning:"Appearances can be deceptive — things are not always as good as they look.",
-    explanation:"'Świeci się' means shines or glitters. Shared across many European languages, this proverb warns against being dazzled by surface appearances.",
+    explanation:"'Świeci się' means shines or glitters. Shared across many European languages, this proverb warns against being dazzled by surface appearances.",meaning_pl:"Pozory mylą — nie wszystko jest tak dobre, na jakie wygląda.",explanation_pl:"„Świeci się” znaczy błyszczy, lśni. Obecne w wielu językach Europy, ostrzega przed daniem się olśnić powierzchownością.",
     theme:"Appearances",
     wrongChoices:[
       "Rushing a job hands the result to the devil.",
@@ -1644,7 +1646,7 @@ const sayings = [
     pl:"Jak sobie pościelesz, tak się wyśpisz.",
     en:"As you make your bed, so you will sleep in it.",
     meaning:"You live with the consequences of your own choices and actions.",
-    explanation:"'Pościelesz' = you make (the bed); 'wyśpisz się' = you will sleep. A domestic image that says: the quality of your preparation determines the quality of your rest — and your life.",
+    explanation:"'Pościelesz' = you make (the bed); 'wyśpisz się' = you will sleep. A domestic image that says: the quality of your preparation determines the quality of your rest — and your life.",meaning_pl:"Żyjesz z konsekwencjami własnych wyborów i czynów.",explanation_pl:"„Pościelesz” = posłać (łóżko); „wyśpisz się” = wyspać się. Domowy obraz, który mówi: jakość przygotowania decyduje o jakości odpoczynku — i życia.",
     theme:"Consequences",
     wrongChoices:[
       "Without work there is no reward — effort must precede gain.",
@@ -1657,7 +1659,7 @@ const sayings = [
     pl:"Lepszy wróbel w garści niż gołąb na dachu.",
     en:"Better a sparrow in the hand than a pigeon on the roof.",
     meaning:"A certain small gain is worth more than a large but uncertain one.",
-    explanation:"'Wróbel' = sparrow; 'garść' = handful/fist; 'gołąb' = pigeon; 'dach' = roof. Poland's version of 'a bird in the hand is worth two in the bush' — with characteristically Polish birds.",
+    explanation:"'Wróbel' = sparrow; 'garść' = handful/fist; 'gołąb' = pigeon; 'dach' = roof. Poland's version of 'a bird in the hand is worth two in the bush' — with characteristically Polish birds.",meaning_pl:"Pewny mały zysk jest wart więcej niż duży, lecz niepewny.",explanation_pl:"„Wróbel” = sparrow; „garść” = handful; „gołąb” = pigeon; „dach” = roof. Polska wersja 'a bird in the hand is worth two in the bush' — z charakterystycznie polskimi ptakami.",
     theme:"Practicality",
     wrongChoices:[
       "Whoever plots against others ends up trapped by their own scheme.",
@@ -1670,7 +1672,7 @@ const sayings = [
     pl:"Cudze chwalicie, swego nie znacie.",
     en:"You praise what is foreign, you do not know your own.",
     meaning:"People idealise foreign things while overlooking the value of what they have at home.",
-    explanation:"'Cudze' = foreign/other people's; 'swego' = your own. A reproach against those who assume anything from abroad must be better. Still very much in use today.",
+    explanation:"'Cudze' = foreign/other people's; 'swego' = your own. A reproach against those who assume anything from abroad must be better. Still very much in use today.",meaning_pl:"Ludzie idealizują cudze, nie dostrzegając wartości tego, co mają u siebie.",explanation_pl:"„Cudze” = obce/cudze; „swego” = własne. Wyrzut wobec tych, którzy zakładają, że to z zagranicy musi być lepsze. Wciąż bardzo w użyciu.",
     theme:"Appreciation",
     wrongChoices:[
       "As you prepare your bed, so shall you sleep — consequences follow choices.",
@@ -1683,7 +1685,7 @@ const sayings = [
     pl:"Gdzie kucharek sześć, tam nie ma co jeść.",
     en:"Where there are six cooks, there is nothing to eat.",
     meaning:"Too many people in charge leads to chaos and nothing getting done.",
-    explanation:"'Kucharek' = (female) cooks; 'sześć' = six; 'jeść' = to eat. Poland's 'too many cooks spoil the broth' — but with the additional dark implication that you end up with no food at all.",
+    explanation:"'Kucharek' = (female) cooks; 'sześć' = six; 'jeść' = to eat. Poland's 'too many cooks spoil the broth' — but with the additional dark implication that you end up with no food at all.",meaning_pl:"Zbyt wielu zarządzających prowadzi do chaosu i do tego, że nic nie zostaje zrobione.",explanation_pl:"„Kucharek” = kucharki; „sześć” = six; „jeść” = to eat. Polskie 'too many cooks spoil the broth' — z dodatkową, mroczną nutą, że na końcu w ogóle nie ma co jeść.",
     theme:"Leadership",
     wrongChoices:[
       "Hard work alone produces reward — laziness produces nothing.",
@@ -1696,7 +1698,7 @@ const sayings = [
     pl:"Lepiej późno niż wcale.",
     en:"Better late than never.",
     meaning:"Doing something late is still better than not doing it at all.",
-    explanation:"One of the most universal proverbs. 'Wcale' is a strong Polish negation meaning 'at all'. Used to encourage someone who has delayed starting something.",
+    explanation:"One of the most universal proverbs. 'Wcale' is a strong Polish negation meaning 'at all'. Used to encourage someone who has delayed starting something.",meaning_pl:"Zrobić coś późno to wciąż lepiej niż nie zrobić wcale.",explanation_pl:"Jedno z najbardziej uniwersalnych przysłów. „Wcale” to mocne polskie przeczenie. Używane, by zachęcić kogoś, kto zwlekał z rozpoczęciem.",
     theme:"Perseverance",
     wrongChoices:[
       "Too many cooks in the kitchen means nothing gets cooked.",
@@ -1709,7 +1711,7 @@ const sayings = [
     pl:"Cicha woda brzegi rwie.",
     en:"Still water tears at the banks.",
     meaning:"Quiet, calm people can be the most determined and dangerous.",
-    explanation:"'Cicha' = quiet/still; 'woda' = water; 'brzegi rwie' = tears at the banks. Like a slow river that erodes its banks, quiet people can achieve — or cause — more than loud ones.",
+    explanation:"'Cicha' = quiet/still; 'woda' = water; 'brzegi rwie' = tears at the banks. Like a slow river that erodes its banks, quiet people can achieve — or cause — more than loud ones.",meaning_pl:"Ciche, spokojne osoby bywają najbardziej zdeterminowane i groźne.",explanation_pl:"„Cicha” = quiet; „woda” = water; „brzegi rwie” = rwie brzegi. Jak powolna rzeka, która podmywa brzegi, tak ciche osoby mogą osiągnąć — lub wywołać — więcej niż głośne.",
     theme:"Character",
     wrongChoices:[
       "Better to act late than to never act at all.",
@@ -1722,7 +1724,7 @@ const sayings = [
     pl:"Nie chwali się rzemieślnik, lecz jego dzieło.",
     en:"It is not the craftsman who praises himself, but his work.",
     meaning:"Let your work speak for itself — self-praise means little.",
-    explanation:"'Rzemieślnik' = craftsman, artisan; 'dzieło' = work, creation. A caution against boasting. The quality of what you produce is the only honest advertisement.",
+    explanation:"'Rzemieślnik' = craftsman, artisan; 'dzieło' = work, creation. A caution against boasting. The quality of what you produce is the only honest advertisement.",meaning_pl:"Niech twoja praca mówi sama za siebie — samochwalstwo niewiele znaczy.",explanation_pl:"„Rzemieślnik” = craftsman; „dzieło” = work/creation. Przestroga przed przechwałkami. Jakość tego, co tworzysz, to jedyna uczciwa reklama.",
     theme:"Humility",
     wrongChoices:[
       "Still waters run deep — the quiet ones achieve the most.",
@@ -1735,7 +1737,7 @@ const sayings = [
     pl:"Apetyt rośnie w miarę jedzenia.",
     en:"Appetite grows with eating.",
     meaning:"The more you have, the more you want — desire grows as it is satisfied.",
-    explanation:"'Apetyt rośnie' = appetite grows; 'w miarę jedzenia' = as one eats. Originally about food, now used broadly about greed, ambition, or any growing desire. Similar to 'the more you get, the more you want'.",
+    explanation:"'Apetyt rośnie' = appetite grows; 'w miarę jedzenia' = as one eats. Originally about food, now used broadly about greed, ambition, or any growing desire. Similar to 'the more you get, the more you want'.",meaning_pl:"Im więcej masz, tym więcej chcesz — pragnienie rośnie, gdy je się zaspokaja.",explanation_pl:"„Apetyt rośnie” = appetite grows; „w miarę jedzenia” = w trakcie jedzenia. Pierwotnie o jedzeniu, dziś szeroko o chciwości, ambicji czy każdym rosnącym pragnieniu.",
     theme:"Desire",
     wrongChoices:[
       "Better late than never — even a delayed action beats inaction.",
@@ -1748,7 +1750,7 @@ const sayings = [
     pl:"Kto rano wstaje, temu Pan Bóg daje.",
     en:"God gives to those who rise early.",
     meaning:"Early risers are rewarded — hard work and early starts bring success.",
-    explanation:"'Rano wstaje' = rises early; 'Pan Bóg daje' = God gives/grants. Poland's equivalent of 'the early bird catches the worm', but invoking God as the giver of rewards to the industrious.",
+    explanation:"'Rano wstaje' = rises early; 'Pan Bóg daje' = God gives/grants. Poland's equivalent of 'the early bird catches the worm', but invoking God as the giver of rewards to the industrious.",meaning_pl:"Ranne ptaszki są nagradzane — pracowitość i wczesny start przynoszą sukces.",explanation_pl:"„Rano wstaje” = wcześnie wstaje; „Pan Bóg daje” = Bóg daje. Polski odpowiednik 'the early bird catches the worm', ale z Bogiem jako tym, który wynagradza pracowitych.",
     theme:"Diligence",
     wrongChoices:[
       "Appetite only grows bigger the more it is satisfied.",
@@ -3845,9 +3847,13 @@ function SayingsListScreen({ store, go, back }) {
 
 function SayingsDetailScreen({ id, store, back }) {
   const { bookmarks, toggleBookmark } = store;
+  const [lang, setLang] = useState("en");
   const saying = sayings.find(x => x.id === id);
   if (!saying) return null;
   const starred = (bookmarks.sayings || []).includes(id);
+  const hasPl = !!(saying.meaning_pl || saying.explanation_pl);
+  const mean = lang === "pl" ? (saying.meaning_pl || saying.meaning) : saying.meaning;
+  const expl = lang === "pl" ? (saying.explanation_pl || saying.explanation) : saying.explanation;
   return (
     <div style={NAV.screen}>
       <NavBar title={saying.theme || "Saying"} onBack={back}/>
@@ -3870,8 +3876,17 @@ function SayingsDetailScreen({ id, store, back }) {
               ? <a href={saying.source_url} target="_blank" rel="noopener noreferrer" style={s.verifiedBadge}>✓ Verified</a>
               : saying.verified === false ? <span style={s.unverifiedBadge}>⚠ Unverified</span> : null}
           </div>
-          <div style={s.sayingMeaning}>
-            <strong>{saying.meaning}</strong><br/>{saying.explanation}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginBottom:8}}>
+            <span style={{fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",color:"#a29780"}}>What it means</span>
+            {hasPl && (
+              <div style={NAV.langToggle}>
+                <button onClick={() => setLang("en")} style={{...NAV.langBtn,...(lang==="en"?NAV.langBtnOn:{})}}>EN</button>
+                <button onClick={() => setLang("pl")} style={{...NAV.langBtn,...(lang==="pl"?NAV.langBtnOn:{})}}>PL</button>
+              </div>
+            )}
+          </div>
+          <div style={s.sayingMeaning} lang={lang}>
+            <strong>{mean}</strong><br/>{expl}
           </div>
         </div>
         <div style={{marginTop:16}}>
@@ -4530,6 +4545,9 @@ const NAV = {
   introToggle:{display:"flex",alignItems:"center",gap:10,fontSize:15,color:"#c8b890",cursor:"pointer",padding:"12px 2px",borderTop:"1px solid #3a2a14",lineHeight:1.4,width:"100%",background:"transparent",border:"none",borderTopWidth:1,borderTopStyle:"solid",borderTopColor:"#3a2a14",textAlign:"left",fontFamily:"inherit"},
   checkbox:{width:22,height:22,flexShrink:0,borderRadius:6,border:"1.5px solid #6a5a3a",display:"flex",alignItems:"center",justifyContent:"center",color:"#1a1208",fontSize:15,fontWeight:"bold"},
   checkboxOn:{background:"#f5c842",borderColor:"#f5c842"},
+  langToggle:{display:"inline-flex",border:"1px solid #5a4a20",borderRadius:8,overflow:"hidden",flexShrink:0},
+  langBtn:{background:"transparent",border:"none",color:"#a29780",fontFamily:"inherit",fontSize:13,fontWeight:"bold",letterSpacing:"0.05em",padding:"5px 12px",cursor:"pointer"},
+  langBtnOn:{background:"#f5c842",color:"#1a1208"},
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
