@@ -4492,6 +4492,18 @@ function WelcomeScreen({ enabled, setEnabled, onClose }) {
       </div>
     </div>
   );
+  const Head = ({ children }) => (
+    <div style={{display:"flex",alignItems:"center",gap:10,margin:"22px 0 12px"}}>
+      <span style={{height:1,flex:1,background:"#3a2a14"}}/>
+      <span style={{fontSize:13,letterSpacing:"0.12em",textTransform:"uppercase",color:"#a29780"}}>{children}</span>
+      <span style={{height:1,flex:1,background:"#3a2a14"}}/>
+    </div>
+  );
+  const legend = [
+    ["☰", t("leg.menu")], ["?", t("leg.help")], ["🔊", t("leg.listen")],
+    ["🎤", t("leg.mic")], ["☆", t("leg.save")], ["EN|PL", t("leg.lang")],
+    ["✍️", t("leg.add")], ["‹", t("leg.back")],
+  ];
   return (
     <div style={NAV.introOverlay}>
       <div style={NAV.introCard}>
@@ -4507,6 +4519,28 @@ function WelcomeScreen({ enabled, setEnabled, onClose }) {
           <Point icon="🎤" title={t("welcome.p3t")}>{t("welcome.p3b")}</Point>
           <Point icon="🌍" title={t("welcome.p4t")}>{t("welcome.p4b")}</Point>
         </div>
+
+        <Head>{t("welcome.guide")}</Head>
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <Point icon="🧭" title={t("welcome.layoutT")}>{t("welcome.layoutB")}</Point>
+        </div>
+
+        <div style={{margin:"16px 0 0"}}>
+          <div style={{color:"#f0e0b0",fontSize:17,fontStyle:"italic",marginBottom:10}}>{t("welcome.iconsT")}</div>
+          <div style={{display:"flex",flexDirection:"column",gap:9}}>
+            {legend.map(([icon, text]) => (
+              <div key={text} style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+                <span style={{minWidth:46,height:30,padding:"0 6px",boxSizing:"border-box",flexShrink:0,display:"inline-flex",alignItems:"center",justifyContent:"center",borderRadius:8,border:"1px solid #4a3520",background:"rgba(245,200,66,0.06)",color:"#f5c842",fontSize:16}}>{icon}</span>
+                <span style={{color:"#b8a690",fontSize:15,lineHeight:1.4,paddingTop:5}}>{text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{margin:"18px 0 0"}}>
+          <Point icon="🗣️" title={t("welcome.speechT")}>{t("welcome.speechB")}</Point>
+        </div>
+
         <button style={NAV.introToggle} onClick={() => setEnabled(!enabled)} aria-pressed={enabled}>
           <span style={{...NAV.checkbox,...(enabled?NAV.checkboxOn:{})}}>{enabled ? "✓" : ""}</span>
           <span>{t("welcome.toggle")}</span>
@@ -4529,7 +4563,7 @@ const STRINGS = {
     "sec.jokes":"Jokes", "sec.jokes.blurb":"Kawały by theme — Jaś, the doctor, highlanders, PRL.",
     "sec.quiz":"Quiz", "sec.quiz.blurb":"Every rhyme question, shuffled. Misses come back more often.",
     "menu.title":"Menu", "menu.home":"Home", "menu.addSaying":"Add your own saying",
-    "menu.help":"How to use Wierszyki", "menu.welcome":"Show welcome screen", "menu.settings":"Settings",
+    "menu.help":"How to use Wierszyki", "menu.welcome":"Welcome & guide", "menu.settings":"Settings",
     "lang.label":"Language", "common.save":"Save", "common.cancel":"Cancel", "common.delete":"Delete",
     "common.close":"Close", "common.gotit":"Got it",
     "help.title":"How to use Wierszyki",
@@ -4543,7 +4577,21 @@ const STRINGS = {
     "welcome.p3t":"Practise speaking", "welcome.p3b":"Read each part aloud and the app scores your pronunciation word by word.",
     "welcome.p4t":"Quiz yourself", "welcome.p4b":"Fill-in quizzes bring back what you miss more often — you can even speak your answer.",
     "welcome.toggle":"Show this welcome each time the app opens", "welcome.start":"Get started →",
-    "welcome.reopen":"You can reopen this anytime from the ☰ menu.",
+    "welcome.reopen":"You can reopen this anytime from ☰ → Welcome & guide.",
+    "welcome.guide":"A quick guide",
+    "welcome.layoutT":"Finding your way around",
+    "welcome.layoutB":"Home shows four sections. Tap one for a list, then tap an item to open it. Rhymes open in tabs — Rhyme, Vocab, Grammar, Practice, Quiz. Use ‹ Back (or your phone's back button) to step back a level, or ☰ to jump straight anywhere.",
+    "welcome.iconsT":"Buttons & icons",
+    "leg.menu":"open the menu — jump between sections, Settings and this guide",
+    "leg.help":"open help at any time",
+    "leg.listen":"hear it spoken in Polish (works offline)",
+    "leg.mic":"read aloud — it scores your pronunciation word by word",
+    "leg.save":"save an item to your starred list",
+    "leg.lang":"switch the interface language, or a saying's meaning",
+    "leg.add":"add your own saying",
+    "leg.back":"step back one level",
+    "welcome.speechT":"Hearing & speaking Polish",
+    "welcome.speechB":"Audio uses your device's Polish voice and works offline — if it sounds English, install a Polish text-to-speech voice in your phone's settings. Speaking practice (🎤) works in Chrome, Edge and Safari with no setup. In other browsers like Firefox, open ☰ → Settings and add your own OpenAI key to turn on voice scoring.",
     "set.title":"Settings", "set.uiLang":"Interface language",
     "set.ai":"OpenAI (optional)",
     "set.aiBlurb":"Add your own OpenAI API key to (1) use speech practice in browsers without built-in recognition, and (2) generate your own sayings. The key is stored only in this browser.",
@@ -4569,7 +4617,7 @@ const STRINGS = {
     "sec.jokes":"Kawały", "sec.jokes.blurb":"Kawały tematycznie — Jaś, lekarz, górale, PRL.",
     "sec.quiz":"Quiz", "sec.quiz.blurb":"Wszystkie pytania z wierszyków, pomieszane. Pomyłki wracają częściej.",
     "menu.title":"Menu", "menu.home":"Start", "menu.addSaying":"Dodaj własne przysłowie",
-    "menu.help":"Jak korzystać z Wierszyków", "menu.welcome":"Pokaż ekran powitalny", "menu.settings":"Ustawienia",
+    "menu.help":"Jak korzystać z Wierszyków", "menu.welcome":"Powitanie i przewodnik", "menu.settings":"Ustawienia",
     "lang.label":"Język", "common.save":"Zapisz", "common.cancel":"Anuluj", "common.delete":"Usuń",
     "common.close":"Zamknij", "common.gotit":"Rozumiem",
     "help.title":"Jak korzystać z Wierszyków",
@@ -4583,7 +4631,21 @@ const STRINGS = {
     "welcome.p3t":"Ćwicz mówienie", "welcome.p3b":"Czytaj każdą część na głos, a aplikacja oceni twoją wymowę słowo po słowie.",
     "welcome.p4t":"Sprawdź się w quizie", "welcome.p4b":"Quizy z lukami częściej przypominają to, co mylisz — odpowiedź możesz nawet wypowiedzieć.",
     "welcome.toggle":"Pokazuj to powitanie przy każdym otwarciu aplikacji", "welcome.start":"Zaczynamy →",
-    "welcome.reopen":"Możesz to ponownie otworzyć w każdej chwili z menu ☰.",
+    "welcome.reopen":"Możesz to ponownie otworzyć w każdej chwili przez ☰ → Powitanie i przewodnik.",
+    "welcome.guide":"Krótki przewodnik",
+    "welcome.layoutT":"Poruszanie się po aplikacji",
+    "welcome.layoutB":"Na ekranie głównym są cztery działy. Dotknij działu, by zobaczyć listę, a potem dotknij pozycji, by ją otworzyć. Wierszyki otwierają się w zakładkach — Wiersz, Słówka, Gramatyka, Ćwicz, Quiz. Użyj ‹ Wstecz (lub przycisku wstecz w telefonie), by cofnąć się o poziom, albo ☰, by przejść wprost gdziekolwiek.",
+    "welcome.iconsT":"Przyciski i ikony",
+    "leg.menu":"otwórz menu — przeskakuj między działami, Ustawieniami i tym przewodnikiem",
+    "leg.help":"otwórz pomoc w dowolnej chwili",
+    "leg.listen":"posłuchaj po polsku (działa offline)",
+    "leg.mic":"czytaj na głos — ocenia wymowę słowo po słowie",
+    "leg.save":"zapisz pozycję na swojej liście",
+    "leg.lang":"przełącz język interfejsu lub znaczenie przysłowia",
+    "leg.add":"dodaj własne przysłowie",
+    "leg.back":"cofnij o jeden poziom",
+    "welcome.speechT":"Słuchanie i mówienie po polsku",
+    "welcome.speechB":"Dźwięk korzysta z polskiego głosu w urządzeniu i działa offline — jeśli brzmi po angielsku, zainstaluj polski głos syntezy mowy w ustawieniach telefonu. Ćwiczenie mówienia (🎤) działa w Chrome, Edge i Safari bez konfiguracji. W innych przeglądarkach, np. Firefoksie, otwórz ☰ → Ustawienia i dodaj własny klucz OpenAI, aby włączyć ocenianie wymowy.",
     "set.title":"Ustawienia", "set.uiLang":"Język interfejsu",
     "set.ai":"OpenAI (opcjonalnie)",
     "set.aiBlurb":"Dodaj własny klucz API OpenAI, aby (1) używać ćwiczeń mowy w przeglądarkach bez wbudowanego rozpoznawania oraz (2) generować własne przysłowia. Klucz jest przechowywany tylko w tej przeglądarce.",
