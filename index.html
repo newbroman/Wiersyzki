@@ -2966,6 +2966,19 @@ const SpeechRecognitionImpl =
 
 const RECOGNITION_AVAILABLE = !!SpeechRecognitionImpl;
 
+// OpenAI settings (the user supplies their own key; it stays in their browser).
+const AIContext = React.createContext({ openaiKey: "", preferWhisper: false });
+
+// Interface language (English / Polish). t() looks up a UI string for the active language.
+const LangContext = React.createContext({ uiLang: "en", t: (k) => k });
+
+// Whether speech practice can run, and which engine to use.
+function useRecognition() {
+  const { openaiKey, preferWhisper } = React.useContext(AIContext);
+  const whisper = !!openaiKey && (preferWhisper || !RECOGNITION_AVAILABLE);
+  return { available: RECOGNITION_AVAILABLE || !!openaiKey, whisper, openaiKey };
+}
+
 // Normalise text for comparison: lowercase, strip punctuation, fold Polish diacritics
 function normaliseForMatch(text) {
   return text
@@ -3135,45 +3148,105 @@ function startRecognition({ onResult, onError, onStart }) {
   };
 }
 
+// Record audio and transcribe it via OpenAI Whisper. Works in any browser with
+// a microphone + fetch (Firefox included). Records until stop() is called.
+async function recognizeWhisper({ openaiKey, onResult, onError, onStart, onProcessing }) {
+  if (!openaiKey) { onError && onError("No OpenAI key set — add one in Settings (☰ menu)."); return { stop: () => {} }; }
+  if (!navigator.mediaDevices || !window.MediaRecorder) {
+    onError && onError("Audio recording isn't supported in this browser."); return { stop: () => {} };
+  }
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (e) {
+    onError && onError("Microphone permission denied. Please allow access."); return { stop: () => {} };
+  }
+  const mime = window.MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm"
+    : window.MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4" : "";
+  let rec;
+  try { rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined); }
+  catch (e) { stream.getTracks().forEach(t => t.stop()); onError && onError("Could not start recording."); return { stop: () => {} }; }
+
+  const chunks = [];
+  rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  rec.onstop = async () => {
+    stream.getTracks().forEach(t => t.stop());
+    onProcessing && onProcessing();
+    const blob = new Blob(chunks, { type: mime || "audio/webm" });
+    if (!blob.size) { onError && onError("No audio captured — try again."); return; }
+    try {
+      const ext = (mime || "audio/webm").indexOf("mp4") >= 0 ? "mp4" : "webm";
+      const fd = new FormData();
+      fd.append("file", blob, "speech." + ext);
+      fd.append("model", "whisper-1");
+      fd.append("language", "pl");
+      const resp = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+        method: "POST", headers: { Authorization: "Bearer " + openaiKey }, body: fd,
+      });
+      if (!resp.ok) {
+        onError && onError(resp.status === 401 ? "OpenAI rejected the key (401). Check it in Settings." : "Transcription failed (" + resp.status + ").");
+        return;
+      }
+      const data = await resp.json();
+      const text = (data.text || "").trim();
+      if (text) onResult && onResult(text);
+      else onError && onError("Couldn't make out any speech — try again.");
+    } catch (e) {
+      onError && onError("Couldn't reach OpenAI — check your connection.");
+    }
+  };
+  try { rec.start(); onStart && onStart(); }
+  catch (e) { stream.getTracks().forEach(t => t.stop()); onError && onError("Could not start the microphone."); }
+  return { stop: () => { try { if (rec.state !== "inactive") rec.stop(); } catch (e) {} } };
+}
+
 // Mic button — initiates a recognition session, returns the comparison result
 function MicButton({ expected, onResult, size = "small" }) {
   const [listening, setListening] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
   const ctrlRef = useRef(null);
+  const rec = useRecognition();
 
-  const start = () => {
+  const handleHeard = (heard) => {
+    setListening(false); setProcessing(false);
+    const result = compareText(expected, heard);
+    onResult && onResult({ heard, ...result });
+  };
+  const handleErr = (msg) => {
+    setListening(false); setProcessing(false);
+    setError(msg);
+    setTimeout(() => setError(null), 4500);
+  };
+
+  const start = async () => {
     setError(null);
-    if (!RECOGNITION_AVAILABLE) {
-      setError("Not supported in this browser");
-      return;
-    }
-    // Stop the synthesizer first — can't listen while speaking
+    if (!rec.available) { setError("Not supported in this browser"); return; }
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     setListening(true);
-    ctrlRef.current = startRecognition({
-      onResult: (heard) => {
-        setListening(false);
-        const result = compareText(expected, heard);
-        onResult && onResult({ heard, ...result });
-      },
-      onError: (msg) => {
-        setListening(false);
-        setError(msg);
-        setTimeout(() => setError(null), 4000);
-      },
-    });
+    if (rec.whisper) {
+      ctrlRef.current = await recognizeWhisper({
+        openaiKey: rec.openaiKey,
+        onResult: handleHeard,
+        onError: handleErr,
+        onProcessing: () => { setListening(false); setProcessing(true); },
+      });
+    } else {
+      ctrlRef.current = startRecognition({ onResult: handleHeard, onError: handleErr });
+    }
   };
 
   const stop = () => {
     if (ctrlRef.current) ctrlRef.current.stop();
-    setListening(false);
+    if (!rec.whisper) setListening(false);
   };
 
   const baseStyle = size === "large" ? s.micBtnLarge : s.micBtn;
+  const busy = listening || processing;
   return (
     <span style={{ position: "relative", display: "inline-flex" }}>
       <button
-        onClick={listening ? stop : start}
+        onClick={processing ? undefined : (listening ? stop : start)}
         style={{
           ...baseStyle,
           ...(listening ? s.micBtnActive : {}),
@@ -3182,7 +3255,7 @@ function MicButton({ expected, onResult, size = "small" }) {
         title={listening ? "Tap to stop" : "Tap and read this line aloud"}
         aria-label={listening ? "Stop recording" : "Start recording"}
       >
-        {listening ? "⏺" : "🎤"}
+        {processing ? "⏳" : listening ? "⏺" : "🎤"}
       </button>
       {error && <span style={s.micError}>{error}</span>}
     </span>
@@ -3255,13 +3328,14 @@ function GuidedPractice({ segments, intro, segLabel = "Part", wholeLabel = "Whol
   const [idx, setIdx] = useState(0);
   const [results, setResults] = useState({});
   const [freeformResult, setFreeformResult] = useState(null);
+  const rec = useRecognition();
 
-  if (!RECOGNITION_AVAILABLE) {
+  if (!rec.available) {
     return (
       <div style={s.card}>
         <div style={s.practiceUnsupported}>
           <strong>Speech recognition isn't available in this browser.</strong>
-          <br/>This feature needs Chrome, Edge, or Safari (14.5+). It also requires an internet connection on most devices, because Polish speech recognition runs on a cloud service.
+          <br/>It works in Chrome, Edge or Safari. To use it in other browsers (like Firefox), add an OpenAI key under <strong>☰ menu → Settings</strong> and it will transcribe your voice instead.
         </div>
       </div>
     );
@@ -3460,6 +3534,7 @@ function QuizEngine({ questions, onComplete, rhyme, onWrong }) {
   const [answer, setAnswer] = useState(null);
   const [result, setResult] = useState(null);
   const [score, setScore] = useState(0);
+  const rec = useRecognition();
 
   const q = questions[qi];
   const total = questions.length;
@@ -3521,7 +3596,7 @@ function QuizEngine({ questions, onComplete, rhyme, onWrong }) {
           <div style={s.choicesGrid}>
             {q.choices.map(c => <button key={c} onClick={()=>handleChoice(c)} style={s.choiceBtn}>{c}</button>)}
           </div>
-          {RECOGNITION_AVAILABLE && (
+          {rec.available && (
             <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,marginTop:16}}>
               <MicButton expected={q.answer} onResult={({ heard }) => {
                 let best = null, bestScore = -1;
@@ -3803,21 +3878,23 @@ function JokeDetailScreen({ id, back }) {
 // SAYINGS — list → detail, plus the sayings quiz as its own screen
 // ═══════════════════════════════════════════════════════════════════════════
 function SayingsListScreen({ store, go, back }) {
-  const { bookmarks, sayingsSaved, setSayingsSaved, toggleBookmark } = store;
+  const { bookmarks, sayingsSaved, setSayingsSaved, toggleBookmark, allSayings } = store;
+  const { t } = React.useContext(LangContext);
+  const list = allSayings || sayings;
   const bookmarkedIds = bookmarks.sayings || [];
-  const displayed = sayingsSaved ? sayings.filter(x => bookmarkedIds.includes(x.id)) : sayings;
+  const displayed = sayingsSaved ? list.filter(x => bookmarkedIds.includes(x.id)) : list;
   return (
     <div style={NAV.screen}>
-      <NavBar title="Sayings" onBack={back}/>
+      <NavBar title={t("sec.sayings")} onBack={back}/>
       <div style={NAV.body}>
         <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
-          <button onClick={() => go({ view:"sayings-quiz" })} style={s.startBtn}>🎯 Take Sayings Quiz</button>
+          <button onClick={() => go({ view:"sayings-quiz" })} style={s.startBtn}>🎯 {t("sec.quiz")}</button>
+          <button onClick={() => go({ view:"saying-add" })} style={s.secondaryBtn}>✍️ {t("menu.addSaying")}</button>
           <button onClick={() => setSayingsSaved(v => !v)}
             style={{...s.secondaryBtn,...(sayingsSaved?{borderColor:"#f5c842",color:"#f5c842"}:{})}}>
-            {sayingsSaved ? "★ Saved" : "☆ Saved"}
+            {sayingsSaved ? "★" : "☆"}
           </button>
         </div>
-        {displayed.length === 0 && <p style={s.vocabIntro}>No saved sayings yet — tap ☆ on any saying to save it.</p>}
         <div style={s.sayingsList}>
           {displayed.map(saying => {
             const starred = bookmarkedIds.includes(saying.id);
@@ -3829,6 +3906,7 @@ function SayingsListScreen({ store, go, back }) {
                     <div style={s.sayingEn}>{saying.en}</div>
                   </div>
                   <div style={s.sayingMeta}>
+                    {saying.custom && <span style={s.yoursTag}>{t("yours")}</span>}
                     <span style={s.sayingTheme}>{saying.theme}</span>
                     <button onClick={e => { e.stopPropagation(); speak(saying.pl); }} style={s.sayingSpeak}>🔊</button>
                     <button onClick={e => { e.stopPropagation(); toggleBookmark("sayings", saying.id); }}
@@ -3846,9 +3924,9 @@ function SayingsListScreen({ store, go, back }) {
 }
 
 function SayingsDetailScreen({ id, store, back }) {
-  const { bookmarks, toggleBookmark } = store;
+  const { bookmarks, toggleBookmark, allSayings, deleteCustomSaying } = store;
   const [lang, setLang] = useState("en");
-  const saying = sayings.find(x => x.id === id);
+  const saying = (allSayings || sayings).find(x => x.id === id);
   if (!saying) return null;
   const starred = (bookmarks.sayings || []).includes(id);
   const hasPl = !!(saying.meaning_pl || saying.explanation_pl);
@@ -3898,6 +3976,10 @@ function SayingsDetailScreen({ id, store, back }) {
             wholeLabel="Whole saying"
           />
         </div>
+        {saying.custom && deleteCustomSaying && (
+          <button onClick={() => { deleteCustomSaying(id); back(); }}
+            style={{...s.secondaryBtn,marginTop:16,borderColor:"#7a3a3a",color:"#dd9a9a"}}>🗑 Delete</button>
+        )}
       </div>
     </div>
   );
@@ -4019,11 +4101,12 @@ function GlobalQuizPanel({ isMobile }) {
 
 function LineWithMic({ line, vocab, showTranslation, onWordTap }) {
   const [result, setResult] = useState(null);
+  const rec = useRecognition();
   return (
     <div>
       <div style={s.lineRow}>
         <button onClick={() => speak(line.pl)} style={s.miniSpeakBtn} title="Listen">🔊</button>
-        {RECOGNITION_AVAILABLE && (
+        {rec.available && (
           <MicButton expected={line.pl} onResult={setResult} size="small"/>
         )}
         <div style={s.lineText}>
@@ -4275,9 +4358,10 @@ function useNavStack(initial) {
 function NavBar({ title, onBack }) {
   const openHelp = React.useContext(HelpContext);
   const openMenu = React.useContext(MenuContext);
+  const { t } = React.useContext(LangContext);
   return (
     <div style={NAV.bar}>
-      <button style={NAV.backBtn} onClick={onBack} aria-label="Back">‹ Back</button>
+      <button style={NAV.backBtn} onClick={onBack} aria-label="Back">{t("nav.back")}</button>
       <span style={NAV.title}>{title}</span>
       <button style={NAV.helpSmall} onClick={openHelp} aria-label="Help">?</button>
       <button style={NAV.menuBtn} onClick={openMenu} aria-label="Menu">☰</button>
@@ -4293,6 +4377,7 @@ const HOME_SECTIONS = [
 ];
 
 function HomeScreen({ onPick, onHelp, onMenu }) {
+  const { t } = React.useContext(LangContext);
   return (
     <div style={NAV.screen}>
       <header style={s.header}>
@@ -4300,21 +4385,21 @@ function HomeScreen({ onPick, onHelp, onMenu }) {
           <span style={s.headerIcon}>🪺</span>
           <div style={{flex:1,minWidth:0}}>
             <h1 style={s.headerTitle}>Wierszyki</h1>
-            <p style={s.headerSub}>Polish for Learners</p>
+            <p style={s.headerSub}>{t("app.sub")}</p>
           </div>
           <button style={NAV.help} onClick={onHelp} aria-label="Help">?</button>
           <button style={NAV.help} onClick={onMenu} aria-label="Menu">☰</button>
         </div>
       </header>
       <div style={NAV.body}>
-        <p style={NAV.intro}>Choose where to start.</p>
+        <p style={NAV.intro}>{t("home.choose")}</p>
         <div style={NAV.cardGrid}>
           {HOME_SECTIONS.map(sec => (
             <button key={sec.key} style={NAV.sectionCard} onClick={() => onPick(sec.key)}>
               <span style={{fontSize:35,lineHeight:1}}>{sec.icon}</span>
               <span style={{textAlign:"left",flex:1}}>
-                <span style={NAV.sectionLabel}>{sec.label}</span>
-                <span style={NAV.sectionBlurb}>{sec.blurb}</span>
+                <span style={NAV.sectionLabel}>{t("sec."+sec.key)}</span>
+                <span style={NAV.sectionBlurb}>{t("sec."+sec.key+".blurb")}</span>
               </span>
               <span style={NAV.chev}>›</span>
             </button>
@@ -4326,6 +4411,7 @@ function HomeScreen({ onPick, onHelp, onMenu }) {
 }
 
 function HelpModal({ onClose }) {
+  const { t } = React.useContext(LangContext);
   const P = ({ h, children }) => (
     <section style={{marginBottom:16}}>
       <h3 style={{fontFamily:"inherit",color:"#f5c842",fontSize:19,margin:"0 0 5px",fontStyle:"italic"}}>{h}</h3>
@@ -4336,14 +4422,14 @@ function HelpModal({ onClose }) {
     <div style={NAV.overlay} onClick={onClose}>
       <div style={NAV.helpCard} onClick={e => e.stopPropagation()}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline"}}>
-          <h2 style={{fontFamily:"inherit",color:"#f5c842",margin:"0 0 8px",fontSize:26}}>How to use Wierszyki</h2>
-          <button style={NAV.backBtn} onClick={onClose}>Close</button>
+          <h2 style={{fontFamily:"inherit",color:"#f5c842",margin:"0 0 8px",fontSize:26}}>{t("help.title")}</h2>
+          <button style={NAV.backBtn} onClick={onClose}>{t("common.close")}</button>
         </div>
-        <P h="Getting around">Pick a section, then an item, then read it. Use ‹ Back (or your phone's back button) to step back a level, or the ☰ menu in the top corner to jump straight to any section.</P>
-        <P h="Hearing the rhymes">Audio uses your device's Polish voice and works offline. If it sounds like English, install a Polish voice in Settings → System → Languages &amp; input → Text-to-speech.</P>
-        <P h="Speaking practice">Rhymes have a Practice tab, and every saying and joke has a 🎤 section. Tap the mic, read the Polish aloud, and it scores you word by word. In a quiz you can also speak your answer. Allow the microphone when asked; Polish recognition needs internet on most phones.</P>
-        <P h="Saving &amp; progress">Tap ☆ to save a rhyme or saying. Quiz scores and saved items stay on your device only.</P>
-        <button style={NAV.primaryBtn} onClick={onClose}>Got it</button>
+        <P h={t("help.h1")}>{t("help.b1")}</P>
+        <P h={t("help.h2")}>{t("help.b2")}</P>
+        <P h={t("help.h3")}>{t("help.b3")}</P>
+        <P h={t("help.h4")}>{t("help.b4")}</P>
+        <button style={NAV.primaryBtn} onClick={onClose}>{t("common.gotit")}</button>
       </div>
     </div>
   );
@@ -4358,7 +4444,7 @@ function QuizScreen({ isMobile, onBack }) {
   );
 }
 
-function MenuDrawer({ onClose, onNavigate, onHelp, onShowWelcome }) {
+function MenuDrawer({ t, uiLang, setUiLang, onClose, onNavigate, onSettings, onAddSaying, onHelp, onShowWelcome }) {
   const Item = ({ icon, label, onClick }) => (
     <button style={NAV.menuItem} onClick={onClick}>
       <span style={{fontSize:22,width:28,textAlign:"center",flexShrink:0}}>{icon}</span>
@@ -4370,23 +4456,33 @@ function MenuDrawer({ onClose, onNavigate, onHelp, onShowWelcome }) {
     <div style={NAV.menuOverlay} onClick={onClose}>
       <div style={NAV.menuPanel} onClick={e => e.stopPropagation()}>
         <div style={NAV.menuHeader}>
-          <span style={{fontSize:21,color:"#f5c842",fontStyle:"italic"}}>Menu</span>
+          <span style={{fontSize:21,color:"#f5c842",fontStyle:"italic"}}>{t("menu.title")}</span>
           <button style={NAV.helpSmall} onClick={onClose} aria-label="Close menu">✕</button>
         </div>
-        <Item icon="🏠" label="Home" onClick={() => onNavigate({ view:"home" })}/>
-        <Item icon="📖" label="Rhymes" onClick={() => onNavigate({ view:"rhymes-list" })}/>
-        <Item icon="💬" label="Sayings" onClick={() => onNavigate({ view:"sayings-list" })}/>
-        <Item icon="😄" label="Jokes" onClick={() => onNavigate({ view:"jokes-cats" })}/>
-        <Item icon="🌍" label="Quiz" onClick={() => onNavigate({ view:"quiz" })}/>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,padding:"4px 8px 12px"}}>
+          <span style={{fontSize:13,letterSpacing:"0.06em",textTransform:"uppercase",color:"#a29780"}}>{t("lang.label")}</span>
+          <div style={NAV.langToggle}>
+            <button onClick={() => setUiLang("en")} style={{...NAV.langBtn,...(uiLang==="en"?NAV.langBtnOn:{})}}>EN</button>
+            <button onClick={() => setUiLang("pl")} style={{...NAV.langBtn,...(uiLang==="pl"?NAV.langBtnOn:{})}}>PL</button>
+          </div>
+        </div>
+        <Item icon="🏠" label={t("menu.home")} onClick={() => onNavigate({ view:"home" })}/>
+        <Item icon="📖" label={t("sec.rhymes")} onClick={() => onNavigate({ view:"rhymes-list" })}/>
+        <Item icon="💬" label={t("sec.sayings")} onClick={() => onNavigate({ view:"sayings-list" })}/>
+        <Item icon="😄" label={t("sec.jokes")} onClick={() => onNavigate({ view:"jokes-cats" })}/>
+        <Item icon="🌍" label={t("sec.quiz")} onClick={() => onNavigate({ view:"quiz" })}/>
+        <Item icon="✍️" label={t("menu.addSaying")} onClick={onAddSaying}/>
         <div style={{height:1,background:"#3a2a14",margin:"8px 4px"}}/>
-        <Item icon="❓" label="How to use Wierszyki" onClick={onHelp}/>
-        <Item icon="👋" label="Show welcome screen" onClick={onShowWelcome}/>
+        <Item icon="⚙️" label={t("menu.settings")} onClick={onSettings}/>
+        <Item icon="❓" label={t("menu.help")} onClick={onHelp}/>
+        <Item icon="👋" label={t("menu.welcome")} onClick={onShowWelcome}/>
       </div>
     </div>
   );
 }
 
 function WelcomeScreen({ enabled, setEnabled, onClose }) {
+  const { t } = React.useContext(LangContext);
   const Point = ({ icon, title, children }) => (
     <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
       <span style={{fontSize:24,flexShrink:0,lineHeight:1.2}}>{icon}</span>
@@ -4402,23 +4498,229 @@ function WelcomeScreen({ enabled, setEnabled, onClose }) {
         <div style={{textAlign:"center",marginBottom:18}}>
           <div style={{fontSize:52,marginBottom:6}}>🪺</div>
           <h1 style={{margin:0,fontSize:32,color:"#f5c842",letterSpacing:"0.04em"}}>Wierszyki</h1>
-          <p style={{margin:"4px 0 0",fontSize:14,color:"#a29780",letterSpacing:"0.1em",textTransform:"uppercase"}}>Polish for Learners</p>
+          <p style={{margin:"4px 0 0",fontSize:14,color:"#a29780",letterSpacing:"0.1em",textTransform:"uppercase"}}>{t("app.sub")}</p>
         </div>
-        <p style={{fontSize:17,color:"#c8b890",lineHeight:1.6,marginTop:0}}>
-          Learn Polish through traditional nursery rhymes, proverbs and jokes — read aloud, translated, and broken into small pieces you can practise by voice.
-        </p>
+        <p style={{fontSize:17,color:"#c8b890",lineHeight:1.6,marginTop:0}}>{t("welcome.intro")}</p>
         <div style={{display:"flex",flexDirection:"column",gap:14,margin:"18px 0"}}>
-          <Point icon="📖" title="Rhymes, sayings & jokes">Browse by section, then tap any item to read it with a literal translation.</Point>
-          <Point icon="🔊" title="Hear it spoken">Polish audio works offline. Tap 🔊 anywhere to listen.</Point>
-          <Point icon="🎤" title="Practise speaking">Read each part aloud and the app scores your pronunciation word by word. Needs Chrome, Edge or Safari, plus internet.</Point>
-          <Point icon="🌍" title="Quiz yourself">Fill-in quizzes bring back what you miss more often — you can even speak your answer.</Point>
+          <Point icon="📖" title={t("welcome.p1t")}>{t("welcome.p1b")}</Point>
+          <Point icon="🔊" title={t("welcome.p2t")}>{t("welcome.p2b")}</Point>
+          <Point icon="🎤" title={t("welcome.p3t")}>{t("welcome.p3b")}</Point>
+          <Point icon="🌍" title={t("welcome.p4t")}>{t("welcome.p4b")}</Point>
         </div>
         <button style={NAV.introToggle} onClick={() => setEnabled(!enabled)} aria-pressed={enabled}>
           <span style={{...NAV.checkbox,...(enabled?NAV.checkboxOn:{})}}>{enabled ? "✓" : ""}</span>
-          <span>Show this welcome each time the app opens</span>
+          <span>{t("welcome.toggle")}</span>
         </button>
-        <button style={{...NAV.primaryBtn,width:"100%",marginTop:14,fontSize:19,padding:"12px"}} onClick={onClose}>Get started →</button>
-        <p style={{fontSize:13,color:"#a69c89",textAlign:"center",margin:"12px 0 0"}}>You can reopen this anytime from the ☰ menu.</p>
+        <button style={{...NAV.primaryBtn,width:"100%",marginTop:14,fontSize:19,padding:"12px"}} onClick={onClose}>{t("welcome.start")}</button>
+        <p style={{fontSize:13,color:"#a69c89",textAlign:"center",margin:"12px 0 0"}}>{t("welcome.reopen")}</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── INTERFACE STRINGS (en / pl) ────────────────────────────────────────────
+const STRINGS = {
+  en: {
+    "app.sub":"Polish for Learners",
+    "nav.back":"‹ Back",
+    "home.choose":"Choose where to start.",
+    "sec.rhymes":"Rhymes", "sec.rhymes.blurb":"Traditional nursery rhymes and poems, read aloud.",
+    "sec.sayings":"Sayings", "sec.sayings.blurb":"Proverbs and folk wisdom, with the meaning behind them.",
+    "sec.jokes":"Jokes", "sec.jokes.blurb":"Kawały by theme — Jaś, the doctor, highlanders, PRL.",
+    "sec.quiz":"Quiz", "sec.quiz.blurb":"Every rhyme question, shuffled. Misses come back more often.",
+    "menu.title":"Menu", "menu.home":"Home", "menu.addSaying":"Add your own saying",
+    "menu.help":"How to use Wierszyki", "menu.welcome":"Show welcome screen", "menu.settings":"Settings",
+    "lang.label":"Language", "common.save":"Save", "common.cancel":"Cancel", "common.delete":"Delete",
+    "common.close":"Close", "common.gotit":"Got it",
+    "help.title":"How to use Wierszyki",
+    "help.h1":"Getting around", "help.b1":"Pick a section, then an item, then read it. Use ‹ Back (or your phone's back button) to step back a level, or the ☰ menu in the top corner to jump straight to any section.",
+    "help.h2":"Hearing the rhymes", "help.b2":"Audio uses your device's Polish voice and works offline. If it sounds like English, install a Polish voice in your phone's text-to-speech settings.",
+    "help.h3":"Speaking practice", "help.b3":"Rhymes have a Practice tab, and every saying and joke has a 🎤 section. Tap the mic, read the Polish aloud, and it scores you word by word. Built-in recognition works in Chrome, Edge and Safari; for other browsers add an OpenAI key in Settings.",
+    "help.h4":"Saving & progress", "help.b4":"Tap ☆ to save a rhyme or saying. Quiz scores and saved items stay on your device only.",
+    "welcome.intro":"Learn Polish through traditional nursery rhymes, proverbs and jokes — read aloud, translated, and broken into small pieces you can practise by voice.",
+    "welcome.p1t":"Rhymes, sayings & jokes", "welcome.p1b":"Browse by section, then tap any item to read it with a literal translation.",
+    "welcome.p2t":"Hear it spoken", "welcome.p2b":"Polish audio works offline. Tap 🔊 anywhere to listen.",
+    "welcome.p3t":"Practise speaking", "welcome.p3b":"Read each part aloud and the app scores your pronunciation word by word.",
+    "welcome.p4t":"Quiz yourself", "welcome.p4b":"Fill-in quizzes bring back what you miss more often — you can even speak your answer.",
+    "welcome.toggle":"Show this welcome each time the app opens", "welcome.start":"Get started →",
+    "welcome.reopen":"You can reopen this anytime from the ☰ menu.",
+    "set.title":"Settings", "set.uiLang":"Interface language",
+    "set.ai":"OpenAI (optional)",
+    "set.aiBlurb":"Add your own OpenAI API key to (1) use speech practice in browsers without built-in recognition, and (2) generate your own sayings. The key is stored only in this browser.",
+    "set.key":"OpenAI API key", "set.keyPh":"sk-…",
+    "set.prefer":"Always use OpenAI for speech (instead of the browser engine)",
+    "set.warn":"⚠ Anyone who can use this browser profile can read the key. Use a personal key, not a shared one.",
+    "add.title":"Add your own saying", "add.input":"Polish proverb or a topic",
+    "add.inputPh":"e.g. Gdzie dwóch Polaków, tam trzy opinie",
+    "add.generate":"✨ Generate with AI", "add.generating":"Generating…",
+    "add.manual":"Fill the fields below yourself, or generate them with AI and edit.",
+    "add.needKey":"Add an OpenAI key in Settings to generate with AI. You can still fill the fields in by hand.",
+    "add.fpl":"Proverb (Polish)", "add.fen":"English translation", "add.ftheme":"Theme",
+    "add.fmeaning":"Meaning (English)", "add.fexpl":"Explanation (English)",
+    "add.fmeaningpl":"Meaning (Polish)", "add.fexplpl":"Explanation (Polish)",
+    "add.save":"Save saying", "add.saved":"Saved!", "yours":"yours",
+  },
+  pl: {
+    "app.sub":"Polski dla uczących się",
+    "nav.back":"‹ Wstecz",
+    "home.choose":"Wybierz, od czego zacząć.",
+    "sec.rhymes":"Wierszyki", "sec.rhymes.blurb":"Tradycyjne wierszyki i wiersze dla dzieci, czytane na głos.",
+    "sec.sayings":"Przysłowia", "sec.sayings.blurb":"Przysłowia i mądrość ludowa wraz z ich znaczeniem.",
+    "sec.jokes":"Kawały", "sec.jokes.blurb":"Kawały tematycznie — Jaś, lekarz, górale, PRL.",
+    "sec.quiz":"Quiz", "sec.quiz.blurb":"Wszystkie pytania z wierszyków, pomieszane. Pomyłki wracają częściej.",
+    "menu.title":"Menu", "menu.home":"Start", "menu.addSaying":"Dodaj własne przysłowie",
+    "menu.help":"Jak korzystać z Wierszyków", "menu.welcome":"Pokaż ekran powitalny", "menu.settings":"Ustawienia",
+    "lang.label":"Język", "common.save":"Zapisz", "common.cancel":"Anuluj", "common.delete":"Usuń",
+    "common.close":"Zamknij", "common.gotit":"Rozumiem",
+    "help.title":"Jak korzystać z Wierszyków",
+    "help.h1":"Poruszanie się", "help.b1":"Wybierz dział, potem pozycję i czytaj. Użyj ‹ Wstecz (albo przycisku wstecz w telefonie), by cofnąć się o poziom, lub menu ☰ w rogu, by przejść wprost do dowolnego działu.",
+    "help.h2":"Słuchanie wierszyków", "help.b2":"Dźwięk korzysta z polskiego głosu w twoim urządzeniu i działa offline. Jeśli brzmi po angielsku, zainstaluj polski głos w ustawieniach syntezy mowy telefonu.",
+    "help.h3":"Ćwiczenie mówienia", "help.b3":"Wierszyki mają zakładkę Ćwicz, a każde przysłowie i kawał ma sekcję 🎤. Dotknij mikrofonu, przeczytaj polski tekst na głos, a aplikacja oceni cię słowo po słowie. Wbudowane rozpoznawanie działa w Chrome, Edge i Safari; w innych przeglądarkach dodaj klucz OpenAI w Ustawieniach.",
+    "help.h4":"Zapisywanie i postępy", "help.b4":"Dotknij ☆, by zapisać wierszyk lub przysłowie. Wyniki quizów i zapisane pozycje pozostają tylko na twoim urządzeniu.",
+    "welcome.intro":"Ucz się polskiego dzięki tradycyjnym wierszykom, przysłowiom i kawałom — czytanym na głos, tłumaczonym i podzielonym na małe części do ćwiczenia mówienia.",
+    "welcome.p1t":"Wierszyki, przysłowia i kawały", "welcome.p1b":"Przeglądaj działami, a potem dotknij dowolnej pozycji, by przeczytać ją z dosłownym tłumaczeniem.",
+    "welcome.p2t":"Posłuchaj na głos", "welcome.p2b":"Polski dźwięk działa offline. Dotknij 🔊 w dowolnym miejscu, by posłuchać.",
+    "welcome.p3t":"Ćwicz mówienie", "welcome.p3b":"Czytaj każdą część na głos, a aplikacja oceni twoją wymowę słowo po słowie.",
+    "welcome.p4t":"Sprawdź się w quizie", "welcome.p4b":"Quizy z lukami częściej przypominają to, co mylisz — odpowiedź możesz nawet wypowiedzieć.",
+    "welcome.toggle":"Pokazuj to powitanie przy każdym otwarciu aplikacji", "welcome.start":"Zaczynamy →",
+    "welcome.reopen":"Możesz to ponownie otworzyć w każdej chwili z menu ☰.",
+    "set.title":"Ustawienia", "set.uiLang":"Język interfejsu",
+    "set.ai":"OpenAI (opcjonalnie)",
+    "set.aiBlurb":"Dodaj własny klucz API OpenAI, aby (1) używać ćwiczeń mowy w przeglądarkach bez wbudowanego rozpoznawania oraz (2) generować własne przysłowia. Klucz jest przechowywany tylko w tej przeglądarce.",
+    "set.key":"Klucz API OpenAI", "set.keyPh":"sk-…",
+    "set.prefer":"Zawsze używaj OpenAI do mowy (zamiast silnika przeglądarki)",
+    "set.warn":"⚠ Każdy, kto ma dostęp do tego profilu przeglądarki, może odczytać klucz. Użyj klucza osobistego, nie współdzielonego.",
+    "add.title":"Dodaj własne przysłowie", "add.input":"Polskie przysłowie lub temat",
+    "add.inputPh":"np. Gdzie dwóch Polaków, tam trzy opinie",
+    "add.generate":"✨ Wygeneruj z AI", "add.generating":"Generowanie…",
+    "add.manual":"Wypełnij pola poniżej samodzielnie albo wygeneruj je z AI i popraw.",
+    "add.needKey":"Dodaj klucz OpenAI w Ustawieniach, aby generować z AI. Pola możesz też wypełnić ręcznie.",
+    "add.fpl":"Przysłowie (po polsku)", "add.fen":"Tłumaczenie angielskie", "add.ftheme":"Temat",
+    "add.fmeaning":"Znaczenie (po angielsku)", "add.fexpl":"Wyjaśnienie (po angielsku)",
+    "add.fmeaningpl":"Znaczenie (po polsku)", "add.fexplpl":"Wyjaśnienie (po polsku)",
+    "add.save":"Zapisz przysłowie", "add.saved":"Zapisano!", "yours":"twoje",
+  },
+};
+
+// Ask OpenAI to turn a Polish proverb (or topic) into a structured saying object.
+async function generateSaying(openaiKey, input) {
+  const sys = "You are a Polish language and culture expert helping build a Polish-for-learners app. " +
+    "Given a Polish proverb/saying (or a short topic), return ONE strict JSON object, no markdown, with exactly these string keys: " +
+    "pl (the proverb in correct Polish), en (natural English translation), theme (1-3 word English category), " +
+    "meaning (one English sentence), explanation (2-3 English sentences with cultural/usage notes; end with the closest English equivalent if one exists), " +
+    "meaning_pl (Polish translation of meaning), explanation_pl (Polish translation of explanation). " +
+    "If the input is not a real proverb, pick a well-known Polish proverb fitting the topic. Keep it authentic.";
+  const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + openaiKey },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [{ role: "system", content: sys }, { role: "user", content: input }],
+      response_format: { type: "json_object" },
+      temperature: 0.4,
+    }),
+  });
+  if (!resp.ok) {
+    throw new Error(resp.status === 401 ? "OpenAI rejected the key (401)." : "OpenAI error " + resp.status);
+  }
+  const data = await resp.json();
+  return JSON.parse(data.choices[0].message.content);
+}
+
+function SettingsScreen({ back, ai, setAi, uiLang, setUiLang }) {
+  const { t } = React.useContext(LangContext);
+  const [key, setKeyLocal] = useState(ai.openaiKey || "");
+  const [prefer, setPrefer] = useState(!!ai.preferWhisper);
+  const [show, setShow] = useState(false);
+  const saveKey = (v) => { setKeyLocal(v); setAi({ openaiKey: v.trim(), preferWhisper: prefer }); };
+  const savePrefer = (v) => { setPrefer(v); setAi({ openaiKey: key.trim(), preferWhisper: v }); };
+  return (
+    <div style={NAV.screen}>
+      <NavBar title={t("set.title")} onBack={back}/>
+      <div style={NAV.body}>
+        <div style={s.card}>
+          <div style={s.fieldLabel}>{t("set.uiLang")}</div>
+          <div style={{...NAV.langToggle,marginTop:4}}>
+            <button onClick={() => setUiLang("en")} style={{...NAV.langBtn,...(uiLang==="en"?NAV.langBtnOn:{})}}>English</button>
+            <button onClick={() => setUiLang("pl")} style={{...NAV.langBtn,...(uiLang==="pl"?NAV.langBtnOn:{})}}>Polski</button>
+          </div>
+        </div>
+        <div style={{...s.card,marginTop:14}}>
+          <div style={{fontSize:18,color:"#f5e6a0",fontStyle:"italic",marginBottom:6}}>{t("set.ai")}</div>
+          <p style={{fontSize:14,color:"#b8a690",lineHeight:1.55,margin:"0 0 14px"}}>{t("set.aiBlurb")}</p>
+          <div style={s.fieldLabel}>{t("set.key")}</div>
+          <div style={{display:"flex",gap:8,marginTop:4}}>
+            <input type={show?"text":"password"} value={key} onChange={e => saveKey(e.target.value)} placeholder={t("set.keyPh")} style={s.textInput} autoComplete="off" spellCheck={false}/>
+            <button onClick={() => setShow(v => !v)} style={s.secondaryBtn}>{show?"🙈":"👁"}</button>
+          </div>
+          <button onClick={() => savePrefer(!prefer)} style={{...NAV.introToggle,borderTop:"none",padding:"14px 2px 4px"}}>
+            <span style={{...NAV.checkbox,...(prefer?NAV.checkboxOn:{})}}>{prefer?"✓":""}</span>
+            <span>{t("set.prefer")}</span>
+          </button>
+          <p style={{fontSize:13,color:"#a69c89",lineHeight:1.5,margin:"10px 0 0"}}>{t("set.warn")}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddSayingScreen({ back, ai, onSave }) {
+  const { t } = React.useContext(LangContext);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+  const [f, setF] = useState({ pl:"", en:"", theme:"", meaning:"", explanation:"", meaning_pl:"", explanation_pl:"" });
+  const set = (k, v) => setF(prev => ({ ...prev, [k]:v }));
+  const hasKey = !!ai.openaiKey;
+
+  const generate = async () => {
+    if (!input.trim()) return;
+    setBusy(true); setErr(null);
+    try {
+      const obj = await generateSaying(ai.openaiKey, input.trim());
+      setF({
+        pl:obj.pl||input.trim(), en:obj.en||"", theme:obj.theme||"", meaning:obj.meaning||"",
+        explanation:obj.explanation||"", meaning_pl:obj.meaning_pl||"", explanation_pl:obj.explanation_pl||"",
+      });
+    } catch (e) { setErr((e && e.message) || "Generation failed."); }
+    setBusy(false);
+  };
+  const save = () => {
+    if (!f.pl.trim()) return;
+    onSave({ ...f, id:"c"+Date.now(), verified:false, custom:true });
+    back();
+  };
+  const field = (k, label, area) => (
+    <div style={{marginBottom:12}}>
+      <div style={s.fieldLabel}>{label}</div>
+      {area
+        ? <textarea value={f[k]} onChange={e => set(k, e.target.value)} style={{...s.textInput,minHeight:64,resize:"vertical"}}/>
+        : <input value={f[k]} onChange={e => set(k, e.target.value)} style={s.textInput}/>}
+    </div>
+  );
+  return (
+    <div style={NAV.screen}>
+      <NavBar title={t("add.title")} onBack={back}/>
+      <div style={NAV.body}>
+        <div style={s.card}>
+          <div style={s.fieldLabel}>{t("add.input")}</div>
+          <textarea value={input} onChange={e => setInput(e.target.value)} placeholder={t("add.inputPh")} style={{...s.textInput,minHeight:54,resize:"vertical",marginTop:4}}/>
+          {hasKey
+            ? <button onClick={generate} disabled={busy||!input.trim()} style={{...s.startBtn,marginTop:10,opacity:(busy||!input.trim())?0.6:1}}>{busy?t("add.generating"):t("add.generate")}</button>
+            : <p style={{fontSize:14,color:"#a69c89",lineHeight:1.5,margin:"10px 0 0"}}>{t("add.needKey")}</p>}
+          {err && <p style={{fontSize:14,color:"#dd9a9a",margin:"10px 0 0"}}>{err}</p>}
+        </div>
+        <div style={{...s.card,marginTop:14}}>
+          <p style={{fontSize:14,color:"#b8a690",margin:"0 0 14px"}}>{t("add.manual")}</p>
+          {field("pl", t("add.fpl"))}
+          {field("en", t("add.fen"))}
+          {field("theme", t("add.ftheme"))}
+          {field("meaning", t("add.fmeaning"), true)}
+          {field("explanation", t("add.fexpl"), true)}
+          {field("meaning_pl", t("add.fmeaningpl"), true)}
+          {field("explanation_pl", t("add.fexplpl"), true)}
+          <button onClick={save} disabled={!f.pl.trim()} style={{...NAV.primaryBtn,width:"100%",marginTop:6,opacity:f.pl.trim()?1:0.6}}>{t("add.save")}</button>
+        </div>
       </div>
     </div>
   );
@@ -4438,6 +4740,16 @@ function App() {
   const [rhymeFilter, setRhymeFilter] = useState({ diff:"All", saved:false });
   const [sayingsSaved, setSayingsSaved] = useState(false);
   const [jokeFilter, setJokeFilter] = useState("All");
+
+  // Interface language, OpenAI settings, custom sayings, settings screen.
+  const [uiLang, setUiLangState] = useState(() => LS.get("uiLang", "en"));
+  const [ai, setAiState] = useState(() => ({ openaiKey: LS.get("openaiKey", ""), preferWhisper: LS.get("preferWhisper", false) }));
+  const [customSayings, setCustomSayings] = useState(() => LS.get("customSayings", []));
+  const setUiLang = useCallback((v) => { setUiLangState(v); LS.set("uiLang", v); }, []);
+  const setAi = useCallback((next) => { setAiState(next); LS.set("openaiKey", next.openaiKey || ""); LS.set("preferWhisper", !!next.preferWhisper); }, []);
+  const t = useCallback((k) => (STRINGS[uiLang] && STRINGS[uiLang][k]) || STRINGS.en[k] || k, [uiLang]);
+  const addCustomSaying = useCallback((sy) => { setCustomSayings(prev => { const u = [sy, ...prev]; LS.set("customSayings", u); return u; }); }, []);
+  const deleteCustomSaying = useCallback((id) => { setCustomSayings(prev => { const u = prev.filter(x => x.id !== id); LS.set("customSayings", u); return u; }); }, []);
 
   // Nudge the speech engine so voices are loaded before the first "Listen".
   useEffect(() => { try { window.speechSynthesis && window.speechSynthesis.getVoices(); } catch (e) {} }, []);
@@ -4464,6 +4776,7 @@ function App() {
     bookmarks, history: historyLog, wrongLog,
     rhymeFilter, setRhymeFilter, sayingsSaved, setSayingsSaved,
     toggleBookmark, addHistory, addWrong, isMobile,
+    allSayings: [...customSayings, ...sayings], customSayings, deleteCustomSaying,
   };
 
   const v = current.view;
@@ -4485,8 +4798,12 @@ function App() {
   else if (v === "jokes-list")     screen = <JokesListScreen category={current.category} jokeFilter={jokeFilter} setJokeFilter={setJokeFilter} go={go} back={back}/>;
   else if (v === "joke-detail")    screen = <JokeDetailScreen id={current.id} back={back}/>;
   else if (v === "quiz")           screen = <QuizScreen isMobile={isMobile} onBack={back}/>;
+  else if (v === "settings")       screen = <SettingsScreen back={back} ai={ai} setAi={setAi} uiLang={uiLang} setUiLang={setUiLang}/>;
+  else if (v === "saying-add")     screen = <AddSayingScreen back={back} ai={ai} onSave={addCustomSaying}/>;
 
   return (
+    <LangContext.Provider value={{ uiLang, t }}>
+    <AIContext.Provider value={{ openaiKey: ai.openaiKey, preferWhisper: ai.preferWhisper }}>
     <div style={s.app}>
       <div style={s.grain}/>
       <HelpContext.Provider value={() => setShowHelp(true)}>
@@ -4496,8 +4813,11 @@ function App() {
       </HelpContext.Provider>
       {menuOpen && (
         <MenuDrawer
+          t={t} uiLang={uiLang} setUiLang={setUiLang}
           onClose={() => setMenuOpen(false)}
           onNavigate={(scr) => { setMenuOpen(false); jump(scr); }}
+          onSettings={() => { setMenuOpen(false); jump({ view:"settings" }); }}
+          onAddSaying={() => { setMenuOpen(false); jump({ view:"saying-add" }); }}
           onHelp={() => { setMenuOpen(false); setShowHelp(true); }}
           onShowWelcome={() => { setMenuOpen(false); setIntroOpen(true); }}
         />
@@ -4511,6 +4831,8 @@ function App() {
         />
       )}
     </div>
+    </AIContext.Provider>
+    </LangContext.Provider>
   );
 }
 
@@ -4739,6 +5061,9 @@ const s = {
   cultureNote:{margin:"4px 0 0",fontSize:13,color:"#ada28c",lineHeight:1.5,fontStyle:"italic",borderLeft:"2px solid #4a3520",paddingLeft:8,maxWidth:"90%"},
   categoryPill:{fontSize:12,letterSpacing:"0.06em",border:"1px solid #4a3520",borderRadius:4,padding:"2px 7px",whiteSpace:"nowrap",color:"#bcb19b",background:"rgba(255,240,200,0.04)"},
   sayingChoiceBtn:{background:"rgba(245,200,66,0.04)",border:"1px solid #3a2a14",borderRadius:10,color:"#c0a878",fontSize:"clamp(14px,3.5vw,17px)",fontFamily:"inherit",padding:"12px 14px",cursor:"pointer",textAlign:"left",lineHeight:1.5,transition:"all 0.15s"},
+  textInput:{flex:1,width:"100%",boxSizing:"border-box",background:"rgba(0,0,0,0.25)",border:"1px solid #4a3520",borderRadius:8,color:"#f0e0b0",fontFamily:"inherit",fontSize:16,padding:"10px 12px",outline:"none"},
+  fieldLabel:{fontSize:13,letterSpacing:"0.06em",textTransform:"uppercase",color:"#a29780"},
+  yoursTag:{fontSize:11,letterSpacing:"0.06em",textTransform:"uppercase",border:"1px solid #5a7a3a",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap",color:"#a8d08a",background:"rgba(120,180,80,0.1)"},
 };
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
