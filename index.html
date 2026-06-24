@@ -3423,6 +3423,20 @@ function GuidedPractice({ segments, intro, segLabel = "Part", wholeLabel = "Whol
   );
 }
 
+// ─── TTS VOICE SELECTION ────────────────────────────────────────────────────
+// Many devices have no Polish voice selected by default, so audio can come out
+// English. We let the user pick a Polish voice; speak() then honours it.
+let TTS_VOICE_URI = (() => { try { return JSON.parse(localStorage.getItem("ttsVoiceURI")) || ""; } catch (e) { return ""; } })();
+function setTtsVoice(uri) { TTS_VOICE_URI = uri || ""; try { localStorage.setItem("ttsVoiceURI", JSON.stringify(TTS_VOICE_URI)); } catch (e) {} }
+function isPolishVoice(v) { return v && v.lang && v.lang.toLowerCase().replace("_", "-").startsWith("pl"); }
+function getPolishVoices() { try { return (window.speechSynthesis.getVoices() || []).filter(isPolishVoice); } catch (e) { return []; } }
+function resolveVoice() {
+  if (!window.speechSynthesis) return null;
+  const all = window.speechSynthesis.getVoices() || [];
+  if (TTS_VOICE_URI) { const m = all.find(v => v.voiceURI === TTS_VOICE_URI); if (m) return m; }
+  return all.find(isPolishVoice) || null;
+}
+
 function speak(text) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
@@ -3473,6 +3487,8 @@ function speak(text) {
     }
     const u = new SpeechSynthesisUtterance(spoken);
     u.lang = "pl-PL";
+    const vc = resolveVoice();
+    if (vc) u.voice = vc;
     u.rate = 0.8;
     u.pitch = 1.0;
     u.onend = () => {
@@ -4481,8 +4497,94 @@ function MenuDrawer({ t, uiLang, setUiLang, onClose, onNavigate, onSettings, onA
   );
 }
 
-function WelcomeScreen({ enabled, setEnabled, onClose }) {
+// ─── VOICE-ENGINE SETUP STEPS (used inside the welcome tour) ─────────────────
+function VoiceSetupStep({ compact }) {
   const { t } = React.useContext(LangContext);
+  const [voices, setVoices] = useState(() => getPolishVoices());
+  const [sel, setSel] = useState(() => TTS_VOICE_URI);
+  useEffect(() => {
+    const refresh = () => setVoices(getPolishVoices());
+    refresh();
+    const ss = window.speechSynthesis;
+    if (ss && ss.addEventListener) { ss.addEventListener("voiceschanged", refresh); return () => ss.removeEventListener("voiceschanged", refresh); }
+  }, []);
+  const choose = (uri) => { setSel(uri); setTtsVoice(uri); };
+  const test = () => { if (window.speechSynthesis) window.speechSynthesis.cancel(); speak(t("voice.sample")); };
+  return (
+    <div>
+      {compact
+        ? <div style={{...s.fieldLabel,marginBottom:8}}>🔊 {t("voice.title")}</div>
+        : <><div style={{fontSize:40,textAlign:"center",marginBottom:8}}>🔊</div><h2 style={NAV.tourH}>{t("voice.title")}</h2></>}
+      <p style={NAV.tourP}>{t("voice.intro")}</p>
+      {voices.length > 0 ? (
+        <>
+          <div style={{fontSize:14,color:"#a29780",margin:"4px 0 8px"}}>{voices.length} {t("voice.found")}</div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {voices.map(v => {
+              const on = sel && v.voiceURI === sel;
+              return (
+                <button key={v.voiceURI} onClick={() => choose(v.voiceURI)} style={{...NAV.voiceRow,...(on?NAV.voiceRowOn:{})}}>
+                  <span style={{...NAV.radio,...(on?NAV.radioOn:{})}}>{on?"●":""}</span>
+                  <span style={{flex:1,textAlign:"left",minWidth:0}}>
+                    <span style={{display:"block",color:"#f0e0b0",fontSize:15,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{v.name}</span>
+                    <span style={{display:"block",color:"#a29780",fontSize:12}}>{v.lang}{on?" · "+t("voice.using"):""}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <button onClick={test} style={{...s.startBtn,width:"100%",marginTop:12}}>{t("voice.test")}</button>
+        </>
+      ) : (
+        <>
+          <p style={{...NAV.tourP,color:"#c5a86a"}}>{t("voice.none")}</p>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={() => setVoices(getPolishVoices())} style={{...s.secondaryBtn,flex:1}}>{t("voice.refresh")}</button>
+            <button onClick={test} style={{...s.secondaryBtn,flex:1}}>{t("voice.test")}</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function SpeakSetupStep({ ai, setAi }) {
+  const { t } = React.useContext(LangContext);
+  const [key, setKey] = useState(ai.openaiKey || "");
+  const [show, setShow] = useState(false);
+  const save = (v) => { setKey(v); setAi({ openaiKey: v.trim(), preferWhisper: ai.preferWhisper }); };
+  const builtin = RECOGNITION_AVAILABLE;
+  const haveKey = !!(key && key.trim());
+  return (
+    <div>
+      <div style={{fontSize:40,textAlign:"center",marginBottom:8}}>🎤</div>
+      <h2 style={NAV.tourH}>{t("speak.title")}</h2>
+      <p style={NAV.tourP}>{t("speak.intro")}</p>
+      {builtin
+        ? <div style={NAV.tourOk}>{t("speak.builtin")}</div>
+        : haveKey
+          ? <div style={NAV.tourOk}>{t("speak.keyset")}</div>
+          : <p style={{...NAV.tourP,color:"#c5a86a"}}>{t("speak.none")}</p>}
+      {!builtin && (
+        <>
+          <div style={{display:"flex",gap:8,marginTop:10}}>
+            <input type={show?"text":"password"} value={key} onChange={e=>save(e.target.value)} placeholder={t("set.keyPh")} style={s.textInput} autoComplete="off" spellCheck={false}/>
+            <button onClick={()=>setShow(v=>!v)} style={s.secondaryBtn}>{show?"🙈":"👁"}</button>
+          </div>
+          <p style={{fontSize:13,color:"#a69c89",lineHeight:1.5,margin:"10px 0 0"}}>{t("speak.optional")}</p>
+        </>
+      )}
+    </div>
+  );
+}
+
+function WelcomeScreen({ enabled, setEnabled, onClose, ai, setAi }) {
+  const { t } = React.useContext(LangContext);
+  const [step, setStep] = useState(0);
+  const STEPS = ["intro", "layout", "icons", "voice", "speak", "done"];
+  const n = STEPS.length;
+  const cur = STEPS[step];
+  const move = (d) => setStep(s => Math.max(0, Math.min(n - 1, s + d)));
   const Point = ({ icon, title, children }) => (
     <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
       <span style={{fontSize:24,flexShrink:0,lineHeight:1.2}}>{icon}</span>
@@ -4492,61 +4594,89 @@ function WelcomeScreen({ enabled, setEnabled, onClose }) {
       </div>
     </div>
   );
-  const Head = ({ children }) => (
-    <div style={{display:"flex",alignItems:"center",gap:10,margin:"22px 0 12px"}}>
-      <span style={{height:1,flex:1,background:"#3a2a14"}}/>
-      <span style={{fontSize:13,letterSpacing:"0.12em",textTransform:"uppercase",color:"#a29780"}}>{children}</span>
-      <span style={{height:1,flex:1,background:"#3a2a14"}}/>
-    </div>
-  );
   const legend = [
     ["☰", t("leg.menu")], ["?", t("leg.help")], ["🔊", t("leg.listen")],
     ["🎤", t("leg.mic")], ["☆", t("leg.save")], ["EN|PL", t("leg.lang")],
     ["✍️", t("leg.add")], ["‹", t("leg.back")],
   ];
+
+  let body;
+  if (cur === "intro") body = (
+    <div>
+      <div style={{textAlign:"center",marginBottom:16}}>
+        <div style={{fontSize:52,marginBottom:6}}>🪺</div>
+        <h1 style={{margin:0,fontSize:30,color:"#f5c842",letterSpacing:"0.04em"}}>Wierszyki</h1>
+        <p style={{margin:"4px 0 0",fontSize:13,color:"#a29780",letterSpacing:"0.1em",textTransform:"uppercase"}}>{t("app.sub")}</p>
+      </div>
+      <p style={{fontSize:16,color:"#c8b890",lineHeight:1.6,marginTop:0}}>{t("welcome.intro")}</p>
+      <div style={{display:"flex",flexDirection:"column",gap:13,marginTop:14}}>
+        <Point icon="📖" title={t("welcome.p1t")}>{t("welcome.p1b")}</Point>
+        <Point icon="🔊" title={t("welcome.p2t")}>{t("welcome.p2b")}</Point>
+        <Point icon="🎤" title={t("welcome.p3t")}>{t("welcome.p3b")}</Point>
+        <Point icon="🌍" title={t("welcome.p4t")}>{t("welcome.p4b")}</Point>
+      </div>
+    </div>
+  );
+  else if (cur === "layout") body = (
+    <div>
+      <div style={{fontSize:40,textAlign:"center",marginBottom:8}}>🧭</div>
+      <h2 style={NAV.tourH}>{t("welcome.layoutT")}</h2>
+      <p style={NAV.tourP}>{t("welcome.layoutB")}</p>
+    </div>
+  );
+  else if (cur === "icons") body = (
+    <div>
+      <div style={{fontSize:40,textAlign:"center",marginBottom:8}}>🎛️</div>
+      <h2 style={NAV.tourH}>{t("welcome.iconsT")}</h2>
+      <div style={{display:"flex",flexDirection:"column",gap:9,marginTop:8}}>
+        {legend.map(([icon, text]) => (
+          <div key={text} style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+            <span style={{minWidth:46,height:30,padding:"0 6px",boxSizing:"border-box",flexShrink:0,display:"inline-flex",alignItems:"center",justifyContent:"center",borderRadius:8,border:"1px solid #4a3520",background:"rgba(245,200,66,0.06)",color:"#f5c842",fontSize:16}}>{icon}</span>
+            <span style={{color:"#b8a690",fontSize:15,lineHeight:1.4,paddingTop:5}}>{text}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+  else if (cur === "voice") body = <VoiceSetupStep/>;
+  else if (cur === "speak") body = <SpeakSetupStep ai={ai} setAi={setAi}/>;
+  else body = (
+    <div>
+      <div style={{fontSize:48,textAlign:"center",marginBottom:8}}>✅</div>
+      <h2 style={NAV.tourH}>{t("tour.doneT")}</h2>
+      <p style={NAV.tourP}>{t("tour.doneB")}</p>
+    </div>
+  );
+
   return (
     <div style={NAV.introOverlay}>
       <div style={NAV.introCard}>
-        <div style={{textAlign:"center",marginBottom:18}}>
-          <div style={{fontSize:52,marginBottom:6}}>🪺</div>
-          <h1 style={{margin:0,fontSize:32,color:"#f5c842",letterSpacing:"0.04em"}}>Wierszyki</h1>
-          <p style={{margin:"4px 0 0",fontSize:14,color:"#a29780",letterSpacing:"0.1em",textTransform:"uppercase"}}>{t("app.sub")}</p>
-        </div>
-        <p style={{fontSize:17,color:"#c8b890",lineHeight:1.6,marginTop:0}}>{t("welcome.intro")}</p>
-        <div style={{display:"flex",flexDirection:"column",gap:14,margin:"18px 0"}}>
-          <Point icon="📖" title={t("welcome.p1t")}>{t("welcome.p1b")}</Point>
-          <Point icon="🔊" title={t("welcome.p2t")}>{t("welcome.p2b")}</Point>
-          <Point icon="🎤" title={t("welcome.p3t")}>{t("welcome.p3b")}</Point>
-          <Point icon="🌍" title={t("welcome.p4t")}>{t("welcome.p4b")}</Point>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+          <span style={{fontSize:13,color:"#a29780",letterSpacing:"0.06em"}}>{t("tour.step")} {step + 1} {t("tour.of")} {n}</span>
+          {step < n - 1 && <button onClick={() => setStep(n - 1)} style={NAV.tourSkip}>{t("tour.skip")}</button>}
         </div>
 
-        <Head>{t("welcome.guide")}</Head>
-        <div style={{display:"flex",flexDirection:"column",gap:14}}>
-          <Point icon="🧭" title={t("welcome.layoutT")}>{t("welcome.layoutB")}</Point>
+        <div>{body}</div>
+
+        <div style={{display:"flex",justifyContent:"center",gap:7,margin:"20px 0 14px"}}>
+          {STEPS.map((_, i) => (
+            <span key={i} style={{width:i===step?22:8,height:8,borderRadius:8,background:i===step?"#f5c842":"#5a4a20",transition:"all .2s"}}/>
+          ))}
         </div>
 
-        <div style={{margin:"16px 0 0"}}>
-          <div style={{color:"#f0e0b0",fontSize:17,fontStyle:"italic",marginBottom:10}}>{t("welcome.iconsT")}</div>
-          <div style={{display:"flex",flexDirection:"column",gap:9}}>
-            {legend.map(([icon, text]) => (
-              <div key={text} style={{display:"flex",gap:12,alignItems:"flex-start"}}>
-                <span style={{minWidth:46,height:30,padding:"0 6px",boxSizing:"border-box",flexShrink:0,display:"inline-flex",alignItems:"center",justifyContent:"center",borderRadius:8,border:"1px solid #4a3520",background:"rgba(245,200,66,0.06)",color:"#f5c842",fontSize:16}}>{icon}</span>
-                <span style={{color:"#b8a690",fontSize:15,lineHeight:1.4,paddingTop:5}}>{text}</span>
-              </div>
-            ))}
-          </div>
+        <div style={{display:"flex",gap:10}}>
+          {step > 0 && <button onClick={() => move(-1)} style={{...s.secondaryBtn,flexShrink:0}}>{t("tour.back")}</button>}
+          {step < n - 1
+            ? <button onClick={() => move(1)} style={{...NAV.primaryBtn,flex:1}}>{t("tour.next")}</button>
+            : <button onClick={onClose} style={{...NAV.primaryBtn,flex:1,fontSize:19}}>{t("welcome.start")}</button>}
         </div>
 
-        <div style={{margin:"18px 0 0"}}>
-          <Point icon="🗣️" title={t("welcome.speechT")}>{t("welcome.speechB")}</Point>
-        </div>
-
-        <button style={NAV.introToggle} onClick={() => setEnabled(!enabled)} aria-pressed={enabled}>
-          <span style={{...NAV.checkbox,...(enabled?NAV.checkboxOn:{})}}>{enabled ? "✓" : ""}</span>
-          <span>{t("welcome.toggle")}</span>
-        </button>
-        <button style={{...NAV.primaryBtn,width:"100%",marginTop:14,fontSize:19,padding:"12px"}} onClick={onClose}>{t("welcome.start")}</button>
-        <p style={{fontSize:13,color:"#a69c89",textAlign:"center",margin:"12px 0 0"}}>{t("welcome.reopen")}</p>
+        {cur === "done" && (
+          <button style={{...NAV.introToggle,marginTop:8}} onClick={() => setEnabled(!enabled)} aria-pressed={enabled}>
+            <span style={{...NAV.checkbox,...(enabled?NAV.checkboxOn:{})}}>{enabled ? "✓" : ""}</span>
+            <span>{t("welcome.toggle")}</span>
+          </button>
+        )}
       </div>
     </div>
   );
@@ -4592,6 +4722,25 @@ const STRINGS = {
     "leg.back":"step back one level",
     "welcome.speechT":"Hearing & speaking Polish",
     "welcome.speechB":"Audio uses your device's Polish voice and works offline — if it sounds English, install a Polish text-to-speech voice in your phone's settings. Speaking practice (🎤) works in Chrome, Edge and Safari with no setup. In other browsers like Firefox, open ☰ → Settings and add your own OpenAI key to turn on voice scoring.",
+    "tour.next":"Next →", "tour.back":"← Back", "tour.skip":"Skip tour", "tour.step":"Step",
+    "tour.of":"of",
+    "voice.title":"Set up the Polish voice",
+    "voice.intro":"Rhymes are read aloud using your device's built-in voices. Pick a Polish one and test it — otherwise the audio may sound English.",
+    "voice.found":"Polish voice(s) found. Tap one, then Test:",
+    "voice.none":"No Polish voice found on this device yet. Install a Polish text-to-speech voice in your phone's settings (Languages / Text-to-speech), then tap Refresh. You can still use the app — only the audio is affected.",
+    "voice.refresh":"↻ Refresh voices",
+    "voice.test":"▶ Test voice",
+    "voice.sample":"Dzień dobry! Miło cię poznać.",
+    "voice.using":"In use",
+    "voice.default":"Device default",
+    "speak.title":"Set up speaking practice",
+    "speak.intro":"The 🎤 practice scores how closely you read the Polish aloud.",
+    "speak.builtin":"✓ This browser has built-in speech recognition — you're ready to practise speaking, no setup needed.",
+    "speak.none":"This browser (e.g. Firefox) has no built-in speech recognition. To score your speaking here, add your own OpenAI key — it's stored only in this browser and used to transcribe your voice.",
+    "speak.keyset":"✓ OpenAI key saved — speaking practice is ready in any browser.",
+    "speak.optional":"You can skip this and still read, listen and quiz — only voice scoring needs it.",
+    "tour.doneT":"You're all set",
+    "tour.doneB":"That's the tour. Reopen it anytime from ☰ → Welcome & guide, and change voices or your OpenAI key in ☰ → Settings.",
     "set.title":"Settings", "set.uiLang":"Interface language",
     "set.ai":"OpenAI (optional)",
     "set.aiBlurb":"Add your own OpenAI API key to (1) use speech practice in browsers without built-in recognition, and (2) generate your own sayings. The key is stored only in this browser.",
@@ -4646,6 +4795,25 @@ const STRINGS = {
     "leg.back":"cofnij o jeden poziom",
     "welcome.speechT":"Słuchanie i mówienie po polsku",
     "welcome.speechB":"Dźwięk korzysta z polskiego głosu w urządzeniu i działa offline — jeśli brzmi po angielsku, zainstaluj polski głos syntezy mowy w ustawieniach telefonu. Ćwiczenie mówienia (🎤) działa w Chrome, Edge i Safari bez konfiguracji. W innych przeglądarkach, np. Firefoksie, otwórz ☰ → Ustawienia i dodaj własny klucz OpenAI, aby włączyć ocenianie wymowy.",
+    "tour.next":"Dalej →", "tour.back":"← Wstecz", "tour.skip":"Pomiń przewodnik", "tour.step":"Krok",
+    "tour.of":"z",
+    "voice.title":"Skonfiguruj polski głos",
+    "voice.intro":"Wierszyki są czytane na głos głosami wbudowanymi w urządzenie. Wybierz polski głos i przetestuj go — inaczej dźwięk może brzmieć po angielsku.",
+    "voice.found":"Znaleziono polskie głosy. Dotknij jednego, a potem Testuj:",
+    "voice.none":"Nie znaleziono jeszcze polskiego głosu w tym urządzeniu. Zainstaluj polski głos syntezy mowy w ustawieniach telefonu (Języki / Synteza mowy), a potem dotknij Odśwież. Aplikacji możesz używać dalej — dotyczy to tylko dźwięku.",
+    "voice.refresh":"↻ Odśwież głosy",
+    "voice.test":"▶ Testuj głos",
+    "voice.sample":"Dzień dobry! Miło cię poznać.",
+    "voice.using":"W użyciu",
+    "voice.default":"Domyślny głos urządzenia",
+    "speak.title":"Skonfiguruj ćwiczenie mówienia",
+    "speak.intro":"Ćwiczenie 🎤 ocenia, jak dokładnie czytasz polski tekst na głos.",
+    "speak.builtin":"✓ Ta przeglądarka ma wbudowane rozpoznawanie mowy — możesz ćwiczyć mówienie bez konfiguracji.",
+    "speak.none":"Ta przeglądarka (np. Firefox) nie ma wbudowanego rozpoznawania mowy. Aby oceniać tu mówienie, dodaj własny klucz OpenAI — jest przechowywany tylko w tej przeglądarce i służy do transkrypcji twojego głosu.",
+    "speak.keyset":"✓ Klucz OpenAI zapisany — ćwiczenie mówienia działa w każdej przeglądarce.",
+    "speak.optional":"Możesz to pominąć i nadal czytać, słuchać i rozwiązywać quizy — klucz jest potrzebny tylko do oceniania mowy.",
+    "tour.doneT":"Wszystko gotowe",
+    "tour.doneB":"To koniec przewodnika. Otwórz go ponownie w dowolnej chwili przez ☰ → Powitanie i przewodnik, a głosy lub klucz OpenAI zmienisz w ☰ → Ustawienia.",
     "set.title":"Ustawienia", "set.uiLang":"Język interfejsu",
     "set.ai":"OpenAI (opcjonalnie)",
     "set.aiBlurb":"Dodaj własny klucz API OpenAI, aby (1) używać ćwiczeń mowy w przeglądarkach bez wbudowanego rozpoznawania oraz (2) generować własne przysłowia. Klucz jest przechowywany tylko w tej przeglądarce.",
@@ -4706,6 +4874,9 @@ function SettingsScreen({ back, ai, setAi, uiLang, setUiLang }) {
             <button onClick={() => setUiLang("en")} style={{...NAV.langBtn,...(uiLang==="en"?NAV.langBtnOn:{})}}>English</button>
             <button onClick={() => setUiLang("pl")} style={{...NAV.langBtn,...(uiLang==="pl"?NAV.langBtnOn:{})}}>Polski</button>
           </div>
+        </div>
+        <div style={{...s.card,marginTop:14}}>
+          <VoiceSetupStep compact/>
         </div>
         <div style={{...s.card,marginTop:14}}>
           <div style={{fontSize:18,color:"#f5e6a0",fontStyle:"italic",marginBottom:6}}>{t("set.ai")}</div>
@@ -4890,6 +5061,8 @@ function App() {
           enabled={welcomeEnabled}
           setEnabled={setWelcomePref}
           onClose={() => setIntroOpen(false)}
+          ai={ai}
+          setAi={setAi}
         />
       )}
     </div>
@@ -4932,6 +5105,14 @@ const NAV = {
   langToggle:{display:"inline-flex",border:"1px solid #5a4a20",borderRadius:8,overflow:"hidden",flexShrink:0},
   langBtn:{background:"transparent",border:"none",color:"#a29780",fontFamily:"inherit",fontSize:13,fontWeight:"bold",letterSpacing:"0.05em",padding:"5px 12px",cursor:"pointer"},
   langBtnOn:{background:"#f5c842",color:"#1a1208"},
+  tourH:{fontFamily:"inherit",color:"#f5c842",fontSize:23,fontStyle:"italic",textAlign:"center",margin:"0 0 10px"},
+  tourP:{fontSize:16,color:"#c8b890",lineHeight:1.6,margin:"0 0 6px"},
+  tourOk:{fontSize:15,color:"#a8d08a",lineHeight:1.55,background:"rgba(120,180,80,0.08)",border:"1px solid #4e6a32",borderRadius:10,padding:"12px 14px",marginTop:6},
+  tourSkip:{background:"transparent",border:"none",color:"#a29780",fontFamily:"inherit",fontSize:14,cursor:"pointer",padding:"4px 6px",textDecoration:"underline"},
+  voiceRow:{display:"flex",alignItems:"center",gap:12,width:"100%",textAlign:"left",background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:10,padding:"11px 13px",cursor:"pointer",fontFamily:"inherit"},
+  voiceRowOn:{borderColor:"#f5c842",background:"rgba(245,200,66,0.08)"},
+  radio:{width:20,height:20,flexShrink:0,borderRadius:20,border:"1.5px solid #6a5a3a",display:"flex",alignItems:"center",justifyContent:"center",color:"#f5c842",fontSize:12},
+  radioOn:{borderColor:"#f5c842"},
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
