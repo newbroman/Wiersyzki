@@ -1,6 +1,6 @@
 // Wierszyki service worker.
 // IMPORTANT: bump CACHE_VERSION on every deploy so installed copies fetch the new build.
-const CACHE_VERSION = 'wierszyki-v3';
+const CACHE_VERSION = 'wierszyki-v4';
 const CORE = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', (e) => {

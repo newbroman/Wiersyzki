@@ -2343,6 +2343,69 @@ const jokes = [
 // PERSISTENCE — localStorage helpers
 // ═══════════════════════════════════════════════════════════════════════════
 
+const idioms = [
+  { id:"i1", pl:"Życie jak w Madrycie.", en:"Life like in Madrid.",
+    meaning:"A comfortable, carefree life with no worries — the good life.",
+    explanation:"A jokey rhyming idiom (życie / Madrycie); Madrid is there for the rhyme, not the meaning. Said of someone who has it easy and pleasant. Closest English: 'the life of Riley' / 'living the high life'.",
+    meaning_pl:"Wygodne, beztroskie życie bez zmartwień — życie pełną gębą.",
+    explanation_pl:"Żartobliwy, rymowany idiom (życie / Madrycie); Madryt jest tu dla rymu, nie dla znaczenia. Mówi się tak o kimś, komu żyje się łatwo i przyjemnie. Najbliższe angielskie: 'the life of Riley'." },
+  { id:"i2", pl:"Bułka z masłem.", en:"A roll with butter.",
+    meaning:"Something very easy to do.",
+    explanation:"Used for a task that takes no effort at all. Closest English: 'a piece of cake' / 'easy as pie'.",
+    meaning_pl:"Coś bardzo łatwego do zrobienia.",
+    explanation_pl:"Używane o zadaniu, które nie wymaga żadnego wysiłku. Najbliższe angielskie: 'a piece of cake'." },
+  { id:"i3", pl:"Raz na ruski rok.", en:"Once in a Russian year.",
+    meaning:"Very rarely; hardly ever.",
+    explanation:"A colloquial, slightly humorous way to say something happens almost never. Closest English: 'once in a blue moon'.",
+    meaning_pl:"Bardzo rzadko; niemal nigdy.",
+    explanation_pl:"Potoczny, lekko żartobliwy sposób na powiedzenie, że coś dzieje się prawie nigdy. Najbliższe angielskie: 'once in a blue moon'." },
+  { id:"i4", pl:"Rzucać grochem o ścianę.", en:"To throw peas against a wall.",
+    meaning:"To try to tell or convince someone something with no effect at all.",
+    explanation:"The effort bounces off like peas off a wall. Said when advice or argument is completely ignored. Closest English: 'to talk to a brick wall'.",
+    meaning_pl:"Próbować komuś coś powiedzieć lub go przekonać zupełnie bez skutku.",
+    explanation_pl:"Wysiłek odbija się jak groch od ściany. Mówi się tak, gdy rady czy argumenty są całkowicie ignorowane. Najbliższe angielskie: 'to talk to a brick wall'." },
+  { id:"i5", pl:"Robić z igły widły.", en:"To make a pitchfork out of a needle.",
+    meaning:"To blow a small problem up into a big one.",
+    explanation:"Said when someone overreacts or exaggerates a trivial matter. Closest English: 'to make a mountain out of a molehill'.",
+    meaning_pl:"Wyolbrzymiać mały problem do rozmiarów wielkiego.",
+    explanation_pl:"Mówi się, gdy ktoś przesadnie reaguje albo wyolbrzymia drobiazg. Najbliższe angielskie: 'to make a mountain out of a molehill'." },
+  { id:"i6", pl:"Nie mój cyrk, nie moje małpy.", en:"Not my circus, not my monkeys.",
+    meaning:"Not my problem; nothing to do with me.",
+    explanation:"A modern, very popular idiom that has even entered English. Used to disclaim responsibility for someone else's mess. Closest English: 'not my problem'.",
+    meaning_pl:"Nie mój problem; nie moja sprawa.",
+    explanation_pl:"Nowoczesny, bardzo popularny idiom, który wszedł nawet do angielszczyzny. Używany, by odżegnać się od cudzych kłopotów. Najbliższe angielskie: 'not my problem'." },
+  { id:"i7", pl:"Musztarda po obiedzie.", en:"Mustard after dinner.",
+    meaning:"Help or action that arrives too late to be useful.",
+    explanation:"Like serving the mustard once the meal is already finished. Closest English: 'too little, too late'.",
+    meaning_pl:"Pomoc lub działanie, które przychodzi zbyt późno, by się przydać.",
+    explanation_pl:"Jak podanie musztardy, gdy obiad już zjedzony. Najbliższe angielskie: 'too little, too late'." },
+  { id:"i8", pl:"Czuć do kogoś miętę.", en:"To feel mint towards someone.",
+    meaning:"To be fond of someone; to have a soft spot or a crush on them.",
+    explanation:"Affectionate and informal. Closest English: 'to have a soft spot for someone' / 'to be sweet on someone'.",
+    meaning_pl:"Darzyć kogoś sympatią; mieć do kogoś słabość.",
+    explanation_pl:"Czułe i nieformalne. Najbliższe angielskie: 'to have a soft spot for someone'." },
+  { id:"i9", pl:"Wiercić komuś dziurę w brzuchu.", en:"To drill a hole in someone's belly.",
+    meaning:"To pester or nag someone persistently until they give in.",
+    explanation:"Said of relentless, wearing-down requests. Closest English: 'to badger someone' / 'to keep on at someone'.",
+    meaning_pl:"Uporczywie kogoś nagabywać lub męczyć, aż ustąpi.",
+    explanation_pl:"Mówi się o natarczywych, męczących prośbach. Najbliższe angielskie: 'to badger someone'." },
+  { id:"i10", pl:"Co ma piernik do wiatraka?", en:"What does gingerbread have to do with a windmill?",
+    meaning:"Said when two things have nothing to do with each other.",
+    explanation:"A retort when someone links unrelated matters. Closest English: 'apples and oranges' / 'what's that got to do with anything?'.",
+    meaning_pl:"Mówi się, gdy dwie rzeczy nie mają ze sobą nic wspólnego.",
+    explanation_pl:"Riposta, gdy ktoś łączy niezwiązane sprawy. Najbliższe angielskie: 'apples and oranges'." },
+  { id:"i11", pl:"Wpaść jak śliwka w kompot.", en:"To fall like a plum into compote.",
+    meaning:"To land in an awkward or troublesome situation unexpectedly.",
+    explanation:"You end up stuck somewhere you didn't intend to be. Closest English: 'to land in a pickle' / 'to get into a fine mess'.",
+    meaning_pl:"Niespodziewanie wpaść w kłopotliwą lub niezręczną sytuację.",
+    explanation_pl:"Lądujesz tam, gdzie wcale nie zamierzałeś. Najbliższe angielskie: 'to land in a pickle'." },
+  { id:"i12", pl:"Mieć węża w kieszeni.", en:"To have a snake in one's pocket.",
+    meaning:"To be stingy; reluctant to spend money.",
+    explanation:"As if a snake guards the wallet so the hand never reaches in. Closest English: 'to be tight-fisted'.",
+    meaning_pl:"Być skąpym; niechętnie wydawać pieniądze.",
+    explanation_pl:"Jakby węża pilnował portfela, więc ręka nigdy do niego nie sięga. Najbliższe angielskie: 'to be tight-fisted'." },
+];
+
 const LS = {
   get(k, def) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch { return def; } },
   set(k, v)   { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
@@ -4036,6 +4099,97 @@ function SayingsDetailScreen({ id, store, back }) {
   );
 }
 
+function IdiomsListScreen({ store, go, back }) {
+  const { bookmarks, toggleBookmark } = store;
+  const { t } = React.useContext(LangContext);
+  const [savedOnly, setSavedOnly] = useState(false);
+  const ids = bookmarks.idioms || [];
+  const displayed = savedOnly ? idioms.filter(x => ids.includes(x.id)) : idioms;
+  return (
+    <div style={NAV.screen}>
+      <NavBar title={t("sec.idioms")} onBack={back}/>
+      <div style={NAV.body}>
+        <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+          <button onClick={() => go({ view:"flashcards" })} style={s.startBtn}>🗂️ {t("fc.title")}</button>
+          <button onClick={() => setSavedOnly(v => !v)}
+            style={{...s.secondaryBtn,...(savedOnly?{borderColor:"#f5c842",color:"#f5c842"}:{})}}>{savedOnly ? "★" : "☆"}</button>
+        </div>
+        <div style={s.sayingsList}>
+          {displayed.map(idi => {
+            const starred = ids.includes(idi.id);
+            return (
+              <div key={idi.id} style={s.sayingCard} onClick={() => go({ view:"idioms-detail", id:idi.id })}>
+                <div style={s.sayingTop}>
+                  <div style={{flex:1}}>
+                    <div style={s.sayingPl}>{idi.pl}</div>
+                    <div style={s.sayingEn}>{idi.en}</div>
+                  </div>
+                  <div style={s.sayingMeta}>
+                    <button onClick={e => { e.stopPropagation(); speak(idi.pl); }} style={s.sayingSpeak}>🔊</button>
+                    <button onClick={e => { e.stopPropagation(); toggleBookmark("idioms", idi.id); }}
+                      style={{...s.sayingSpeak,color:starred?"#f5c842":"#6a5a3a",fontSize:20}}>{starred?"★":"☆"}</button>
+                    <span style={s.sayingChevron}>›</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function IdiomDetailScreen({ id, store, back }) {
+  const { bookmarks, toggleBookmark } = store;
+  const { t } = React.useContext(LangContext);
+  const [lang, setLang] = useState("en");
+  const idi = idioms.find(x => x.id === id);
+  if (!idi) return null;
+  const starred = (bookmarks.idioms || []).includes(id);
+  const mean = lang === "pl" ? (idi.meaning_pl || idi.meaning) : idi.meaning;
+  const expl = lang === "pl" ? (idi.explanation_pl || idi.explanation) : idi.explanation;
+  return (
+    <div style={NAV.screen}>
+      <NavBar title={t("sec.idioms")} onBack={back}/>
+      <div style={NAV.body}>
+        <div style={s.card}>
+          <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start"}}>
+            <div style={{flex:1}}>
+              <div style={{...s.sayingPl,fontSize:"clamp(21px,5vw,28px)",marginBottom:8}}>{idi.pl}</div>
+              <div style={s.sayingEn}><span style={{color:"#8a7a58"}}>{t("idiom.literally")}: </span>{idi.en}</div>
+            </div>
+            <div style={{display:"flex",gap:6,flexShrink:0}}>
+              <button onClick={() => speak(idi.pl)} style={s.sayingSpeak}>🔊</button>
+              <button onClick={() => toggleBookmark("idioms", id)}
+                style={{...s.sayingSpeak,color:starred?"#f5c842":"#6a5a3a",fontSize:21}}>{starred?"★":"☆"}</button>
+            </div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,margin:"16px 0 8px"}}>
+            <span style={{fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",color:"#a29780"}}>What it means</span>
+            <div style={NAV.langToggle}>
+              <button onClick={() => setLang("en")} style={{...NAV.langBtn,...(lang==="en"?NAV.langBtnOn:{})}}>EN</button>
+              <button onClick={() => setLang("pl")} style={{...NAV.langBtn,...(lang==="pl"?NAV.langBtnOn:{})}}>PL</button>
+            </div>
+          </div>
+          <div style={s.sayingMeaning} lang={lang}>
+            <strong>{mean}</strong><br/>{expl}
+          </div>
+        </div>
+        <div style={{marginTop:16}}>
+          <div style={{fontSize:15,letterSpacing:"0.08em",textTransform:"uppercase",color:"#a29780",marginBottom:10,marginLeft:2}}>🎤 {t("idiom.practise")}</div>
+          <GuidedPractice
+            segments={splitIntoSegments(idi.pl)}
+            intro="Read each part aloud and the app will score how close you are."
+            segLabel="Part"
+            wholeLabel="Whole idiom"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SayingsQuizScreen({ back }) {
   return (
     <div style={NAV.screen}>
@@ -4424,6 +4578,7 @@ function NavBar({ title, onBack }) {
 const HOME_SECTIONS = [
   { key:"rhymes",  icon:"📖", label:"Rhymes",  blurb:"Traditional nursery rhymes and poems, read aloud." },
   { key:"sayings", icon:"💬", label:"Sayings", blurb:"Proverbs and folk wisdom, with the meaning behind them." },
+  { key:"idioms",  icon:"🗣️", label:"Idioms",  blurb:"Everyday figurative phrases and what they really mean." },
   { key:"jokes",   icon:"😄", label:"Jokes",   blurb:"Kawały by theme — Jaś, the doctor, highlanders, PRL." },
   { key:"quiz",    icon:"🌍", label:"Quiz",    blurb:"Every rhyme question, shuffled. Misses come back more often." },
 ];
@@ -4521,6 +4676,7 @@ function MenuDrawer({ t, uiLang, setUiLang, onClose, onNavigate, onSettings, onA
         <Item icon="🏠" label={t("menu.home")} onClick={() => onNavigate({ view:"home" })}/>
         <Item icon="📖" label={t("sec.rhymes")} onClick={() => onNavigate({ view:"rhymes-list" })}/>
         <Item icon="💬" label={t("sec.sayings")} onClick={() => onNavigate({ view:"sayings-list" })}/>
+        <Item icon="🗣️" label={t("sec.idioms")} onClick={() => onNavigate({ view:"idioms-list" })}/>
         <Item icon="😄" label={t("sec.jokes")} onClick={() => onNavigate({ view:"jokes-cats" })}/>
         <Item icon="🌍" label={t("sec.quiz")} onClick={() => onNavigate({ view:"quiz" })}/>
         <div style={{height:1,background:"#3a2a14",margin:"8px 4px"}}/>
@@ -4732,6 +4888,8 @@ const STRINGS = {
     "home.choose":"Choose where to start.",
     "sec.rhymes":"Rhymes", "sec.rhymes.blurb":"Traditional nursery rhymes and poems, read aloud.",
     "sec.sayings":"Sayings", "sec.sayings.blurb":"Proverbs and folk wisdom, with the meaning behind them.",
+    "sec.idioms":"Idioms", "sec.idioms.blurb":"Everyday figurative phrases and what they really mean.",
+    "idiom.literally":"Literally", "idiom.practise":"Practise saying it",
     "sec.jokes":"Jokes", "sec.jokes.blurb":"Kawały by theme — Jaś, the doctor, highlanders, PRL.",
     "sec.quiz":"Quiz", "sec.quiz.blurb":"Every rhyme question, shuffled. Misses come back more often.",
     "menu.title":"Menu", "menu.home":"Home", "menu.addSaying":"Add your own saying",
@@ -4830,6 +4988,8 @@ const STRINGS = {
     "home.choose":"Wybierz, od czego zacząć.",
     "sec.rhymes":"Wierszyki", "sec.rhymes.blurb":"Tradycyjne wierszyki i wiersze dla dzieci, czytane na głos.",
     "sec.sayings":"Przysłowia", "sec.sayings.blurb":"Przysłowia i mądrość ludowa wraz z ich znaczeniem.",
+    "sec.idioms":"Idiomy", "sec.idioms.blurb":"Codzienne wyrażenia przenośne i ich prawdziwe znaczenie.",
+    "idiom.literally":"Dosłownie", "idiom.practise":"Ćwicz wymawianie",
     "sec.jokes":"Kawały", "sec.jokes.blurb":"Kawały tematycznie — Jaś, lekarz, górale, PRL.",
     "sec.quiz":"Quiz", "sec.quiz.blurb":"Wszystkie pytania z wierszyków, pomieszane. Pomyłki wracają częściej.",
     "menu.title":"Menu", "menu.home":"Start", "menu.addSaying":"Dodaj własne przysłowie",
@@ -4925,7 +5085,7 @@ const STRINGS = {
 };
 
 // Ask OpenAI to turn a Polish proverb (or topic) into a structured saying object.
-const APP_VERSION = "1.7.0";
+const APP_VERSION = "1.8.0";
 // Keys included in a backup file (deliberately excludes the OpenAI key).
 const BACKUP_KEYS = ["bookmarks", "history", "wrongLog", "customSayings", "uiLang", "preferWhisper", "ttsVoiceURI", "ttsRate", "showWelcome"];
 
@@ -4970,6 +5130,9 @@ function buildCardPool(allSayings) {
   }));
   (allSayings || sayings).forEach(sy => {
     cards.push({ key: "s:" + sy.id, pl: sy.pl, en: sy.en || sy.meaning || "", source: sy.theme || "", srcType: "saying", sayingId: sy.id });
+  });
+  idioms.forEach(idi => {
+    cards.push({ key: "i:" + idi.id, pl: idi.pl, en: idi.meaning || idi.en || "", source: "idiom", srcType: "idiom", idiomId: idi.id });
   });
   return cards;
 }
@@ -5223,7 +5386,7 @@ function ReviewCard({ card, revealed, onReveal, onGrade, left, reviewed }) {
         <span>{left} {t("review.left")}</span><span>{reviewed} {t("review.reviewed")}</span>
       </div>
       <div style={{...s.card,minHeight:160,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",gap:10,padding:"28px 18px"}}>
-        <div style={{fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:"#8a7a58"}}>{card.srcType === "vocab" ? t("fc.vocab") : t("fc.sayings")} · {card.source}</div>
+        <div style={{fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:"#8a7a58"}}>{card.srcType === "vocab" ? t("fc.vocab") : card.srcType === "idiom" ? t("sec.idioms") : t("fc.sayings")} · {card.source}</div>
         <div style={{fontSize:"clamp(22px,6vw,30px)",color:"#f5c842",lineHeight:1.2}}>{card.pl}</div>
         <button onClick={() => speak(card.pl)} style={{...s.secondaryBtn,marginTop:2}}>🔊</button>
         {revealed && <div style={{fontSize:18,color:"#e8dcc8",lineHeight:1.4,borderTop:"1px solid #3a2a14",paddingTop:12,width:"100%"}}>{card.en}</div>}
@@ -5301,7 +5464,7 @@ function FlashcardsScreen({ store, back }) {
         {!card ? <p style={NAV.intro}>{t("fc.empty")}</p> : (
           <>
             <div onClick={() => setFlip(f => !f)} style={{...s.card,minHeight:190,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",gap:12,cursor:"pointer",padding:"30px 18px"}}>
-              <div style={{fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:"#8a7a58"}}>{card.srcType === "vocab" ? t("fc.vocab") : t("fc.sayings")} · {card.source}</div>
+              <div style={{fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:"#8a7a58"}}>{card.srcType === "vocab" ? t("fc.vocab") : card.srcType === "idiom" ? t("sec.idioms") : t("fc.sayings")} · {card.source}</div>
               <div style={{fontSize:flip?"clamp(17px,4.6vw,22px)":"clamp(22px,6vw,30px)",color:flip?"#e8dcc8":"#f5c842",lineHeight:1.25}}>{flip ? card.en : card.pl}</div>
               <button onClick={(e) => { e.stopPropagation(); speak(card.pl); }} style={s.secondaryBtn}>🔊</button>
               <div style={{fontSize:12,color:"#7a6a4a"}}>{t("fc.flip")}</div>
@@ -5382,12 +5545,14 @@ function SearchScreen({ store, back, navigate }) {
     const r = [];
     rhymes.forEach(x => { if (hit(x.title) || hit(x.english_title) || (x.lines || []).some(l => hit(l.pl) || hit(l.en))) r.push({ type: "rhyme", id: x.id, pl: x.title, en: x.english_title }); });
     (store.allSayings || sayings).forEach(x => { if (hit(x.pl) || hit(x.en) || hit(x.meaning)) r.push({ type: "saying", id: x.id, pl: x.pl, en: x.en }); });
+    idioms.forEach(x => { if (hit(x.pl) || hit(x.en) || hit(x.meaning)) r.push({ type: "idiom", id: x.id, pl: x.pl, en: x.meaning }); });
     jokes.forEach(x => { if (hit(x.setup) || hit(x.punchline)) r.push({ type: "joke", id: x.id, pl: x.setup, en: "" }); });
     return r;
   }, [query, store.allSayings]);
   const goTo = (res) => {
     if (res.type === "rhyme") navigate({ view: "rhymes-detail", id: res.id });
     else if (res.type === "saying") navigate({ view: "sayings-detail", id: res.id });
+    else if (res.type === "idiom") navigate({ view: "idioms-detail", id: res.id });
     else navigate({ view: "joke-detail", id: res.id });
   };
   return (
@@ -5400,7 +5565,7 @@ function SearchScreen({ store, back, navigate }) {
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
           {(results || []).map((res, i) => (
             <button key={res.type + res.id + i} onClick={() => goTo(res)} style={{...NAV.menuItem,alignItems:"flex-start"}}>
-              <span style={{fontSize:18,width:26,flexShrink:0}}>{res.type === "rhyme" ? "📖" : res.type === "saying" ? "💬" : "😄"}</span>
+              <span style={{fontSize:18,width:26,flexShrink:0}}>{res.type === "rhyme" ? "📖" : res.type === "saying" ? "💬" : res.type === "idiom" ? "🗣️" : "😄"}</span>
               <span style={{flex:1,textAlign:"left",minWidth:0}}>
                 <span style={{display:"block",color:"#f0e0b0",fontSize:15,overflow:"hidden",textOverflow:"ellipsis"}}>{res.pl}</span>
                 {res.en && <span style={{display:"block",color:"#a29780",fontSize:13,overflow:"hidden",textOverflow:"ellipsis"}}>{res.en}</span>}
@@ -5422,6 +5587,7 @@ function MyStuffScreen({ store, back, navigate, onReview }) {
   const savedRhymes = rhymes.filter(r => (store.bookmarks.rhymes || []).includes(r.id));
   const all = store.allSayings || sayings;
   const savedSayings = all.filter(syy => (store.bookmarks.sayings || []).includes(syy.id));
+  const savedIdioms = idioms.filter(x => (store.bookmarks.idioms || []).includes(x.id));
   const custom = store.customSayings || [];
   const Row = ({ icon, title, sub, onClick, tag }) => (
     <button onClick={onClick} style={{...NAV.menuItem,alignItems:"flex-start"}}>
@@ -5434,7 +5600,7 @@ function MyStuffScreen({ store, back, navigate, onReview }) {
       <span style={NAV.chev}>›</span>
     </button>
   );
-  const empty = savedRhymes.length === 0 && savedSayings.length === 0 && custom.length === 0;
+  const empty = savedRhymes.length === 0 && savedSayings.length === 0 && savedIdioms.length === 0 && custom.length === 0;
   const Head = ({ children }) => <div style={{fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",color:"#a29780",margin:"18px 2px 8px"}}>{children}</div>;
   return (
     <div style={NAV.screen}>
@@ -5449,6 +5615,10 @@ function MyStuffScreen({ store, back, navigate, onReview }) {
         {savedSayings.length > 0 && <Head>{t("mystuff.saved")} · {t("sec.sayings")}</Head>}
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
           {savedSayings.map(syy => <Row key={"s" + syy.id} icon="💬" title={syy.pl} sub={syy.en} tag={syy.custom ? t("yours") : null} onClick={() => navigate({ view: "sayings-detail", id: syy.id })}/>)}
+        </div>
+        {savedIdioms.length > 0 && <Head>{t("mystuff.saved")} · {t("sec.idioms")}</Head>}
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {savedIdioms.map(x => <Row key={"i" + x.id} icon="🗣️" title={x.pl} sub={x.en} onClick={() => navigate({ view: "idioms-detail", id: x.id })}/>)}
         </div>
         {custom.length > 0 && <Head>{t("mystuff.custom")}</Head>}
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
@@ -5545,6 +5715,7 @@ function App() {
       onPick={(k) => {
         if (k === "rhymes") go({ view:"rhymes-list" });
         else if (k === "sayings") go({ view:"sayings-list" });
+        else if (k === "idioms") go({ view:"idioms-list" });
         else if (k === "jokes") go({ view:"jokes-cats" });
         else if (k === "quiz") go({ view:"quiz" });
       }}/>;
@@ -5552,6 +5723,8 @@ function App() {
   else if (v === "rhymes-detail")  screen = <RhymesDetailScreen id={current.id} store={store} back={back}/>;
   else if (v === "sayings-list")   screen = <SayingsListScreen store={store} go={go} back={back}/>;
   else if (v === "sayings-detail") screen = <SayingsDetailScreen id={current.id} store={store} back={back}/>;
+  else if (v === "idioms-list")    screen = <IdiomsListScreen store={store} go={go} back={back}/>;
+  else if (v === "idioms-detail")  screen = <IdiomDetailScreen id={current.id} store={store} back={back}/>;
   else if (v === "sayings-quiz")   screen = <SayingsQuizScreen back={back}/>;
   else if (v === "jokes-cats")     screen = <JokesCategoriesScreen go={go} back={back}/>;
   else if (v === "jokes-list")     screen = <JokesListScreen category={current.category} jokeFilter={jokeFilter} setJokeFilter={setJokeFilter} go={go} back={back}/>;
