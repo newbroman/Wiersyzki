@@ -1,126 +1,152 @@
-# Wierszyki — Polish for Learners (PWA)
+# Wierszyki 🇵🇱
 
-A Progressive Web App for learning Polish through traditional nursery rhymes, proverbs, and jokes. Verified content from Wolne Lektury, Wikiźródła, and other Polish sources.
+**A Polish-for-learners progressive web app.** Traditional nursery rhymes, proverbs, idioms and jokes — each one read aloud, explained in English, and turned into something you can practise speaking, review and quiz yourself on.
 
-## File structure
+Wierszyki runs entirely in the browser, works offline once installed, and keeps all your progress on your own device.
+
+**Current version:** 1.11.0
+
+---
+
+## What it does
+
+Wierszyki bundles authentic Polish content with the learning tools to actually absorb it:
+
+- **Listen** to native-style text-to-speech with a Polish voice you pick yourself, at a speed you choose.
+- **Read along** with line-by-line Polish and English, plus vocabulary notes and cultural background.
+- **Speak** each line and get scored on how close you are — then **play your own attempt back** to compare.
+- **Review** with a spaced-repetition system that brings back what you miss sooner and what you know later.
+- **Quiz** yourself on rhymes (by speaking the answer) or on sayings, idioms and jokes (multiple choice).
+- **Track** a daily streak, mastery levels and quiz scores on a progress dashboard.
+
+Everything is bilingual: the **content** is always Polish-with-English, and the **interface** can switch between English and Polski.
+
+---
+
+## Content
+
+| Section | What's inside |
+| --- | --- |
+| 📖 **Rhymes** | Traditional nursery rhymes and poems, with full line-by-line translation, vocabulary, comprehension questions and cultural notes. |
+| 💬 **Sayings** | Polish proverbs and folk wisdom, each with its meaning and the story behind it. |
+| 🗣️ **Idioms** | 24 everyday figurative phrases — literal translation, real meaning and closest English equivalent — grouped into five themes (Life & luck, Character & habits, Feelings, Talking & persuading, Situations & action). |
+| 😄 **Jokes** | *Kawały* organised by theme — Jaś, the doctor, highlanders, PRL-era humour. |
+
+> **A note on authenticity.** Content is drawn from genuine, attested sources. Where Polish-language explanations were drafted with machine assistance, they are flagged for native-speaker review before being treated as final.
+
+---
+
+## Features
+
+### Listening & speaking
+- **Polish text-to-speech** with on-device voice selection and a slow / normal / faster speed control.
+- **Hands-free autoplay** — plays each line Polish → English → Polish-slowly, no tapping needed.
+- **Pronunciation practice** via speech recognition, with a closeness score per line.
+- **Hear your attempt** — play back your own recording right next to the model audio.
+
+### Speech recognition (two engines)
+- **Web Speech API** where available (Chrome, Edge, Safari).
+- **OpenAI Whisper fallback** for Firefox and other browsers, using your own API key.
+
+### Learning system
+- **Review** — a Leitner spaced-repetition system over all vocabulary, sayings and idioms.
+- **Flashcards** — browse and flip the whole deck, filter by type, shuffle.
+- **Progress** — day streak, due / mastered / learning counts, a memory-strength bar, quiz history.
+- **Search** across every rhyme, saying, idiom and joke.
+- **My stuff** — your bookmarked items and custom sayings in one place.
+
+### Quizzes
+- **Rhyme quiz** — questions about each rhyme, answered by speaking aloud.
+- **Sayings, idioms & jokes quiz** — multiple choice; match a phrase to its meaning, or a joke setup to its punchline. Toggle categories on and off.
+
+### Make it yours
+- **Add your own saying** — describe one and it's drafted into structured form (via OpenAI) for you to review and save.
+- **Interface language** toggle: English / Polski.
+- **Backup & restore** — export your saved items, custom sayings and progress to a JSON file, and restore on another device. (Your API key is never included.)
+
+### Progressive web app
+- **Installable** and **offline-first** via a service worker.
+- **Update prompt** — when a new version is deployed, the app offers a one-tap reload.
+
+---
+
+## Running it locally
+
+Wierszyki is a single static `index.html` plus a service worker — there's no build step.
+
+```bash
+git clone <your-repo-url>
+cd wierszyki
+
+# Serve it (a plain server is enough; needed for the service worker)
+python3 -m http.server 8000
+# then open http://localhost:8000
+```
+
+> Service workers require `http://localhost` or HTTPS — opening the file with `file://` won't register the worker.
+
+While developing, enable **DevTools → Application → Service Workers → "Update on reload"** so you always get the latest build.
+
+---
+
+## Speech recognition & AI features (bring your own key)
+
+The Whisper fallback, the "add your own saying" generator and the key-test button all use the OpenAI API with **your own key**:
+
+- Add it in **Settings**; it's stored only in your browser's `localStorage`.
+- It is sent only to OpenAI, never to any other server.
+- It is deliberately **excluded** from backup files.
+- Use a personal key — anyone with access to your browser profile can read it.
+
+The Web Speech API engine needs no key. Offline TTS playback needs no key.
+
+---
+
+## Data & privacy
+
+- All progress, bookmarks, custom content and settings live in **`localStorage` on your device** — there is no account and no backend.
+- Speech recognition with the Web Speech API may use the browser's cloud service; the Whisper engine sends audio to OpenAI for transcription.
+- Recorded audio for "hear your attempt" is kept only in memory for the current attempt and released when you record again.
+
+---
+
+## Project structure
 
 ```
-wierszyki-pwa/
-├── index.html              ← the app (with PWA meta tags & service worker registration)
-├── manifest.json           ← PWA manifest (declares name, icons, theme, display mode)
-├── sw.js                   ← service worker (offline caching)
-├── favicon.ico             ← browser tab icon
-├── README.md               ← this file
-└── icons/
-    ├── icon-72.png
-    ├── icon-96.png
-    ├── icon-128.png
-    ├── icon-144.png
-    ├── icon-152.png
-    ├── icon-192.png
-    ├── icon-384.png
-    ├── icon-512.png
-    ├── icon-maskable-192.png    ← Android adaptive icon
-    ├── icon-maskable-512.png    ← Android adaptive icon
-    └── apple-touch-icon.png     ← iOS home-screen icon (180x180)
+index.html        # The entire app — React 18 (via Babel-standalone), inline styles, all content & logic
+sw.js             # Service worker: offline caching + update handling
+manifest.json     # PWA manifest (name, icons, theme)
+icons/            # App icons
 ```
 
-## Step 1 — Host the PWA online
+### Tech stack
+- **React 18** + **ReactDOM**, transpiled in-browser with **Babel standalone** (no bundler).
+- **Inline styles** throughout, single-file architecture.
+- **localStorage** for all persistence.
+- **Service worker** for offline use and update prompts.
+- **OpenAI API** (Whisper + GPT-4o-mini) for optional, opt-in features.
 
-PWABuilder needs a publicly accessible HTTPS URL to package your app. The easiest free options:
+---
 
-### Option A: Netlify Drop (no signup needed for the trial)
-1. Go to https://app.netlify.com/drop
-2. Drag the entire `wierszyki-pwa` folder onto the page
-3. You'll get a URL like `https://random-name-12345.netlify.app/`
-4. (Optional) Sign in to claim it and set a custom name
+## Deploying
 
-### Option B: GitHub Pages
-1. Create a new GitHub repository
-2. Upload all files from `wierszyki-pwa/`
-3. Settings → Pages → Source: deploy from branch `main` → root
-4. URL will be `https://<your-username>.github.io/<repo-name>/`
+Any static host works — e.g. **GitHub Pages** or **Netlify Drop**.
 
-### Option C: Vercel
-1. Go to https://vercel.com
-2. Sign in and click "New Project"
-3. Drag the folder, deploy
-4. URL will be `https://wierszyki.vercel.app/` or similar
+Ship these together: `index.html`, `sw.js`, `manifest.json`, and the `icons/` folder.
 
-## Step 2 — Test the PWA before packaging
+> **Important:** bump `CACHE_VERSION` in `sw.js` on every release. The service worker is cache-versioned, so an unchanged name means installed copies keep serving the old build. Bumping it triggers the in-app "new version — Reload" prompt.
 
-Open your hosted URL on a desktop browser and check:
+---
 
-- **No console errors** (F12 → Console)
-- The page **loads completely** and the app works
-- In Chrome DevTools, open **Application → Manifest** — should show all icons and no errors
-- **Application → Service Workers** — should show `sw.js` as "activated and is running"
-- Try **toggling "Offline"** in Network tab and reload — the app should still work
-- (Mobile) Open the URL on a phone and tap the browser menu → "Add to Home Screen" — the icon and name should appear correctly
+## Roadmap
 
-If anything fails here, fix it before going to PWABuilder.
+- Native-speaker verification pass over machine-assisted Polish explanations.
+- Resolving duplicate content entries.
+- More idioms, sayings and rhymes.
+- Theme-based grouping and quizzes across more sections.
 
-## Step 3 — Generate the APK with PWABuilder
+---
 
-1. Go to https://www.pwabuilder.com/
-2. Paste your hosted URL into the box at the top → **"Start"**
-3. PWABuilder will audit your PWA. Aim for green scores on Manifest, Service Worker, and Security.
-4. Click **"Package for stores"** → **Android**
-5. **Use these settings**:
-   - Package ID: `com.wierszyki.app` (or your own reverse-domain name)
-   - App name: `Wierszyki`
-   - Launcher name: `Wierszyki`
-   - Display mode: `Standalone`
-   - Theme color: `#1a1208`
-   - Background color: `#1a1208`
-   - **Signing key**: Choose **"New"** for your first build. PWABuilder will generate one. **Download and save the keystore file (.keystore) and remember the passwords** — you'll need them to update the app later. Losing the keystore means you can't push updates.
-6. Click **"Generate"** and download the ZIP
-7. Inside the ZIP you'll find:
-   - `app-release-signed.apk` — install directly on Android phones (allow "Install from unknown sources")
-   - `app-release-bundle.aab` — for uploading to Google Play Store
-   - `signing.keystore` — keep this safe!
-   - `next-steps.html` — PWABuilder's own guide
+## Credits
 
-## Step 4 — Install the APK on your phone
-
-### Direct install (sideload)
-1. Transfer `app-release-signed.apk` to your Android phone (email, Drive, USB, etc.)
-2. On the phone, tap the file. Android may warn you about installing from unknown sources — you'll need to enable that for your file manager
-3. The app installs and appears in your launcher with the Wierszyki icon
-
-### Google Play Store (for wider distribution)
-1. Create a Google Play Developer account (one-time $25 fee)
-2. In Play Console, create a new app
-3. Upload the `.aab` (Android App Bundle) file
-4. Fill in store listing details (description, screenshots, privacy policy)
-5. Submit for review
-
-## Updating the app later
-
-When you change content:
-1. Update the files in `wierszyki-pwa/`
-2. **Increment `CACHE_NAME` in `sw.js`** (e.g. `wierszyki-v1` → `wierszyki-v2`) so users get the new version
-3. Re-upload to your host
-4. For APK updates: re-run PWABuilder, but **use the SAME keystore file** you saved earlier
-5. Increment the version code/name in PWABuilder
-
-## Troubleshooting
-
-**"Microphone doesn't work in the APK / Practice tab is blank"** — The Practice tab uses your phone's built-in speech recognition, which requires (a) microphone permission and (b) an active internet connection on most devices (Polish recognition runs on cloud servers — Google's on Android, Apple's on iOS). On first use, Android will pop up a microphone permission prompt: tap "Allow". If you accidentally denied it, go to Settings → Apps → Wierszyki → Permissions → Microphone → Allow. The feature gracefully tells you when speech recognition isn't supported (e.g. on Firefox).
-
-**"Web Speech API doesn't work in the APK"** — The TTS depends on the device having a Polish voice installed. On Android: Settings → System → Languages & input → Text-to-speech output → install Polish.
-
-**"App shows 'Failed to fetch' on first load"** — The PWA needs to be loaded once while online to cache its assets. After that it works offline.
-
-**"PWABuilder fails the manifest audit"** — Make sure you tested the manifest in DevTools first. Common issues: relative paths not resolving, missing icons, or hosting on `http://` instead of `https://`.
-
-**"Icons look blurry on Android"** — The maskable icons (`icon-maskable-*.png`) handle Android's adaptive icon cropping. They're already included.
-
-## Notes on Google Play submission
-
-If you plan to publish to Google Play, you may need:
-- A **privacy policy** URL (required if the app collects any data; Wierszyki only uses localStorage on-device, but Google still asks)
-- **Screenshots** (PWABuilder can help generate these, or use a phone)
-- **Content rating** (Wierszyki contains some adult-oriented jokes — the PRL political jokes — so rate it appropriately; "Everyone 10+" is probably right)
-
-The PRL political joke about pigs in government, and some of the proverbs, contain mild language and political/historical context. If submitting to Google Play, declare these in the content questionnaire.
+Built by [newbroman](https://github.com/newbroman). Polish nursery rhymes, proverbs and idioms are traditional / public-domain; explanations and learning tools are original to this project.
