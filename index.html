@@ -2344,66 +2344,134 @@ const jokes = [
 // ═══════════════════════════════════════════════════════════════════════════
 
 const idioms = [
-  { id:"i1", pl:"Życie jak w Madrycie.", en:"Life like in Madrid.",
+  { id:"i1", theme:"life", pl:"Życie jak w Madrycie.", en:"Life like in Madrid.",
     meaning:"A comfortable, carefree life with no worries — the good life.",
     explanation:"A jokey rhyming idiom (życie / Madrycie); Madrid is there for the rhyme, not the meaning. Said of someone who has it easy and pleasant. Closest English: 'the life of Riley' / 'living the high life'.",
     meaning_pl:"Wygodne, beztroskie życie bez zmartwień — życie pełną gębą.",
     explanation_pl:"Żartobliwy, rymowany idiom (życie / Madrycie); Madryt jest tu dla rymu, nie dla znaczenia. Mówi się tak o kimś, komu żyje się łatwo i przyjemnie. Najbliższe angielskie: 'the life of Riley'." },
-  { id:"i2", pl:"Bułka z masłem.", en:"A roll with butter.",
+  { id:"i2", theme:"situations", pl:"Bułka z masłem.", en:"A roll with butter.",
     meaning:"Something very easy to do.",
     explanation:"Used for a task that takes no effort at all. Closest English: 'a piece of cake' / 'easy as pie'.",
     meaning_pl:"Coś bardzo łatwego do zrobienia.",
     explanation_pl:"Używane o zadaniu, które nie wymaga żadnego wysiłku. Najbliższe angielskie: 'a piece of cake'." },
-  { id:"i3", pl:"Raz na ruski rok.", en:"Once in a Russian year.",
+  { id:"i3", theme:"life", pl:"Raz na ruski rok.", en:"Once in a Russian year.",
     meaning:"Very rarely; hardly ever.",
     explanation:"A colloquial, slightly humorous way to say something happens almost never. Closest English: 'once in a blue moon'.",
     meaning_pl:"Bardzo rzadko; niemal nigdy.",
     explanation_pl:"Potoczny, lekko żartobliwy sposób na powiedzenie, że coś dzieje się prawie nigdy. Najbliższe angielskie: 'once in a blue moon'." },
-  { id:"i4", pl:"Rzucać grochem o ścianę.", en:"To throw peas against a wall.",
+  { id:"i4", theme:"communication", pl:"Rzucać grochem o ścianę.", en:"To throw peas against a wall.",
     meaning:"To try to tell or convince someone something with no effect at all.",
     explanation:"The effort bounces off like peas off a wall. Said when advice or argument is completely ignored. Closest English: 'to talk to a brick wall'.",
     meaning_pl:"Próbować komuś coś powiedzieć lub go przekonać zupełnie bez skutku.",
     explanation_pl:"Wysiłek odbija się jak groch od ściany. Mówi się tak, gdy rady czy argumenty są całkowicie ignorowane. Najbliższe angielskie: 'to talk to a brick wall'." },
-  { id:"i5", pl:"Robić z igły widły.", en:"To make a pitchfork out of a needle.",
+  { id:"i5", theme:"situations", pl:"Robić z igły widły.", en:"To make a pitchfork out of a needle.",
     meaning:"To blow a small problem up into a big one.",
     explanation:"Said when someone overreacts or exaggerates a trivial matter. Closest English: 'to make a mountain out of a molehill'.",
     meaning_pl:"Wyolbrzymiać mały problem do rozmiarów wielkiego.",
     explanation_pl:"Mówi się, gdy ktoś przesadnie reaguje albo wyolbrzymia drobiazg. Najbliższe angielskie: 'to make a mountain out of a molehill'." },
-  { id:"i6", pl:"Nie mój cyrk, nie moje małpy.", en:"Not my circus, not my monkeys.",
+  { id:"i6", theme:"situations", pl:"Nie mój cyrk, nie moje małpy.", en:"Not my circus, not my monkeys.",
     meaning:"Not my problem; nothing to do with me.",
     explanation:"A modern, very popular idiom that has even entered English. Used to disclaim responsibility for someone else's mess. Closest English: 'not my problem'.",
     meaning_pl:"Nie mój problem; nie moja sprawa.",
     explanation_pl:"Nowoczesny, bardzo popularny idiom, który wszedł nawet do angielszczyzny. Używany, by odżegnać się od cudzych kłopotów. Najbliższe angielskie: 'not my problem'." },
-  { id:"i7", pl:"Musztarda po obiedzie.", en:"Mustard after dinner.",
+  { id:"i7", theme:"situations", pl:"Musztarda po obiedzie.", en:"Mustard after dinner.",
     meaning:"Help or action that arrives too late to be useful.",
     explanation:"Like serving the mustard once the meal is already finished. Closest English: 'too little, too late'.",
     meaning_pl:"Pomoc lub działanie, które przychodzi zbyt późno, by się przydać.",
     explanation_pl:"Jak podanie musztardy, gdy obiad już zjedzony. Najbliższe angielskie: 'too little, too late'." },
-  { id:"i8", pl:"Czuć do kogoś miętę.", en:"To feel mint towards someone.",
+  { id:"i8", theme:"feelings", pl:"Czuć do kogoś miętę.", en:"To feel mint towards someone.",
     meaning:"To be fond of someone; to have a soft spot or a crush on them.",
     explanation:"Affectionate and informal. Closest English: 'to have a soft spot for someone' / 'to be sweet on someone'.",
     meaning_pl:"Darzyć kogoś sympatią; mieć do kogoś słabość.",
     explanation_pl:"Czułe i nieformalne. Najbliższe angielskie: 'to have a soft spot for someone'." },
-  { id:"i9", pl:"Wiercić komuś dziurę w brzuchu.", en:"To drill a hole in someone's belly.",
+  { id:"i9", theme:"communication", pl:"Wiercić komuś dziurę w brzuchu.", en:"To drill a hole in someone's belly.",
     meaning:"To pester or nag someone persistently until they give in.",
     explanation:"Said of relentless, wearing-down requests. Closest English: 'to badger someone' / 'to keep on at someone'.",
     meaning_pl:"Uporczywie kogoś nagabywać lub męczyć, aż ustąpi.",
     explanation_pl:"Mówi się o natarczywych, męczących prośbach. Najbliższe angielskie: 'to badger someone'." },
-  { id:"i10", pl:"Co ma piernik do wiatraka?", en:"What does gingerbread have to do with a windmill?",
+  { id:"i10", theme:"communication", pl:"Co ma piernik do wiatraka?", en:"What does gingerbread have to do with a windmill?",
     meaning:"Said when two things have nothing to do with each other.",
     explanation:"A retort when someone links unrelated matters. Closest English: 'apples and oranges' / 'what's that got to do with anything?'.",
     meaning_pl:"Mówi się, gdy dwie rzeczy nie mają ze sobą nic wspólnego.",
     explanation_pl:"Riposta, gdy ktoś łączy niezwiązane sprawy. Najbliższe angielskie: 'apples and oranges'." },
-  { id:"i11", pl:"Wpaść jak śliwka w kompot.", en:"To fall like a plum into compote.",
+  { id:"i11", theme:"situations", pl:"Wpaść jak śliwka w kompot.", en:"To fall like a plum into compote.",
     meaning:"To land in an awkward or troublesome situation unexpectedly.",
     explanation:"You end up stuck somewhere you didn't intend to be. Closest English: 'to land in a pickle' / 'to get into a fine mess'.",
     meaning_pl:"Niespodziewanie wpaść w kłopotliwą lub niezręczną sytuację.",
     explanation_pl:"Lądujesz tam, gdzie wcale nie zamierzałeś. Najbliższe angielskie: 'to land in a pickle'." },
-  { id:"i12", pl:"Mieć węża w kieszeni.", en:"To have a snake in one's pocket.",
+  { id:"i12", theme:"character", pl:"Mieć węża w kieszeni.", en:"To have a snake in one's pocket.",
     meaning:"To be stingy; reluctant to spend money.",
     explanation:"As if a snake guards the wallet so the hand never reaches in. Closest English: 'to be tight-fisted'.",
     meaning_pl:"Być skąpym; niechętnie wydawać pieniądze.",
     explanation_pl:"Jakby węża pilnował portfela, więc ręka nigdy do niego nie sięga. Najbliższe angielskie: 'to be tight-fisted'." },
+  { id:"i13", theme:"life", pl:"Trzymać kciuki.", en:"To hold one's thumbs.",
+    meaning:"To wish someone luck.",
+    explanation:"Where English speakers cross their fingers, Poles squeeze their thumbs inside a fist. Closest English: 'to keep one's fingers crossed'.",
+    meaning_pl:"Życzyć komuś powodzenia.",
+    explanation_pl:"Tam gdzie Anglicy krzyżują palce, Polacy ściskają kciuki w pięści. Najbliższe angielskie: 'to keep one's fingers crossed'." },
+  { id:"i14", theme:"communication", pl:"Rzucać słowa na wiatr.", en:"To throw words to the wind.",
+    meaning:"To say things you don't mean or won't follow through on.",
+    explanation:"Often used in the negative — 'nie rzucam słów na wiatr' means 'I mean what I say'. Closest English: 'to make empty promises'.",
+    meaning_pl:"Mówić rzeczy, których się nie ma na myśli lub nie dotrzymuje.",
+    explanation_pl:"Często w przeczeniu — 'nie rzucam słów na wiatr' znaczy 'dotrzymuję słowa'. Najbliższe angielskie: 'to make empty promises'." },
+  { id:"i15", theme:"feelings", pl:"Mieć muchy w nosie.", en:"To have flies in one's nose.",
+    meaning:"To be sulky, touchy or in a bad mood.",
+    explanation:"Said of someone irritable and easily offended for no clear reason. Closest English: 'to be in a huff'.",
+    meaning_pl:"Być nadąsanym, drażliwym, w złym humorze.",
+    explanation_pl:"Mówi się o kimś poirytowanym i obrażalskim bez wyraźnego powodu. Najbliższe angielskie: 'to be in a huff'." },
+  { id:"i16", theme:"character", pl:"Spaść z księżyca.", en:"To fall from the moon.",
+    meaning:"To be completely clueless or out of touch with what's going on.",
+    explanation:"Often a question — 'Spadłeś z księżyca?'. Closest English: 'to live under a rock'.",
+    meaning_pl:"Być zupełnie nieświadomym tego, co się dzieje.",
+    explanation_pl:"Często jako pytanie — 'Spadłeś z księżyca?'. Najbliższe angielskie: 'to live under a rock'." },
+  { id:"i17", theme:"situations", pl:"Dzielić skórę na niedźwiedziu.", en:"To divide the skin on the bear.",
+    meaning:"To count on something before it is at all certain.",
+    explanation:"From the longer saying about splitting the bearskin while the bear is still in the forest. Closest English: 'to count your chickens before they hatch'.",
+    meaning_pl:"Liczyć na coś, zanim jest to w ogóle pewne.",
+    explanation_pl:"Od dłuższego przysłowia o dzieleniu skóry, gdy niedźwiedź jeszcze w lesie. Najbliższe angielskie: 'to count your chickens before they hatch'." },
+  { id:"i18", theme:"character", pl:"Być w gorącej wodzie kąpany.", en:"To be bathed in hot water.",
+    meaning:"To be hot-headed, impatient and quick to act.",
+    explanation:"Describes an impulsive, impetuous temperament. Closest English: 'to be hot-headed' / 'to fly off the handle'.",
+    meaning_pl:"Być porywczym, niecierpliwym i pochopnym.",
+    explanation_pl:"Opisuje impulsywny, porywczy temperament. Najbliższe angielskie: 'to be hot-headed'." },
+  { id:"i19", theme:"communication", pl:"Obiecywać gruszki na wierzbie.", en:"To promise pears on a willow.",
+    meaning:"To promise wonderful things that will never happen.",
+    explanation:"Pears don't grow on willows, so the promise is impossible. Closest English: 'to promise the moon' / 'pie in the sky'.",
+    meaning_pl:"Obiecywać cudowne rzeczy, które nigdy się nie spełnią.",
+    explanation_pl:"Gruszki nie rosną na wierzbie, więc obietnica jest niemożliwa. Najbliższe angielskie: 'to promise the moon'." },
+  { id:"i20", theme:"character", pl:"Piąte koło u wozu.", en:"The fifth wheel on a wagon.",
+    meaning:"Someone or something useless and unneeded in a situation.",
+    explanation:"A wagon needs four wheels; a fifth is superfluous. Closest English: 'a fifth wheel' / 'a spare part'.",
+    meaning_pl:"Ktoś lub coś zbędnego i niepotrzebnego w danej sytuacji.",
+    explanation_pl:"Wóz potrzebuje czterech kół; piąte jest zbędne. Najbliższe angielskie: 'a fifth wheel'." },
+  { id:"i21", theme:"situations", pl:"Wziąć nogi za pas.", en:"To take one's legs behind one's belt.",
+    meaning:"To run away quickly; to flee.",
+    explanation:"To leg it as fast as you can. Closest English: 'to take to one's heels' / 'to leg it'.",
+    meaning_pl:"Szybko uciec; dać nogę.",
+    explanation_pl:"Uciec najszybciej jak się da. Najbliższe angielskie: 'to take to one's heels'." },
+  { id:"i22", theme:"feelings", pl:"Mieć duszę na ramieniu.", en:"To have one's soul on one's shoulder.",
+    meaning:"To be very frightened or anxious about what's coming.",
+    explanation:"Your soul is half out of your body from fear. Closest English: 'to have one's heart in one's mouth'.",
+    meaning_pl:"Bardzo się bać lub niepokoić tym, co nadchodzi.",
+    explanation_pl:"Dusza w połowie wychodzi z ciała ze strachu. Najbliższe angielskie: 'to have one's heart in one's mouth'." },
+  { id:"i23", theme:"situations", pl:"Trafić w dziesiątkę.", en:"To hit the ten.",
+    meaning:"To get something exactly right.",
+    explanation:"The ten is the bullseye on a target. Closest English: 'to hit the bullseye' / 'to hit the nail on the head'.",
+    meaning_pl:"Trafić w sedno; zrobić coś dokładnie tak, jak trzeba.",
+    explanation_pl:"Dziesiątka to środek tarczy. Najbliższe angielskie: 'to hit the bullseye'." },
+  { id:"i24", theme:"character", pl:"Zbijać bąki.", en:"To beat horseflies.",
+    meaning:"To laze about doing nothing useful.",
+    explanation:"To idle the time away. Closest English: 'to twiddle one's thumbs' / 'to laze around'.",
+    meaning_pl:"Leniuchować, nic pożytecznego nie robić.",
+    explanation_pl:"Marnować czas na nicnierobieniu. Najbliższe angielskie: 'to twiddle one's thumbs'." },
+];
+
+const IDIOM_THEMES = [
+  { key:"life",          emoji:"🌞", en:"Life & luck",          pl:"Życie i szczęście" },
+  { key:"character",     emoji:"🧍", en:"Character & habits",    pl:"Charakter i nawyki" },
+  { key:"feelings",      emoji:"❤️", en:"Feelings",              pl:"Uczucia" },
+  { key:"communication", emoji:"🗨️", en:"Talking & persuading",  pl:"Mowa i perswazja" },
+  { key:"situations",    emoji:"🎯", en:"Situations & action",   pl:"Sytuacje i działania" },
 ];
 
 const LS = {
@@ -3168,7 +3236,7 @@ function compareText(expected, heard) {
 // Start a recognition session. Returns a controller {stop}.
 // onResult is called with the final transcript (string).
 // onError is called with a short error message.
-function startRecognition({ onResult, onError, onStart }) {
+function startRecognition({ onResult, onError, onStart, onAudio }) {
   if (!RECOGNITION_AVAILABLE) {
     onError && onError("Speech recognition is not supported in this browser. Try Chrome, Edge or Safari.");
     return { stop: () => {} };
@@ -3188,6 +3256,27 @@ function startRecognition({ onResult, onError, onStart }) {
   let finalTranscript = "";
   let finished = false;
 
+  // Capture the audio in parallel so the user can play their attempt back.
+  // Best-effort: if the mic can't be grabbed, recognition still works without playback.
+  let mediaRec = null, audioStream = null;
+  const audioChunks = [];
+  const stopAudio = () => { try { if (mediaRec && mediaRec.state !== "inactive") mediaRec.stop(); } catch (e) {} };
+  if (onAudio && navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder) {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      audioStream = stream;
+      if (finished) { stream.getTracks().forEach(t => t.stop()); return; }
+      try {
+        mediaRec = new MediaRecorder(stream);
+        mediaRec.ondataavailable = e => { if (e.data && e.data.size) audioChunks.push(e.data); };
+        mediaRec.onstop = () => {
+          if (audioStream) audioStream.getTracks().forEach(t => t.stop());
+          if (audioChunks.length) { const blob = new Blob(audioChunks, { type: mediaRec.mimeType || "audio/webm" }); onAudio(URL.createObjectURL(blob)); }
+        };
+        mediaRec.start();
+      } catch (e) { if (audioStream) audioStream.getTracks().forEach(t => t.stop()); }
+    }).catch(() => {});
+  }
+
   recog.onstart = () => { onStart && onStart(); };
   recog.onresult = (event) => {
     for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -3198,6 +3287,7 @@ function startRecognition({ onResult, onError, onStart }) {
   recog.onerror = (event) => {
     if (finished) return;
     finished = true;
+    stopAudio();
     let msg = "Recognition error";
     if (event.error === "no-speech") msg = "I didn't hear anything — try again.";
     else if (event.error === "audio-capture") msg = "No microphone detected.";
@@ -3207,6 +3297,7 @@ function startRecognition({ onResult, onError, onStart }) {
     onError && onError(msg);
   };
   recog.onend = () => {
+    stopAudio();
     if (finished) return;
     finished = true;
     if (finalTranscript.trim()) {
@@ -3225,13 +3316,14 @@ function startRecognition({ onResult, onError, onStart }) {
   return {
     stop: () => {
       try { recog.stop(); } catch (e) {}
+      stopAudio();
     }
   };
 }
 
 // Record audio and transcribe it via OpenAI Whisper. Works in any browser with
 // a microphone + fetch (Firefox included). Records until stop() is called.
-async function recognizeWhisper({ openaiKey, onResult, onError, onStart, onProcessing, onTick }) {
+async function recognizeWhisper({ openaiKey, onResult, onError, onStart, onProcessing, onTick, onAudio }) {
   if (!openaiKey) { onError && onError("No OpenAI key set — add one in Settings (☰ menu)."); return { stop: () => {} }; }
   if (!navigator.mediaDevices || !window.MediaRecorder) {
     onError && onError("Audio recording isn't supported in this browser."); return { stop: () => {} };
@@ -3258,6 +3350,7 @@ async function recognizeWhisper({ openaiKey, onResult, onError, onStart, onProce
     onProcessing && onProcessing();
     const blob = new Blob(chunks, { type: mime || "audio/webm" });
     if (!blob.size) { onError && onError("No audio captured — try again."); return; }
+    onAudio && onAudio(URL.createObjectURL(blob));
     try {
       const ext = (mime || "audio/webm").indexOf("mp4") >= 0 ? "mp4" : "webm";
       const fd = new FormData();
@@ -3298,8 +3391,13 @@ function MicButton({ expected, onResult, size = "small" }) {
   const [processing, setProcessing] = useState(false);
   const [secs, setSecs] = useState(0);
   const [error, setError] = useState(null);
+  const [audioUrl, setAudioUrl] = useState(null);
   const ctrlRef = useRef(null);
+  const audioRef = useRef(null);
   const rec = useRecognition();
+  const { t } = React.useContext(LangContext);
+
+  useEffect(() => () => { if (audioUrl) URL.revokeObjectURL(audioUrl); }, [audioUrl]);
 
   const handleHeard = (heard) => {
     setListening(false); setProcessing(false); setSecs(0);
@@ -3311,11 +3409,13 @@ function MicButton({ expected, onResult, size = "small" }) {
     setError(msg);
     setTimeout(() => setError(null), 4500);
   };
+  const handleAudio = (url) => { setAudioUrl(prev => { if (prev) URL.revokeObjectURL(prev); return url; }); };
 
   const start = async () => {
     setError(null);
     if (!rec.available) { setError("Not supported in this browser"); return; }
     if (window.speechSynthesis) window.speechSynthesis.cancel();
+    setAudioUrl(prev => { if (prev) URL.revokeObjectURL(prev); return null; });
     setListening(true);
     if (rec.whisper) {
       setSecs(0);
@@ -3325,15 +3425,26 @@ function MicButton({ expected, onResult, size = "small" }) {
         onError: handleErr,
         onProcessing: () => { setListening(false); setProcessing(true); },
         onTick: (n) => setSecs(n),
+        onAudio: handleAudio,
       });
     } else {
-      ctrlRef.current = startRecognition({ onResult: handleHeard, onError: handleErr });
+      ctrlRef.current = startRecognition({ onResult: handleHeard, onError: handleErr, onAudio: handleAudio });
     }
   };
 
   const stop = () => {
     if (ctrlRef.current) ctrlRef.current.stop();
     if (!rec.whisper) setListening(false);
+  };
+
+  const playBack = () => {
+    if (!audioUrl) return;
+    try {
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      if (!audioRef.current) audioRef.current = new Audio();
+      audioRef.current.src = audioUrl;
+      audioRef.current.play();
+    } catch (e) {}
   };
 
   const baseStyle = size === "large" ? s.micBtnLarge : s.micBtn;
@@ -3353,6 +3464,9 @@ function MicButton({ expected, onResult, size = "small" }) {
         {processing ? "⏳" : listening ? "⏺" : "🎤"}
       </button>
       {listening && rec.whisper && <span style={{ fontSize: 13, color: "#cf8a8a", fontVariantNumeric: "tabular-nums" }}>{mmss}</span>}
+      {audioUrl && !listening && !processing && (
+        <button onClick={playBack} style={s.replayBtn} title={t("mic.hear")} aria-label={t("mic.hear")}>🔉</button>
+      )}
       {error && <span style={s.micError}>{error}</span>}
     </span>
   );
@@ -4101,40 +4215,55 @@ function SayingsDetailScreen({ id, store, back }) {
 
 function IdiomsListScreen({ store, go, back }) {
   const { bookmarks, toggleBookmark } = store;
-  const { t } = React.useContext(LangContext);
+  const { t, uiLang } = React.useContext(LangContext);
   const [savedOnly, setSavedOnly] = useState(false);
   const ids = bookmarks.idioms || [];
-  const displayed = savedOnly ? idioms.filter(x => ids.includes(x.id)) : idioms;
+  const visible = savedOnly ? idioms.filter(x => ids.includes(x.id)) : idioms;
+  const IdiomRow = (idi) => {
+    const starred = ids.includes(idi.id);
+    return (
+      <div key={idi.id} style={s.sayingCard} onClick={() => go({ view:"idioms-detail", id:idi.id })}>
+        <div style={s.sayingTop}>
+          <div style={{flex:1}}>
+            <div style={s.sayingPl}>{idi.pl}</div>
+            <div style={s.sayingEn}>{idi.en}</div>
+          </div>
+          <div style={s.sayingMeta}>
+            <button onClick={e => { e.stopPropagation(); speak(idi.pl); }} style={s.sayingSpeak}>🔊</button>
+            <button onClick={e => { e.stopPropagation(); toggleBookmark("idioms", idi.id); }}
+              style={{...s.sayingSpeak,color:starred?"#f5c842":"#6a5a3a",fontSize:20}}>{starred?"★":"☆"}</button>
+            <span style={s.sayingChevron}>›</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
   return (
     <div style={NAV.screen}>
       <NavBar title={t("sec.idioms")} onBack={back}/>
       <div style={NAV.body}>
         <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
-          <button onClick={() => go({ view:"flashcards" })} style={s.startBtn}>🗂️ {t("fc.title")}</button>
+          <button onClick={() => go({ view:"idioms-quiz" })} style={s.startBtn}>🌍 {t("iq.title")}</button>
+          <button onClick={() => go({ view:"flashcards" })} style={s.secondaryBtn}>🗂️ {t("fc.title")}</button>
           <button onClick={() => setSavedOnly(v => !v)}
             style={{...s.secondaryBtn,...(savedOnly?{borderColor:"#f5c842",color:"#f5c842"}:{})}}>{savedOnly ? "★" : "☆"}</button>
         </div>
-        <div style={s.sayingsList}>
-          {displayed.map(idi => {
-            const starred = ids.includes(idi.id);
-            return (
-              <div key={idi.id} style={s.sayingCard} onClick={() => go({ view:"idioms-detail", id:idi.id })}>
-                <div style={s.sayingTop}>
-                  <div style={{flex:1}}>
-                    <div style={s.sayingPl}>{idi.pl}</div>
-                    <div style={s.sayingEn}>{idi.en}</div>
-                  </div>
-                  <div style={s.sayingMeta}>
-                    <button onClick={e => { e.stopPropagation(); speak(idi.pl); }} style={s.sayingSpeak}>🔊</button>
-                    <button onClick={e => { e.stopPropagation(); toggleBookmark("idioms", idi.id); }}
-                      style={{...s.sayingSpeak,color:starred?"#f5c842":"#6a5a3a",fontSize:20}}>{starred?"★":"☆"}</button>
-                    <span style={s.sayingChevron}>›</span>
-                  </div>
-                </div>
+        {savedOnly && visible.length === 0 && <p style={NAV.intro}>{t("mystuff.empty")}</p>}
+        {IDIOM_THEMES.map(th => {
+          const group = visible.filter(x => x.theme === th.key);
+          if (!group.length) return null;
+          return (
+            <div key={th.key} style={{marginBottom:18}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,margin:"4px 2px 10px"}}>
+                <span style={{fontSize:18}}>{th.emoji}</span>
+                <span style={{fontSize:14,letterSpacing:"0.06em",textTransform:"uppercase",color:"#c8b890"}}>{uiLang === "pl" ? th.pl : th.en}</span>
+                <span style={{flex:1,height:1,background:"#3a2a14"}}/>
+                <span style={{fontSize:13,color:"#7a6a4a"}}>{group.length}</span>
               </div>
-            );
-          })}
-        </div>
+              <div style={s.sayingsList}>{group.map(IdiomRow)}</div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -4190,6 +4319,113 @@ function IdiomDetailScreen({ id, store, back }) {
   );
 }
 
+const shuf = a => { a = [...a]; for (let k = a.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [a[k], a[j]] = [a[j], a[k]]; } return a; };
+function buildMixedQuiz(sayingsList, cats) {
+  const make = (items, qf, af, kind) => items.map(it => {
+    const correct = af(it);
+    const others = [...new Set(shuf(items.filter(x => x !== it)).map(af).filter(a => a && a !== correct))].slice(0, 3);
+    return { prompt: qf(it), correct, options: shuf([correct, ...others]), kind };
+  });
+  let qs = [];
+  if (cats.sayings) qs = qs.concat(make((sayingsList || sayings).filter(x => x.meaning), x => x.pl, x => x.meaning, "saying"));
+  if (cats.idioms) qs = qs.concat(make(idioms, x => x.pl, x => x.meaning, "idiom"));
+  if (cats.jokes) qs = qs.concat(make(jokes.filter(x => x.setup && x.punchline), x => x.setup, x => x.punchline, "joke"));
+  return shuf(qs);
+}
+function MixedQuizScreen({ store, back, initCats }) {
+  const { t } = React.useContext(LangContext);
+  const [cats, setCats] = useState(() => initCats || { sayings: true, idioms: true, jokes: true });
+  const [qs, setQs] = useState(() => buildMixedQuiz(store.allSayings, initCats || { sayings: true, idioms: true, jokes: true }));
+  const [qi, setQi] = useState(0);
+  const [picked, setPicked] = useState(null);
+  const [score, setScore] = useState(0);
+  const anyCat = cats.sayings || cats.idioms || cats.jokes;
+  const rebuild = (c) => { setCats(c); if (c.sayings || c.idioms || c.jokes) { setQs(buildMixedQuiz(store.allSayings, c)); setQi(0); setPicked(null); setScore(0); } };
+  const toggle = (k) => rebuild({ ...cats, [k]: !cats[k] });
+  const restart = () => { setQs(buildMixedQuiz(store.allSayings, cats)); setQi(0); setPicked(null); setScore(0); };
+  const choose = (opt) => { if (picked) return; setPicked(opt); if (opt === qs[qi].correct) setScore(x => x + 1); };
+  const next = () => { setPicked(null); setQi(i => i + 1); };
+  const kindLabel = (k) => k === "saying" ? t("sec.sayings") : k === "idiom" ? t("sec.idioms") : t("sec.jokes");
+  const Chip = ({ k, label }) => (
+    <button onClick={() => toggle(k)} style={{ ...NAV.langBtn, ...(cats[k] ? NAV.langBtnOn : {}), flex: "none", padding: "7px 14px" }}>{label}</button>
+  );
+  const cats_row = (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ fontSize: 13, letterSpacing: "0.06em", textTransform: "uppercase", color: "#a29780", margin: "0 2px 8px" }}>{t("mq.choose")}</div>
+      <div style={{ ...NAV.langToggle, display: "inline-flex", gap: 6 }}>
+        <Chip k="sayings" label={t("sec.sayings")} /><Chip k="idioms" label={t("sec.idioms")} /><Chip k="jokes" label={t("sec.jokes")} />
+      </div>
+    </div>
+  );
+  let body;
+  if (!anyCat) {
+    body = <p style={NAV.intro}>{t("mq.none")}</p>;
+  } else if (qi >= qs.length) {
+    const pct = qs.length ? Math.round(score / qs.length * 100) : 0;
+    body = <div style={{ ...s.card, textAlign: "center", padding: "36px 20px" }}>
+      <div style={{ fontSize: 44, marginBottom: 10 }}>{pct >= 80 ? "🏆" : pct >= 50 ? "👍" : "📚"}</div>
+      <p style={{ color: "#f5c842", fontSize: 20, margin: "0 0 6px" }}>{t("iq.done")}</p>
+      <p style={{ color: "#c8b890", fontSize: 18, margin: "0 0 18px" }}>{t("iq.score")} {score}/{qs.length}</p>
+      <button onClick={restart} style={{ ...s.startBtn, width: "100%" }}>{t("iq.tryAgain")}</button>
+    </div>;
+  } else {
+    const q = qs[qi];
+    body = <>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#a29780", marginBottom: 10 }}>
+        <span>{qi + 1} / {qs.length}</span><span>{score} ✓</span>
+      </div>
+      <div style={{ ...s.card, padding: "22px 18px" }}>
+        <div style={{ fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "#8a7a58", marginBottom: 8 }}>{kindLabel(q.kind)}</div>
+        <div style={{ fontSize: q.kind === "joke" ? "clamp(16px,4.2vw,19px)" : "clamp(20px,5.2vw,26px)", color: "#f5c842", lineHeight: 1.3, textAlign: q.kind === "joke" ? "left" : "center" }}>{q.prompt}</div>
+        <div style={{ textAlign: "center" }}><button onClick={() => speak(q.prompt)} style={{ ...s.secondaryBtn, marginTop: 12 }}>🔊</button></div>
+      </div>
+      <div style={{ fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#a29780", margin: "16px 2px 8px" }}>{q.kind === "joke" ? t("mq.punch") : t("mq.mean")}</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {q.options.map((opt, i) => {
+          let st = { ...s.card, margin: 0, cursor: "pointer", padding: "13px 15px", fontSize: 15, color: "#e8dcc8", lineHeight: 1.4, textAlign: "left", border: "1px solid #3a2a14" };
+          if (picked) {
+            if (opt === q.correct) st = { ...st, borderColor: "#6fcf6f", background: "rgba(111,207,111,0.10)", color: "#bfe8bf" };
+            else if (opt === picked) st = { ...st, borderColor: "#cf6f6f", background: "rgba(207,111,111,0.10)", color: "#e9b6b6" };
+            else st = { ...st, opacity: 0.55 };
+          }
+          return <div key={i} onClick={() => choose(opt)} style={st}>{opt}{picked && opt === q.correct ? "  ✓" : (picked === opt && opt !== q.correct ? "  ✗" : "")}</div>;
+        })}
+      </div>
+      {picked && <button onClick={next} style={{ ...s.startBtn, width: "100%", marginTop: 16 }}>{qi + 1 >= qs.length ? t("iq.done") : t("iq.next")}</button>}
+    </>;
+  }
+  return (
+    <div style={NAV.screen}>
+      <NavBar title={t("mq.title")} onBack={back} />
+      <div style={NAV.body}>
+        {cats_row}
+        {body}
+      </div>
+    </div>
+  );
+}
+function QuizPickerScreen({ go, back }) {
+  const { t } = React.useContext(LangContext);
+  const Card = ({ icon, title, blurb, onClick }) => (
+    <button onClick={onClick} style={{ ...NAV.sectionCard, marginBottom: 12, width: "100%" }}>
+      <span style={{ fontSize: 30, marginRight: 14 }}>{icon}</span>
+      <span style={{ flex: 1, textAlign: "left" }}>
+        <span style={{ display: "block", fontSize: 19, color: "#f0e0b0" }}>{title}</span>
+        <span style={{ display: "block", fontSize: 13, color: "#a29780", marginTop: 3, lineHeight: 1.4 }}>{blurb}</span>
+      </span>
+      <span style={NAV.chev}>›</span>
+    </button>
+  );
+  return (
+    <div style={NAV.screen}>
+      <NavBar title={t("sec.quiz")} onBack={back} />
+      <div style={NAV.body}>
+        <Card icon="📖" title={t("qp.rhymes")} blurb={t("qp.rhymesBlurb")} onClick={() => go({ view: "quiz" })} />
+        <Card icon="🧠" title={t("qp.mixed")} blurb={t("qp.mixedBlurb")} onClick={() => go({ view: "mixed-quiz" })} />
+      </div>
+    </div>
+  );
+}
 function SayingsQuizScreen({ back }) {
   return (
     <div style={NAV.screen}>
@@ -4580,7 +4816,7 @@ const HOME_SECTIONS = [
   { key:"sayings", icon:"💬", label:"Sayings", blurb:"Proverbs and folk wisdom, with the meaning behind them." },
   { key:"idioms",  icon:"🗣️", label:"Idioms",  blurb:"Everyday figurative phrases and what they really mean." },
   { key:"jokes",   icon:"😄", label:"Jokes",   blurb:"Kawały by theme — Jaś, the doctor, highlanders, PRL." },
-  { key:"quiz",    icon:"🌍", label:"Quiz",    blurb:"Every rhyme question, shuffled. Misses come back more often." },
+  { key:"quiz",    icon:"🌍", label:"Quiz",    blurb:"Test yourself on rhymes, or on sayings, idioms and jokes." },
 ];
 
 function HomeScreen({ onPick, onHelp, onMenu }) {
@@ -4678,7 +4914,7 @@ function MenuDrawer({ t, uiLang, setUiLang, onClose, onNavigate, onSettings, onA
         <Item icon="💬" label={t("sec.sayings")} onClick={() => onNavigate({ view:"sayings-list" })}/>
         <Item icon="🗣️" label={t("sec.idioms")} onClick={() => onNavigate({ view:"idioms-list" })}/>
         <Item icon="😄" label={t("sec.jokes")} onClick={() => onNavigate({ view:"jokes-cats" })}/>
-        <Item icon="🌍" label={t("sec.quiz")} onClick={() => onNavigate({ view:"quiz" })}/>
+        <Item icon="🌍" label={t("sec.quiz")} onClick={() => onNavigate({ view:"quiz-pick" })}/>
         <div style={{height:1,background:"#3a2a14",margin:"8px 4px"}}/>
         <Item icon="📚" label={t("menu.review")} onClick={() => onNavigate({ view:"review" })}/>
         <Item icon="🗂️" label={t("menu.flashcards")} onClick={() => onNavigate({ view:"flashcards" })}/>
@@ -4890,8 +5126,15 @@ const STRINGS = {
     "sec.sayings":"Sayings", "sec.sayings.blurb":"Proverbs and folk wisdom, with the meaning behind them.",
     "sec.idioms":"Idioms", "sec.idioms.blurb":"Everyday figurative phrases and what they really mean.",
     "idiom.literally":"Literally", "idiom.practise":"Practise saying it",
+    "mic.hear":"Hear your attempt",
+    "iq.title":"Idiom quiz", "iq.pick":"What does it mean?", "iq.next":"Next question",
+    "iq.done":"Quiz complete", "iq.score":"You scored", "iq.tryAgain":"Try again",
+    "qp.rhymes":"Rhyme quiz", "qp.rhymesBlurb":"Speak the answer to questions about each rhyme.",
+    "qp.mixed":"Sayings, idioms & jokes", "qp.mixedBlurb":"Multiple choice — match each to its meaning or punchline.",
+    "mq.title":"Quiz", "mq.choose":"Choose what to include", "mq.none":"Pick at least one category to start.",
+    "mq.mean":"What does it mean?", "mq.punch":"How does it end?",
     "sec.jokes":"Jokes", "sec.jokes.blurb":"Kawały by theme — Jaś, the doctor, highlanders, PRL.",
-    "sec.quiz":"Quiz", "sec.quiz.blurb":"Every rhyme question, shuffled. Misses come back more often.",
+    "sec.quiz":"Quiz", "sec.quiz.blurb":"Test yourself on rhymes, or on sayings, idioms and jokes.",
     "menu.title":"Menu", "menu.home":"Home", "menu.addSaying":"Add your own saying",
     "menu.help":"How to use Wierszyki", "menu.welcome":"Welcome & guide", "menu.settings":"Settings",
     "lang.label":"Language", "common.save":"Save", "common.cancel":"Cancel", "common.delete":"Delete",
@@ -4990,8 +5233,15 @@ const STRINGS = {
     "sec.sayings":"Przysłowia", "sec.sayings.blurb":"Przysłowia i mądrość ludowa wraz z ich znaczeniem.",
     "sec.idioms":"Idiomy", "sec.idioms.blurb":"Codzienne wyrażenia przenośne i ich prawdziwe znaczenie.",
     "idiom.literally":"Dosłownie", "idiom.practise":"Ćwicz wymawianie",
+    "mic.hear":"Posłuchaj swojej próby",
+    "iq.title":"Quiz z idiomów", "iq.pick":"Co to znaczy?", "iq.next":"Następne pytanie",
+    "iq.done":"Quiz ukończony", "iq.score":"Twój wynik", "iq.tryAgain":"Jeszcze raz",
+    "qp.rhymes":"Quiz z wierszyków", "qp.rhymesBlurb":"Powiedz na głos odpowiedź na pytania o każdy wierszyk.",
+    "qp.mixed":"Przysłowia, idiomy i kawały", "qp.mixedBlurb":"Wielokrotny wybór — dopasuj każde do znaczenia lub puenty.",
+    "mq.title":"Quiz", "mq.choose":"Wybierz, co uwzględnić", "mq.none":"Wybierz co najmniej jedną kategorię.",
+    "mq.mean":"Co to znaczy?", "mq.punch":"Jak się kończy?",
     "sec.jokes":"Kawały", "sec.jokes.blurb":"Kawały tematycznie — Jaś, lekarz, górale, PRL.",
-    "sec.quiz":"Quiz", "sec.quiz.blurb":"Wszystkie pytania z wierszyków, pomieszane. Pomyłki wracają częściej.",
+    "sec.quiz":"Quiz", "sec.quiz.blurb":"Sprawdź się z wierszyków albo z przysłów, idiomów i kawałów.",
     "menu.title":"Menu", "menu.home":"Start", "menu.addSaying":"Dodaj własne przysłowie",
     "menu.help":"Jak korzystać z Wierszyków", "menu.welcome":"Powitanie i przewodnik", "menu.settings":"Ustawienia",
     "lang.label":"Język", "common.save":"Zapisz", "common.cancel":"Anuluj", "common.delete":"Usuń",
@@ -5085,7 +5335,7 @@ const STRINGS = {
 };
 
 // Ask OpenAI to turn a Polish proverb (or topic) into a structured saying object.
-const APP_VERSION = "1.8.0";
+const APP_VERSION = "1.11.0";
 // Keys included in a backup file (deliberately excludes the OpenAI key).
 const BACKUP_KEYS = ["bookmarks", "history", "wrongLog", "customSayings", "uiLang", "preferWhisper", "ttsVoiceURI", "ttsRate", "showWelcome"];
 
@@ -5717,7 +5967,7 @@ function App() {
         else if (k === "sayings") go({ view:"sayings-list" });
         else if (k === "idioms") go({ view:"idioms-list" });
         else if (k === "jokes") go({ view:"jokes-cats" });
-        else if (k === "quiz") go({ view:"quiz" });
+        else if (k === "quiz") go({ view:"quiz-pick" });
       }}/>;
   else if (v === "rhymes-list")    screen = <RhymesListScreen store={store} go={go} back={back}/>;
   else if (v === "rhymes-detail")  screen = <RhymesDetailScreen id={current.id} store={store} back={back}/>;
@@ -5725,6 +5975,9 @@ function App() {
   else if (v === "sayings-detail") screen = <SayingsDetailScreen id={current.id} store={store} back={back}/>;
   else if (v === "idioms-list")    screen = <IdiomsListScreen store={store} go={go} back={back}/>;
   else if (v === "idioms-detail")  screen = <IdiomDetailScreen id={current.id} store={store} back={back}/>;
+  else if (v === "idioms-quiz")    screen = <MixedQuizScreen store={store} back={back} initCats={{ sayings:false, idioms:true, jokes:false }}/>;
+  else if (v === "quiz-pick")      screen = <QuizPickerScreen go={go} back={back}/>;
+  else if (v === "mixed-quiz")     screen = <MixedQuizScreen store={store} back={back} initCats={current.cats}/>;
   else if (v === "sayings-quiz")   screen = <SayingsQuizScreen back={back}/>;
   else if (v === "jokes-cats")     screen = <JokesCategoriesScreen go={go} back={back}/>;
   else if (v === "jokes-list")     screen = <JokesListScreen category={current.category} jokeFilter={jokeFilter} setJokeFilter={setJokeFilter} go={go} back={back}/>;
@@ -5880,6 +6133,7 @@ const s = {
   // Speech recognition
   micBtn:{background:"rgba(245,200,66,0.08)",border:"1px solid #4a3520",borderRadius:6,fontSize:17,cursor:"pointer",padding:"4px 7px",lineHeight:1,flexShrink:0,marginTop:3,color:"#c0a040",transition:"all 0.15s"},
   micBtnLarge:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:10,fontSize:28,cursor:"pointer",padding:"14px 22px",lineHeight:1,color:"#f5c842",transition:"all 0.15s",minWidth:64,minHeight:54,display:"inline-flex",alignItems:"center",justifyContent:"center"},
+  replayBtn:{background:"rgba(120,180,230,0.10)",border:"1px solid #3a5060",borderRadius:6,fontSize:16,cursor:"pointer",padding:"4px 8px",lineHeight:1,flexShrink:0,color:"#8ab4d0",transition:"all 0.15s"},
   micBtnActive:{background:"rgba(207,80,80,0.18)",borderColor:"#cf6f6f",color:"#e9a6a6",animation:"pulse 1.4s infinite"},
   micBtnError:{borderColor:"#cf6f6f",color:"#e9a6a6"},
   micError:{position:"absolute",top:"calc(100% + 4px)",left:"50%",transform:"translateX(-50%)",background:"rgba(80,30,30,0.95)",border:"1px solid #6a3a3a",borderRadius:6,padding:"5px 10px",fontSize:13,color:"#e0a0a0",whiteSpace:"nowrap",zIndex:50,pointerEvents:"none"},
