@@ -1,94 +1,51 @@
-// Wierszyki Service Worker
-// Caches the app shell so it works fully offline once loaded.
+// Wierszyki service worker.
+// IMPORTANT: bump CACHE_VERSION on every deploy so installed copies fetch the new build.
+const CACHE_VERSION = 'wierszyki-v3';
+const CORE = ['./', './index.html', './manifest.json'];
 
-const CACHE_NAME = 'wierszyki-v18';
-const PRECACHE_URLS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './favicon.ico',
-  './icons/icon-72.png',
-  './icons/icon-96.png',
-  './icons/icon-128.png',
-  './icons/icon-144.png',
-  './icons/icon-152.png',
-  './icons/icon-192.png',
-  './icons/icon-384.png',
-  './icons/icon-512.png',
-  './icons/icon-maskable-192.png',
-  './icons/icon-maskable-512.png',
-  './icons/apple-touch-icon.png',
-  // CDN dependencies — cache aggressively after first load
-  'https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js',
-  'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap'
-];
-
-// Install: precache the app shell
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        // Cache local files synchronously; CDN files allowed to fail individually
-        return Promise.all(
-          PRECACHE_URLS.map((url) =>
-            cache.add(url).catch((err) => {
-              console.warn('[SW] Failed to cache:', url, err);
-            })
-          )
-        );
-      })
-      .then(() => self.skipWaiting())
-  );
+self.addEventListener('install', (e) => {
+  // Do NOT skipWaiting automatically — the app shows a "new version" prompt and
+  // the user taps Reload, which posts SKIP_WAITING (handled below).
+  e.waitUntil(caches.open(CACHE_VERSION).then(c => c.addAll(CORE).catch(() => {})));
 });
 
-// Activate: clean up old caches
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
-      )
-    ).then(() => self.clients.claim())
-  );
+self.addEventListener('activate', (e) => {
+  e.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k)));
+    await self.clients.claim();
+  })());
 });
 
-// Fetch: cache-first for app shell, network-first for everything else (with cache fallback)
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
 
-  // Only handle GET
+self.addEventListener('fetch', (e) => {
+  const req = e.request;
   if (req.method !== 'GET') return;
-
   const url = new URL(req.url);
-  const isSameOrigin = url.origin === self.location.origin;
-  const isPrecached = PRECACHE_URLS.some((u) => req.url.endsWith(u.replace('./', '')) || req.url === u);
+  // Leave cross-origin requests (Babel CDN, OpenAI, etc.) to the network.
+  if (url.origin !== self.location.origin) return;
 
-  if (isSameOrigin || isPrecached) {
-    // Cache-first
-    event.respondWith(
-      caches.match(req).then((cached) => {
-        return cached || fetch(req).then((res) => {
-          // Cache successful responses
-          if (res.ok && (isSameOrigin || isPrecached)) {
-            const resClone = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
-          }
-          return res;
-        }).catch(() => cached);
-      })
-    );
-  } else {
-    // Network-first for other requests, fall back to cache
-    event.respondWith(
-      fetch(req).then((res) => {
-        if (res.ok) {
-          const resClone = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
-        }
+  // Navigations: network-first so new deploys are picked up; fall back to cache offline.
+  if (req.mode === 'navigate') {
+    e.respondWith(
+      fetch(req).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE_VERSION).then(c => c.put('./index.html', copy));
         return res;
-      }).catch(() => caches.match(req))
+      }).catch(() => caches.match('./index.html'))
     );
+    return;
   }
+
+  // Other same-origin GETs: cache-first, then network (and cache the result).
+  e.respondWith(
+    caches.match(req).then(cached => cached || fetch(req).then(res => {
+      const copy = res.clone();
+      caches.open(CACHE_VERSION).then(c => c.put(req, copy));
+      return res;
+    }).catch(() => cached))
+  );
 });

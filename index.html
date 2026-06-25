@@ -39,6 +39,16 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return; refreshing = true; window.location.reload();
+        });
+        window.__wzReload = () => {
+          const reg = window.__wzSW;
+          if (reg && reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+          else window.location.reload();
+        };
+        const announce = (reg) => { window.__wzSW = reg; window.dispatchEvent(new CustomEvent('wz-update-available')); };
         navigator.serviceWorker.register('sw.js')
           .then(reg => {
             console.log('[PWA] Service worker registered:', reg.scope);
@@ -46,6 +56,14 @@
             if (reg.active && !navigator.serviceWorker.controller) {
               console.log('[PWA] Offline content cached — app will work without internet');
             }
+            if (reg.waiting && navigator.serviceWorker.controller) announce(reg);
+            reg.addEventListener('updatefound', () => {
+              const nw = reg.installing;
+              if (!nw) return;
+              nw.addEventListener('statechange', () => {
+                if (nw.state === 'installed' && navigator.serviceWorker.controller) announce(reg);
+              });
+            });
           })
           .catch(err => console.warn('[PWA] Service worker registration failed:', err));
 
@@ -3150,7 +3168,7 @@ function startRecognition({ onResult, onError, onStart }) {
 
 // Record audio and transcribe it via OpenAI Whisper. Works in any browser with
 // a microphone + fetch (Firefox included). Records until stop() is called.
-async function recognizeWhisper({ openaiKey, onResult, onError, onStart, onProcessing }) {
+async function recognizeWhisper({ openaiKey, onResult, onError, onStart, onProcessing, onTick }) {
   if (!openaiKey) { onError && onError("No OpenAI key set — add one in Settings (☰ menu)."); return { stop: () => {} }; }
   if (!navigator.mediaDevices || !window.MediaRecorder) {
     onError && onError("Audio recording isn't supported in this browser."); return { stop: () => {} };
@@ -3168,8 +3186,11 @@ async function recognizeWhisper({ openaiKey, onResult, onError, onStart, onProce
   catch (e) { stream.getTracks().forEach(t => t.stop()); onError && onError("Could not start recording."); return { stop: () => {} }; }
 
   const chunks = [];
+  let ticker = null, autostop = null;
+  const cleanup = () => { if (ticker) clearInterval(ticker); if (autostop) clearTimeout(autostop); ticker = autostop = null; };
   rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
   rec.onstop = async () => {
+    cleanup();
     stream.getTracks().forEach(t => t.stop());
     onProcessing && onProcessing();
     const blob = new Blob(chunks, { type: mime || "audio/webm" });
@@ -3195,26 +3216,35 @@ async function recognizeWhisper({ openaiKey, onResult, onError, onStart, onProce
       onError && onError("Couldn't reach OpenAI — check your connection.");
     }
   };
-  try { rec.start(); onStart && onStart(); }
-  catch (e) { stream.getTracks().forEach(t => t.stop()); onError && onError("Could not start the microphone."); }
-  return { stop: () => { try { if (rec.state !== "inactive") rec.stop(); } catch (e) {} } };
+  const safeStop = () => { try { if (rec.state !== "inactive") rec.stop(); } catch (e) {} };
+  try {
+    rec.start();
+    onStart && onStart();
+    // Live elapsed-seconds timer + a hard cap so recordings can't run forever.
+    const MAX_MS = 20000;
+    const started = Date.now();
+    if (onTick) { onTick(0); ticker = setInterval(() => onTick(Math.floor((Date.now() - started) / 1000)), 250); }
+    autostop = setTimeout(safeStop, MAX_MS);
+  } catch (e) { cleanup(); stream.getTracks().forEach(t => t.stop()); onError && onError("Could not start the microphone."); }
+  return { stop: () => { cleanup(); safeStop(); } };
 }
 
 // Mic button — initiates a recognition session, returns the comparison result
 function MicButton({ expected, onResult, size = "small" }) {
   const [listening, setListening] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [secs, setSecs] = useState(0);
   const [error, setError] = useState(null);
   const ctrlRef = useRef(null);
   const rec = useRecognition();
 
   const handleHeard = (heard) => {
-    setListening(false); setProcessing(false);
+    setListening(false); setProcessing(false); setSecs(0);
     const result = compareText(expected, heard);
     onResult && onResult({ heard, ...result });
   };
   const handleErr = (msg) => {
-    setListening(false); setProcessing(false);
+    setListening(false); setProcessing(false); setSecs(0);
     setError(msg);
     setTimeout(() => setError(null), 4500);
   };
@@ -3225,11 +3255,13 @@ function MicButton({ expected, onResult, size = "small" }) {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     setListening(true);
     if (rec.whisper) {
+      setSecs(0);
       ctrlRef.current = await recognizeWhisper({
         openaiKey: rec.openaiKey,
         onResult: handleHeard,
         onError: handleErr,
         onProcessing: () => { setListening(false); setProcessing(true); },
+        onTick: (n) => setSecs(n),
       });
     } else {
       ctrlRef.current = startRecognition({ onResult: handleHeard, onError: handleErr });
@@ -3242,9 +3274,9 @@ function MicButton({ expected, onResult, size = "small" }) {
   };
 
   const baseStyle = size === "large" ? s.micBtnLarge : s.micBtn;
-  const busy = listening || processing;
+  const mmss = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`;
   return (
-    <span style={{ position: "relative", display: "inline-flex" }}>
+    <span style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: 6 }}>
       <button
         onClick={processing ? undefined : (listening ? stop : start)}
         style={{
@@ -3257,6 +3289,7 @@ function MicButton({ expected, onResult, size = "small" }) {
       >
         {processing ? "⏳" : listening ? "⏺" : "🎤"}
       </button>
+      {listening && rec.whisper && <span style={{ fontSize: 13, color: "#cf8a8a", fontVariantNumeric: "tabular-nums" }}>{mmss}</span>}
       {error && <span style={s.micError}>{error}</span>}
     </span>
   );
@@ -3428,6 +3461,8 @@ function GuidedPractice({ segments, intro, segLabel = "Part", wholeLabel = "Whol
 // English. We let the user pick a Polish voice; speak() then honours it.
 let TTS_VOICE_URI = (() => { try { return JSON.parse(localStorage.getItem("ttsVoiceURI")) || ""; } catch (e) { return ""; } })();
 function setTtsVoice(uri) { TTS_VOICE_URI = uri || ""; try { localStorage.setItem("ttsVoiceURI", JSON.stringify(TTS_VOICE_URI)); } catch (e) {} }
+let TTS_RATE = (() => { try { const v = JSON.parse(localStorage.getItem("ttsRate")); return (typeof v === "number" && v > 0) ? v : 0.8; } catch (e) { return 0.8; } })();
+function setTtsRate(r) { TTS_RATE = r; try { localStorage.setItem("ttsRate", JSON.stringify(r)); } catch (e) {} }
 function isPolishVoice(v) { return v && v.lang && v.lang.toLowerCase().replace("_", "-").startsWith("pl"); }
 function getPolishVoices() { try { return (window.speechSynthesis.getVoices() || []).filter(isPolishVoice); } catch (e) { return []; } }
 function resolveVoice() {
@@ -3489,7 +3524,7 @@ function speak(text) {
     u.lang = "pl-PL";
     const vc = resolveVoice();
     if (vc) u.voice = vc;
-    u.rate = 0.8;
+    u.rate = TTS_RATE;
     u.pitch = 1.0;
     u.onend = () => {
       if (i < chunks.length) {
@@ -4272,6 +4307,7 @@ function RhymesDetailScreen({ id, store, back }) {
               <button onClick={() => setShowTranslation(v => !v)} style={s.toggleBtn}>{showTranslation?"Hide":"Show"} translation</button>
               <button onClick={() => speak(rhyme.lines.map(l => l.pl).join(" "))} style={{...s.toggleBtn,flex:"none"}}>🔊 Listen</button>
             </div>
+            <AutoplayPanel lines={rhyme.lines}/>
             <div style={s.linesContainer}>
               {rhyme.lines.map((line, i) => (
                 <LineWithMic key={i} line={line} vocab={rhyme.vocab} showTranslation={showTranslation} onWordTap={handleWordTap}/>
@@ -4487,6 +4523,12 @@ function MenuDrawer({ t, uiLang, setUiLang, onClose, onNavigate, onSettings, onA
         <Item icon="💬" label={t("sec.sayings")} onClick={() => onNavigate({ view:"sayings-list" })}/>
         <Item icon="😄" label={t("sec.jokes")} onClick={() => onNavigate({ view:"jokes-cats" })}/>
         <Item icon="🌍" label={t("sec.quiz")} onClick={() => onNavigate({ view:"quiz" })}/>
+        <div style={{height:1,background:"#3a2a14",margin:"8px 4px"}}/>
+        <Item icon="📚" label={t("menu.review")} onClick={() => onNavigate({ view:"review" })}/>
+        <Item icon="🗂️" label={t("menu.flashcards")} onClick={() => onNavigate({ view:"flashcards" })}/>
+        <Item icon="📊" label={t("menu.progress")} onClick={() => onNavigate({ view:"progress" })}/>
+        <Item icon="🔍" label={t("menu.search")} onClick={() => onNavigate({ view:"search" })}/>
+        <Item icon="⭐" label={t("menu.mystuff")} onClick={() => onNavigate({ view:"mystuff" })}/>
         <Item icon="✍️" label={t("menu.addSaying")} onClick={onAddSaying}/>
         <div style={{height:1,background:"#3a2a14",margin:"8px 4px"}}/>
         <Item icon="⚙️" label={t("menu.settings")} onClick={onSettings}/>
@@ -4747,6 +4789,31 @@ const STRINGS = {
     "set.key":"OpenAI API key", "set.keyPh":"sk-…",
     "set.prefer":"Always use OpenAI for speech (instead of the browser engine)",
     "set.warn":"⚠ Anyone who can use this browser profile can read the key. Use a personal key, not a shared one.",
+    "set.speed":"Audio speed", "speed.slow":"Slow", "speed.normal":"Normal", "speed.fast":"Faster",
+    "set.testKey":"Test key", "set.testing":"Testing…", "set.keyOk":"✓ Key works", "set.keyBad":"✗ Key rejected", "set.keyErr":"✗ Couldn't reach OpenAI",
+    "set.backup":"Backup & restore",
+    "set.backupBlurb":"Your saved items, custom sayings and progress live only in this browser. Export a backup you can keep or move to another device (your OpenAI key is never included).",
+    "set.export":"⬇ Export backup", "set.import":"⬆ Restore from file",
+    "set.importOk":"Restored — reloading…", "set.importBad":"That file isn't a valid Wierszyki backup.",
+    "set.version":"Version",
+    "update.msg":"A new version is available.", "update.btn":"Reload",
+    "menu.review":"Review", "menu.flashcards":"Flashcards", "menu.progress":"Progress", "menu.search":"Search", "menu.mystuff":"My stuff",
+    "review.title":"Review", "review.intro":"Cards you miss come back sooner; ones you know come back later.",
+    "review.none":"You're all caught up — nothing is due for review right now.", "review.start":"Start review",
+    "review.reveal":"Show answer", "review.got":"Got it", "review.missed":"Missed",
+    "review.left":"left", "review.done":"Review complete", "review.reviewed":"reviewed", "review.again":"Review again",
+    "fc.title":"Flashcards", "fc.intro":"Tap a card to flip between Polish and English.",
+    "fc.flip":"Tap to flip", "fc.shuffle":"🔀 Shuffle", "fc.prev":"‹ Prev", "fc.next":"Next ›",
+    "fc.vocab":"Vocabulary", "fc.sayings":"Sayings", "fc.all":"All", "fc.empty":"No cards here yet.", "fc.of":"of",
+    "prog.title":"Progress", "prog.streak":"day streak", "prog.due":"Due now", "prog.mastered":"Mastered",
+    "prog.learning":"Learning", "prog.new":"Not started", "prog.cards":"Vocabulary & sayings",
+    "prog.quizzes":"Quizzes taken", "prog.avg":"Avg quiz score", "prog.saved":"Saved items",
+    "prog.reviewBtn":"Go to review", "prog.boxes":"Memory strength", "prog.empty":"Do a review or flashcards session to start building progress.",
+    "search.title":"Search", "search.ph":"Search rhymes, sayings, jokes…", "search.none":"No matches.",
+    "search.hint":"Type to search across every rhyme, saying and joke.",
+    "mystuff.title":"My stuff", "mystuff.saved":"Saved", "mystuff.custom":"Your sayings", "mystuff.dueLink":"cards due — review now",
+    "mystuff.empty":"Nothing saved yet. Tap ☆ on a rhyme or saying, or add your own saying.",
+    "auto.play":"▶ Hands-free play", "auto.stop":"■ Stop", "auto.intro":"Plays each line: Polish, English, then Polish slowly — no tapping needed.",
     "add.title":"Add your own saying", "add.input":"Polish proverb or a topic",
     "add.inputPh":"e.g. Gdzie dwóch Polaków, tam trzy opinie",
     "add.generate":"✨ Generate with AI", "add.generating":"Generating…",
@@ -4820,6 +4887,31 @@ const STRINGS = {
     "set.key":"Klucz API OpenAI", "set.keyPh":"sk-…",
     "set.prefer":"Zawsze używaj OpenAI do mowy (zamiast silnika przeglądarki)",
     "set.warn":"⚠ Każdy, kto ma dostęp do tego profilu przeglądarki, może odczytać klucz. Użyj klucza osobistego, nie współdzielonego.",
+    "set.speed":"Prędkość dźwięku", "speed.slow":"Wolno", "speed.normal":"Normalnie", "speed.fast":"Szybciej",
+    "set.testKey":"Testuj klucz", "set.testing":"Testowanie…", "set.keyOk":"✓ Klucz działa", "set.keyBad":"✗ Klucz odrzucony", "set.keyErr":"✗ Nie można połączyć z OpenAI",
+    "set.backup":"Kopia zapasowa i przywracanie",
+    "set.backupBlurb":"Zapisane pozycje, własne przysłowia i postępy są przechowywane tylko w tej przeglądarce. Wyeksportuj kopię, którą zachowasz lub przeniesiesz na inne urządzenie (klucz OpenAI nigdy nie jest dołączany).",
+    "set.export":"⬇ Eksportuj kopię", "set.import":"⬆ Przywróć z pliku",
+    "set.importOk":"Przywrócono — przeładowywanie…", "set.importBad":"Ten plik nie jest prawidłową kopią Wierszyków.",
+    "set.version":"Wersja",
+    "update.msg":"Dostępna jest nowa wersja.", "update.btn":"Przeładuj",
+    "menu.review":"Powtórki", "menu.flashcards":"Fiszki", "menu.progress":"Postępy", "menu.search":"Szukaj", "menu.mystuff":"Moje rzeczy",
+    "review.title":"Powtórki", "review.intro":"Karty, które mylisz, wracają szybciej; te, które znasz — później.",
+    "review.none":"Wszystko powtórzone — nic nie czeka teraz na powtórkę.", "review.start":"Rozpocznij powtórki",
+    "review.reveal":"Pokaż odpowiedź", "review.got":"Umiem", "review.missed":"Nie umiem",
+    "review.left":"zostało", "review.done":"Powtórka ukończona", "review.reviewed":"powtórzono", "review.again":"Powtórz jeszcze raz",
+    "fc.title":"Fiszki", "fc.intro":"Dotknij karty, aby przełączać między polskim a angielskim.",
+    "fc.flip":"Dotknij, aby odwrócić", "fc.shuffle":"🔀 Tasuj", "fc.prev":"‹ Poprz.", "fc.next":"Nast. ›",
+    "fc.vocab":"Słówka", "fc.sayings":"Przysłowia", "fc.all":"Wszystko", "fc.empty":"Brak kart.", "fc.of":"z",
+    "prog.title":"Postępy", "prog.streak":"dni z rzędu", "prog.due":"Do powtórki", "prog.mastered":"Opanowane",
+    "prog.learning":"W trakcie", "prog.new":"Nierozpoczęte", "prog.cards":"Słówka i przysłowia",
+    "prog.quizzes":"Ukończone quizy", "prog.avg":"Średni wynik", "prog.saved":"Zapisane pozycje",
+    "prog.reviewBtn":"Przejdź do powtórek", "prog.boxes":"Siła pamięci", "prog.empty":"Zrób powtórki lub fiszki, aby zacząć budować postępy.",
+    "search.title":"Szukaj", "search.ph":"Szukaj wierszyków, przysłów, kawałów…", "search.none":"Brak wyników.",
+    "search.hint":"Pisz, aby przeszukać wszystkie wierszyki, przysłowia i kawały.",
+    "mystuff.title":"Moje rzeczy", "mystuff.saved":"Zapisane", "mystuff.custom":"Twoje przysłowia", "mystuff.dueLink":"kart do powtórki — powtórz teraz",
+    "mystuff.empty":"Nic jeszcze nie zapisano. Dotknij ☆ przy wierszyku lub przysłowiu albo dodaj własne przysłowie.",
+    "auto.play":"▶ Odtwarzanie bez rąk", "auto.stop":"■ Stop", "auto.intro":"Odtwarza każdy wiersz: po polsku, po angielsku, potem wolno po polsku — bez dotykania.",
     "add.title":"Dodaj własne przysłowie", "add.input":"Polskie przysłowie lub temat",
     "add.inputPh":"np. Gdzie dwóch Polaków, tam trzy opinie",
     "add.generate":"✨ Wygeneruj z AI", "add.generating":"Generowanie…",
@@ -4833,6 +4925,86 @@ const STRINGS = {
 };
 
 // Ask OpenAI to turn a Polish proverb (or topic) into a structured saying object.
+const APP_VERSION = "1.7.0";
+// Keys included in a backup file (deliberately excludes the OpenAI key).
+const BACKUP_KEYS = ["bookmarks", "history", "wrongLog", "customSayings", "uiLang", "preferWhisper", "ttsVoiceURI", "ttsRate", "showWelcome"];
+
+function exportBackup() {
+  const out = { app: "Wierszyki", version: APP_VERSION, exported: new Date().toISOString(), data: {} };
+  BACKUP_KEYS.forEach(k => { try { const v = localStorage.getItem(k); if (v != null) out.data[k] = v; } catch (e) {} });
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "wierszyki-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function importBackup(file, onDone, onError) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      if (!parsed || parsed.app !== "Wierszyki" || typeof parsed.data !== "object") { onError && onError(); return; }
+      Object.keys(parsed.data).forEach(k => { if (BACKUP_KEYS.includes(k)) { try { localStorage.setItem(k, parsed.data[k]); } catch (e) {} } });
+      onDone && onDone();
+    } catch (e) { onError && onError(); }
+  };
+  reader.onerror = () => onError && onError();
+  reader.readAsText(file);
+}
+
+async function testOpenAIKey(key) {
+  if (!key) return "bad";
+  try {
+    const resp = await fetch("https://api.openai.com/v1/models", { headers: { Authorization: "Bearer " + key } });
+    return resp.ok ? "ok" : "bad";
+  } catch (e) { return "err"; }
+}
+
+// ─── LEARNING: card pool + spaced repetition (Leitner) ──────────────────────
+function buildCardPool(allSayings) {
+  const cards = [];
+  rhymes.forEach(r => (r.vocab || []).forEach((v, i) => {
+    if (v && v.word) cards.push({ key: "v:" + r.id + ":" + i, pl: v.word, en: v.meaning || "", source: r.title, srcType: "vocab", rhymeId: r.id });
+  }));
+  (allSayings || sayings).forEach(sy => {
+    cards.push({ key: "s:" + sy.id, pl: sy.pl, en: sy.en || sy.meaning || "", source: sy.theme || "", srcType: "saying", sayingId: sy.id });
+  });
+  return cards;
+}
+const SRS_DAYS = [0, 1, 3, 7, 21, 60];           // interval (days) per box; index = box
+const ONE_DAY = 86400000;
+function srsGrade(srs, key, got) {
+  const cur = srs[key] || { box: 0 };
+  const box = got ? Math.min((cur.box || 0) + 1, SRS_DAYS.length - 1) : 0;
+  const due = got ? Date.now() + SRS_DAYS[box] * ONE_DAY : Date.now() + 60000;
+  return { ...srs, [key]: { box, due } };
+}
+function srsDueCards(srs, pool, newLimit) {
+  const now = Date.now();
+  const due = [], fresh = [];
+  pool.forEach(c => { const e = srs[c.key]; if (!e) fresh.push(c); else if (e.due <= now) due.push(c); });
+  return due.concat(fresh.slice(0, newLimit));
+}
+function srsStats(srs, pool) {
+  let learning = 0, mastered = 0, seen = 0, due = 0;
+  const now = Date.now();
+  pool.forEach(c => {
+    const e = srs[c.key]; if (!e) return;
+    seen++; if (e.box >= 4) mastered++; else learning++;
+    if (e.due <= now) due++;
+  });
+  return { total: pool.length, seen, learning, mastered, due, fresh: pool.length - seen };
+}
+function todayKey() { return new Date().toISOString().slice(0, 10); }
+function computeStreak(days) {
+  if (!days || !days.length) return 0;
+  const set = new Set(days); let streak = 0; const d = new Date();
+  while (set.has(d.toISOString().slice(0, 10))) { streak++; d.setDate(d.getDate() - 1); }
+  return streak;
+}
+
 async function generateSaying(openaiKey, input) {
   const sys = "You are a Polish language and culture expert helping build a Polish-for-learners app. " +
     "Given a Polish proverb/saying (or a short topic), return ONE strict JSON object, no markdown, with exactly these string keys: " +
@@ -4862,8 +5034,20 @@ function SettingsScreen({ back, ai, setAi, uiLang, setUiLang }) {
   const [key, setKeyLocal] = useState(ai.openaiKey || "");
   const [prefer, setPrefer] = useState(!!ai.preferWhisper);
   const [show, setShow] = useState(false);
-  const saveKey = (v) => { setKeyLocal(v); setAi({ openaiKey: v.trim(), preferWhisper: prefer }); };
+  const [rate, setRate] = useState(TTS_RATE);
+  const [keyStatus, setKeyStatus] = useState(null);   // null | "testing" | "ok" | "bad" | "err"
+  const [importMsg, setImportMsg] = useState(null);   // null | "ok" | "bad"
+  const fileRef = useRef(null);
+  const saveKey = (v) => { setKeyLocal(v); setKeyStatus(null); setAi({ openaiKey: v.trim(), preferWhisper: prefer }); };
   const savePrefer = (v) => { setPrefer(v); setAi({ openaiKey: key.trim(), preferWhisper: v }); };
+  const chooseRate = (r) => { setRate(r); setTtsRate(r); if (window.speechSynthesis) { window.speechSynthesis.cancel(); } speak(t("voice.sample")); };
+  const runTest = async () => { setKeyStatus("testing"); setKeyStatus(await testOpenAIKey(key.trim())); };
+  const onPickFile = (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    importBackup(f, () => { setImportMsg("ok"); setTimeout(() => window.location.reload(), 900); }, () => setImportMsg("bad"));
+    e.target.value = "";
+  };
   return (
     <div style={NAV.screen}>
       <NavBar title={t("set.title")} onBack={back}/>
@@ -4877,6 +5061,12 @@ function SettingsScreen({ back, ai, setAi, uiLang, setUiLang }) {
         </div>
         <div style={{...s.card,marginTop:14}}>
           <VoiceSetupStep compact/>
+          <div style={{...s.fieldLabel,marginTop:16,marginBottom:6}}>{t("set.speed")}</div>
+          <div style={NAV.langToggle}>
+            <button onClick={() => chooseRate(0.6)} style={{...NAV.langBtn,...(rate<=0.65?NAV.langBtnOn:{})}}>{t("speed.slow")}</button>
+            <button onClick={() => chooseRate(0.8)} style={{...NAV.langBtn,...(rate>0.65&&rate<0.95?NAV.langBtnOn:{})}}>{t("speed.normal")}</button>
+            <button onClick={() => chooseRate(1.0)} style={{...NAV.langBtn,...(rate>=0.95?NAV.langBtnOn:{})}}>{t("speed.fast")}</button>
+          </div>
         </div>
         <div style={{...s.card,marginTop:14}}>
           <div style={{fontSize:18,color:"#f5e6a0",fontStyle:"italic",marginBottom:6}}>{t("set.ai")}</div>
@@ -4886,12 +5076,32 @@ function SettingsScreen({ back, ai, setAi, uiLang, setUiLang }) {
             <input type={show?"text":"password"} value={key} onChange={e => saveKey(e.target.value)} placeholder={t("set.keyPh")} style={s.textInput} autoComplete="off" spellCheck={false}/>
             <button onClick={() => setShow(v => !v)} style={s.secondaryBtn}>{show?"🙈":"👁"}</button>
           </div>
+          {key.trim() && (
+            <div style={{display:"flex",alignItems:"center",gap:10,marginTop:10}}>
+              <button onClick={runTest} disabled={keyStatus==="testing"} style={{...s.secondaryBtn,opacity:keyStatus==="testing"?0.6:1}}>{keyStatus==="testing"?t("set.testing"):t("set.testKey")}</button>
+              {keyStatus==="ok" && <span style={{color:"#a8d08a",fontSize:14}}>{t("set.keyOk")}</span>}
+              {keyStatus==="bad" && <span style={{color:"#dd9a9a",fontSize:14}}>{t("set.keyBad")}</span>}
+              {keyStatus==="err" && <span style={{color:"#dd9a9a",fontSize:14}}>{t("set.keyErr")}</span>}
+            </div>
+          )}
           <button onClick={() => savePrefer(!prefer)} style={{...NAV.introToggle,borderTop:"none",padding:"14px 2px 4px"}}>
             <span style={{...NAV.checkbox,...(prefer?NAV.checkboxOn:{})}}>{prefer?"✓":""}</span>
             <span>{t("set.prefer")}</span>
           </button>
           <p style={{fontSize:13,color:"#a69c89",lineHeight:1.5,margin:"10px 0 0"}}>{t("set.warn")}</p>
         </div>
+        <div style={{...s.card,marginTop:14}}>
+          <div style={{fontSize:18,color:"#f5e6a0",fontStyle:"italic",marginBottom:6}}>{t("set.backup")}</div>
+          <p style={{fontSize:14,color:"#b8a690",lineHeight:1.55,margin:"0 0 14px"}}>{t("set.backupBlurb")}</p>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            <button onClick={exportBackup} style={{...s.startBtn,flex:1}}>{t("set.export")}</button>
+            <button onClick={() => fileRef.current && fileRef.current.click()} style={{...s.secondaryBtn,flex:1}}>{t("set.import")}</button>
+          </div>
+          <input ref={fileRef} type="file" accept="application/json,.json" onChange={onPickFile} style={{display:"none"}}/>
+          {importMsg==="ok" && <p style={{fontSize:14,color:"#a8d08a",margin:"10px 0 0"}}>{t("set.importOk")}</p>}
+          {importMsg==="bad" && <p style={{fontSize:14,color:"#dd9a9a",margin:"10px 0 0"}}>{t("set.importBad")}</p>}
+        </div>
+        <p style={{textAlign:"center",fontSize:13,color:"#6a5a3a",margin:"18px 0 4px"}}>Wierszyki · {t("set.version")} {APP_VERSION}</p>
       </div>
     </div>
   );
@@ -4959,6 +5169,314 @@ function AddSayingScreen({ back, ai, onSave }) {
   );
 }
 
+// ─── HANDS-FREE AUTOPLAY (Polish → English → Polish slow, per line) ──────────
+function playSequence(lines, { onLine, onDone }) {
+  const synth = window.speechSynthesis;
+  if (!synth) { onDone && onDone(); return { stop: () => {} }; }
+  let stopped = false, li = 0;
+  const clean = (s) => (s || "").replace(/\([^)]*\)/g, "").replace(/\[[^\]]*\]/g, "").replace(/\s+/g, " ").trim();
+  const say = (text, lang, rate, cb) => {
+    if (stopped || !text) { cb(); return; }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    if (lang.indexOf("pl") === 0) { const vc = resolveVoice(); if (vc) u.voice = vc; }
+    u.rate = rate; u.onend = cb; u.onerror = cb;
+    synth.speak(u);
+  };
+  const step = () => {
+    if (stopped || li >= lines.length) { if (!stopped) onDone && onDone(); return; }
+    const line = lines[li];
+    onLine && onLine(li);
+    say(clean(line.pl), "pl-PL", TTS_RATE, () => say(clean(line.en), "en-US", 0.95, () => say(clean(line.pl), "pl-PL", Math.max(0.4, TTS_RATE * 0.72), () => { li++; setTimeout(step, 260); })));
+  };
+  synth.cancel();
+  setTimeout(step, 60);
+  return { stop: () => { stopped = true; synth.cancel(); } };
+}
+
+function AutoplayPanel({ lines }) {
+  const { t } = React.useContext(LangContext);
+  const [playing, setPlaying] = useState(false);
+  const [cur, setCur] = useState(-1);
+  const ctrl = useRef(null);
+  const stop = () => { if (ctrl.current) ctrl.current.stop(); ctrl.current = null; setPlaying(false); setCur(-1); };
+  const start = () => { setPlaying(true); setCur(0); ctrl.current = playSequence(lines, { onLine: setCur, onDone: () => { setPlaying(false); setCur(-1); ctrl.current = null; } }); };
+  useEffect(() => () => { if (ctrl.current) ctrl.current.stop(); }, []);
+  return (
+    <div style={{marginBottom:14}}>
+      <button onClick={playing ? stop : start} style={{...s.startBtn,width:"100%",...(playing?{background:"#7a3a3a",borderColor:"#7a3a3a",color:"#fff"}:{})}}>
+        {playing ? t("auto.stop") : t("auto.play")}
+      </button>
+      {playing
+        ? <div style={{marginTop:8,fontSize:14,color:"#f5e6a0",textAlign:"center",minHeight:20}}>{cur >= 0 && lines[cur] ? lines[cur].pl : ""}</div>
+        : <p style={{margin:"8px 0 0",fontSize:13,color:"#a69c89",textAlign:"center",lineHeight:1.45}}>{t("auto.intro")}</p>}
+    </div>
+  );
+}
+
+// ─── REVIEW (spaced repetition) ─────────────────────────────────────────────
+function ReviewCard({ card, revealed, onReveal, onGrade, left, reviewed }) {
+  const { t } = React.useContext(LangContext);
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",fontSize:13,color:"#a29780",marginBottom:10}}>
+        <span>{left} {t("review.left")}</span><span>{reviewed} {t("review.reviewed")}</span>
+      </div>
+      <div style={{...s.card,minHeight:160,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",gap:10,padding:"28px 18px"}}>
+        <div style={{fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:"#8a7a58"}}>{card.srcType === "vocab" ? t("fc.vocab") : t("fc.sayings")} · {card.source}</div>
+        <div style={{fontSize:"clamp(22px,6vw,30px)",color:"#f5c842",lineHeight:1.2}}>{card.pl}</div>
+        <button onClick={() => speak(card.pl)} style={{...s.secondaryBtn,marginTop:2}}>🔊</button>
+        {revealed && <div style={{fontSize:18,color:"#e8dcc8",lineHeight:1.4,borderTop:"1px solid #3a2a14",paddingTop:12,width:"100%"}}>{card.en}</div>}
+      </div>
+      {!revealed
+        ? <button onClick={onReveal} style={{...NAV.primaryBtn,width:"100%",marginTop:14}}>{t("review.reveal")}</button>
+        : <div style={{display:"flex",gap:10,marginTop:14}}>
+            <button onClick={() => onGrade(false)} style={{...s.secondaryBtn,flex:1,borderColor:"#7a3a3a",color:"#dd9a9a"}}>{t("review.missed")}</button>
+            <button onClick={() => onGrade(true)} style={{...NAV.primaryBtn,flex:1}}>{t("review.got")}</button>
+          </div>}
+    </div>
+  );
+}
+function ReviewScreen({ store, back }) {
+  const { t } = React.useContext(LangContext);
+  const pool = useMemo(() => buildCardPool(store.allSayings), [store.allSayings]);
+  const [queue, setQueue] = useState(() => srsDueCards(store.srs, pool, 12));
+  const [i, setI] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  const [done, setDone] = useState(0);
+  const restart = () => { setQueue(srsDueCards(store.srs, pool, 12)); setI(0); setRevealed(false); setDone(0); };
+  const grade = (got) => {
+    const card = queue[i];
+    store.gradeCard(card.key, got);
+    setDone(d => d + 1);
+    setRevealed(false);
+    setQueue(q => got ? q : [...q, card]);   // missed cards repeat this session
+    setI(x => x + 1);
+  };
+  let body;
+  if (queue.length === 0) {
+    body = <div style={{...s.card,textAlign:"center",padding:"40px 20px"}}><div style={{fontSize:44,marginBottom:10}}>✅</div><p style={{color:"#c8b890",fontSize:17,margin:0}}>{t("review.none")}</p></div>;
+  } else if (i >= queue.length) {
+    body = <div style={{...s.card,textAlign:"center",padding:"36px 20px"}}>
+      <div style={{fontSize:44,marginBottom:10}}>🎉</div>
+      <p style={{color:"#f5c842",fontSize:20,margin:"0 0 6px"}}>{t("review.done")}</p>
+      <p style={{color:"#a29780",margin:"0 0 18px"}}>{done} {t("review.reviewed")}</p>
+      <button onClick={restart} style={{...s.startBtn,width:"100%"}}>{t("review.again")}</button>
+    </div>;
+  } else {
+    body = <ReviewCard card={queue[i]} revealed={revealed} onReveal={() => setRevealed(true)} onGrade={grade} left={queue.length - i} reviewed={done}/>;
+  }
+  return (
+    <div style={NAV.screen}>
+      <NavBar title={t("review.title")} onBack={back}/>
+      <div style={NAV.body}>
+        <p style={NAV.intro}>{t("review.intro")}</p>
+        {body}
+      </div>
+    </div>
+  );
+}
+
+// ─── FLASHCARDS ─────────────────────────────────────────────────────────────
+function FlashcardsScreen({ store, back }) {
+  const { t } = React.useContext(LangContext);
+  const pool = useMemo(() => buildCardPool(store.allSayings), [store.allSayings]);
+  const [filter, setFilter] = useState("all");
+  const base = useMemo(() => filter === "all" ? pool : pool.filter(c => c.srcType === (filter === "vocab" ? "vocab" : "saying")), [pool, filter]);
+  const [seq, setSeq] = useState(base);
+  const [idx, setIdx] = useState(0);
+  const [flip, setFlip] = useState(false);
+  useEffect(() => { setSeq(base); setIdx(0); setFlip(false); }, [base]);
+  const card = seq[idx];
+  const move = (d) => { setIdx(x => (x + d + seq.length) % seq.length); setFlip(false); };
+  const shuffle = () => { const a = [...seq]; for (let k = a.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [a[k], a[j]] = [a[j], a[k]]; } setSeq(a); setIdx(0); setFlip(false); };
+  const Filt = ({ id, label }) => <button onClick={() => setFilter(id)} style={{...NAV.langBtn,...(filter===id?NAV.langBtnOn:{})}}>{label}</button>;
+  return (
+    <div style={NAV.screen}>
+      <NavBar title={t("fc.title")} onBack={back}/>
+      <div style={NAV.body}>
+        <div style={{...NAV.langToggle,marginBottom:12}}>
+          <Filt id="all" label={t("fc.all")}/><Filt id="vocab" label={t("fc.vocab")}/><Filt id="sayings" label={t("fc.sayings")}/>
+        </div>
+        {!card ? <p style={NAV.intro}>{t("fc.empty")}</p> : (
+          <>
+            <div onClick={() => setFlip(f => !f)} style={{...s.card,minHeight:190,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",gap:12,cursor:"pointer",padding:"30px 18px"}}>
+              <div style={{fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:"#8a7a58"}}>{card.srcType === "vocab" ? t("fc.vocab") : t("fc.sayings")} · {card.source}</div>
+              <div style={{fontSize:flip?"clamp(17px,4.6vw,22px)":"clamp(22px,6vw,30px)",color:flip?"#e8dcc8":"#f5c842",lineHeight:1.25}}>{flip ? card.en : card.pl}</div>
+              <button onClick={(e) => { e.stopPropagation(); speak(card.pl); }} style={s.secondaryBtn}>🔊</button>
+              <div style={{fontSize:12,color:"#7a6a4a"}}>{t("fc.flip")}</div>
+            </div>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginTop:14}}>
+              <button onClick={() => move(-1)} style={s.secondaryBtn}>{t("fc.prev")}</button>
+              <span style={{fontSize:14,color:"#a29780"}}>{idx + 1} {t("fc.of")} {seq.length}</span>
+              <button onClick={() => move(1)} style={s.secondaryBtn}>{t("fc.next")}</button>
+            </div>
+            <button onClick={shuffle} style={{...s.startBtn,width:"100%",marginTop:10}}>{t("fc.shuffle")}</button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── PROGRESS DASHBOARD ─────────────────────────────────────────────────────
+function ProgressScreen({ store, back, onReview }) {
+  const { t } = React.useContext(LangContext);
+  const pool = useMemo(() => buildCardPool(store.allSayings), [store.allSayings]);
+  const st = srsStats(store.srs, pool);
+  const streak = computeStreak(store.studyDays);
+  const quizzes = (store.history || []).length;
+  const avg = quizzes ? Math.round(store.history.reduce((a, h) => a + (h.total ? (h.score / h.total) * 100 : 0), 0) / quizzes) : null;
+  const saved = (store.bookmarks.rhymes || []).length + (store.bookmarks.sayings || []).length;
+  const Stat = ({ n, label, color }) => (
+    <div style={{flex:1,minWidth:90,background:"rgba(255,240,200,0.03)",border:"1px solid #3a2a14",borderRadius:12,padding:"14px 10px",textAlign:"center"}}>
+      <div style={{fontSize:26,fontWeight:"bold",color:color||"#f5c842"}}>{n}</div>
+      <div style={{fontSize:12,color:"#a29780",marginTop:2}}>{label}</div>
+    </div>
+  );
+  const total = Math.max(1, st.total);
+  const bar = (n, color) => <div style={{height:"100%",width:(n/total*100)+"%",background:color}}/>;
+  return (
+    <div style={NAV.screen}>
+      <NavBar title={t("prog.title")} onBack={back}/>
+      <div style={NAV.body}>
+        <div style={{...s.card,textAlign:"center"}}>
+          <div style={{fontSize:40,fontWeight:"bold",color:"#f5c842"}}>{streak} 🔥</div>
+          <div style={{fontSize:14,color:"#a29780"}}>{t("prog.streak")}</div>
+        </div>
+        <div style={{display:"flex",gap:10,marginTop:14,flexWrap:"wrap"}}>
+          <Stat n={st.due} label={t("prog.due")} color="#e0a050"/>
+          <Stat n={st.mastered} label={t("prog.mastered")} color="#6fcf6f"/>
+          <Stat n={st.learning} label={t("prog.learning")}/>
+        </div>
+        <div style={{...s.card,marginTop:14}}>
+          <div style={{...s.fieldLabel,marginBottom:8}}>{t("prog.boxes")} · {t("prog.cards")}</div>
+          <div style={{display:"flex",height:14,borderRadius:7,overflow:"hidden",background:"#241a0e",border:"1px solid #3a2a14"}}>
+            {bar(st.mastered, "#6fcf6f")}{bar(st.learning, "#f5c842")}{bar(st.fresh, "#4a3a20")}
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"#a29780",marginTop:6}}>
+            <span style={{color:"#6fcf6f"}}>● {st.mastered} {t("prog.mastered")}</span>
+            <span style={{color:"#f5c842"}}>● {st.learning} {t("prog.learning")}</span>
+            <span>● {st.fresh} {t("prog.new")}</span>
+          </div>
+        </div>
+        <div style={{display:"flex",gap:10,marginTop:14,flexWrap:"wrap"}}>
+          <Stat n={quizzes} label={t("prog.quizzes")}/>
+          <Stat n={avg == null ? "—" : avg + "%"} label={t("prog.avg")}/>
+          <Stat n={saved} label={t("prog.saved")}/>
+        </div>
+        <button onClick={onReview} style={{...s.startBtn,width:"100%",marginTop:16}}>{t("prog.reviewBtn")}{st.due ? " (" + st.due + ")" : ""}</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── SEARCH ─────────────────────────────────────────────────────────────────
+function SearchScreen({ store, back, navigate }) {
+  const { t } = React.useContext(LangContext);
+  const [q, setQ] = useState("");
+  const query = q.trim().toLowerCase();
+  const results = useMemo(() => {
+    if (query.length < 2) return null;
+    const hit = (s) => s && s.toLowerCase().indexOf(query) >= 0;
+    const r = [];
+    rhymes.forEach(x => { if (hit(x.title) || hit(x.english_title) || (x.lines || []).some(l => hit(l.pl) || hit(l.en))) r.push({ type: "rhyme", id: x.id, pl: x.title, en: x.english_title }); });
+    (store.allSayings || sayings).forEach(x => { if (hit(x.pl) || hit(x.en) || hit(x.meaning)) r.push({ type: "saying", id: x.id, pl: x.pl, en: x.en }); });
+    jokes.forEach(x => { if (hit(x.setup) || hit(x.punchline)) r.push({ type: "joke", id: x.id, pl: x.setup, en: "" }); });
+    return r;
+  }, [query, store.allSayings]);
+  const goTo = (res) => {
+    if (res.type === "rhyme") navigate({ view: "rhymes-detail", id: res.id });
+    else if (res.type === "saying") navigate({ view: "sayings-detail", id: res.id });
+    else navigate({ view: "joke-detail", id: res.id });
+  };
+  return (
+    <div style={NAV.screen}>
+      <NavBar title={t("search.title")} onBack={back}/>
+      <div style={NAV.body}>
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder={t("search.ph")} style={{...s.textInput,marginBottom:12}} autoFocus/>
+        {results == null && <p style={NAV.intro}>{t("search.hint")}</p>}
+        {results != null && results.length === 0 && <p style={NAV.intro}>{t("search.none")}</p>}
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {(results || []).map((res, i) => (
+            <button key={res.type + res.id + i} onClick={() => goTo(res)} style={{...NAV.menuItem,alignItems:"flex-start"}}>
+              <span style={{fontSize:18,width:26,flexShrink:0}}>{res.type === "rhyme" ? "📖" : res.type === "saying" ? "💬" : "😄"}</span>
+              <span style={{flex:1,textAlign:"left",minWidth:0}}>
+                <span style={{display:"block",color:"#f0e0b0",fontSize:15,overflow:"hidden",textOverflow:"ellipsis"}}>{res.pl}</span>
+                {res.en && <span style={{display:"block",color:"#a29780",fontSize:13,overflow:"hidden",textOverflow:"ellipsis"}}>{res.en}</span>}
+              </span>
+              <span style={NAV.chev}>›</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── MY STUFF ───────────────────────────────────────────────────────────────
+function MyStuffScreen({ store, back, navigate, onReview }) {
+  const { t } = React.useContext(LangContext);
+  const pool = useMemo(() => buildCardPool(store.allSayings), [store.allSayings]);
+  const due = srsStats(store.srs, pool).due;
+  const savedRhymes = rhymes.filter(r => (store.bookmarks.rhymes || []).includes(r.id));
+  const all = store.allSayings || sayings;
+  const savedSayings = all.filter(syy => (store.bookmarks.sayings || []).includes(syy.id));
+  const custom = store.customSayings || [];
+  const Row = ({ icon, title, sub, onClick, tag }) => (
+    <button onClick={onClick} style={{...NAV.menuItem,alignItems:"flex-start"}}>
+      <span style={{fontSize:18,width:26,flexShrink:0}}>{icon}</span>
+      <span style={{flex:1,textAlign:"left",minWidth:0}}>
+        <span style={{display:"block",color:"#f0e0b0",fontSize:15}}>{title}</span>
+        {sub && <span style={{display:"block",color:"#a29780",fontSize:13}}>{sub}</span>}
+      </span>
+      {tag && <span style={s.yoursTag}>{tag}</span>}
+      <span style={NAV.chev}>›</span>
+    </button>
+  );
+  const empty = savedRhymes.length === 0 && savedSayings.length === 0 && custom.length === 0;
+  const Head = ({ children }) => <div style={{fontSize:13,letterSpacing:"0.08em",textTransform:"uppercase",color:"#a29780",margin:"18px 2px 8px"}}>{children}</div>;
+  return (
+    <div style={NAV.screen}>
+      <NavBar title={t("mystuff.title")} onBack={back}/>
+      <div style={NAV.body}>
+        {due > 0 && <button onClick={onReview} style={{...s.startBtn,width:"100%",marginBottom:6}}>📚 {due} {t("mystuff.dueLink")}</button>}
+        {empty && <p style={NAV.intro}>{t("mystuff.empty")}</p>}
+        {savedRhymes.length > 0 && <Head>{t("mystuff.saved")} · {t("sec.rhymes")}</Head>}
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {savedRhymes.map(r => <Row key={"r" + r.id} icon="📖" title={r.title} sub={r.english_title} onClick={() => navigate({ view: "rhymes-detail", id: r.id })}/>)}
+        </div>
+        {savedSayings.length > 0 && <Head>{t("mystuff.saved")} · {t("sec.sayings")}</Head>}
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {savedSayings.map(syy => <Row key={"s" + syy.id} icon="💬" title={syy.pl} sub={syy.en} tag={syy.custom ? t("yours") : null} onClick={() => navigate({ view: "sayings-detail", id: syy.id })}/>)}
+        </div>
+        {custom.length > 0 && <Head>{t("mystuff.custom")}</Head>}
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {custom.map(syy => <Row key={"c" + syy.id} icon="✍️" title={syy.pl} sub={syy.en} tag={t("yours")} onClick={() => navigate({ view: "sayings-detail", id: syy.id })}/>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UpdateBanner() {
+  const { t } = React.useContext(LangContext);
+  const [show, setShow] = useState(() => typeof window !== "undefined" && !!window.__wzSW);
+  useEffect(() => {
+    const h = () => setShow(true);
+    window.addEventListener("wz-update-available", h);
+    if (window.__wzSW) setShow(true);
+    return () => window.removeEventListener("wz-update-available", h);
+  }, []);
+  if (!show) return null;
+  return (
+    <div style={NAV.updateBar} role="status">
+      <span style={{flex:1}}>{t("update.msg")}</span>
+      <button onClick={() => { if (window.__wzReload) window.__wzReload(); else window.location.reload(); }} style={NAV.updateBtn}>{t("update.btn")}</button>
+    </div>
+  );
+}
+
 function App() {
   const isMobile = useIsMobile();
   const { current, go, back, jump } = useNavStack({ view:"home" });
@@ -4978,6 +5496,13 @@ function App() {
   const [uiLang, setUiLangState] = useState(() => LS.get("uiLang", "en"));
   const [ai, setAiState] = useState(() => ({ openaiKey: LS.get("openaiKey", ""), preferWhisper: LS.get("preferWhisper", false) }));
   const [customSayings, setCustomSayings] = useState(() => LS.get("customSayings", []));
+  const [srs, setSrs] = useState(() => LS.get("srs", {}));
+  const [studyDays, setStudyDays] = useState(() => LS.get("studyDays", []));
+  const gradeCard = useCallback((key, got) => { setSrs(prev => { const next = srsGrade(prev, key, got); LS.set("srs", next); return next; }); }, []);
+  useEffect(() => {
+    const today = todayKey();
+    setStudyDays(prev => { if (prev.includes(today)) return prev; const next = [...prev, today].slice(-400); LS.set("studyDays", next); return next; });
+  }, []);
   const setUiLang = useCallback((v) => { setUiLangState(v); LS.set("uiLang", v); }, []);
   const setAi = useCallback((next) => { setAiState(next); LS.set("openaiKey", next.openaiKey || ""); LS.set("preferWhisper", !!next.preferWhisper); }, []);
   const t = useCallback((k) => (STRINGS[uiLang] && STRINGS[uiLang][k]) || STRINGS.en[k] || k, [uiLang]);
@@ -5010,6 +5535,7 @@ function App() {
     rhymeFilter, setRhymeFilter, sayingsSaved, setSayingsSaved,
     toggleBookmark, addHistory, addWrong, isMobile,
     allSayings: [...customSayings, ...sayings], customSayings, deleteCustomSaying,
+    srs, gradeCard, studyDays,
   };
 
   const v = current.view;
@@ -5033,12 +5559,18 @@ function App() {
   else if (v === "quiz")           screen = <QuizScreen isMobile={isMobile} onBack={back}/>;
   else if (v === "settings")       screen = <SettingsScreen back={back} ai={ai} setAi={setAi} uiLang={uiLang} setUiLang={setUiLang}/>;
   else if (v === "saying-add")     screen = <AddSayingScreen back={back} ai={ai} onSave={addCustomSaying}/>;
+  else if (v === "review")         screen = <ReviewScreen store={store} back={back}/>;
+  else if (v === "flashcards")     screen = <FlashcardsScreen store={store} back={back}/>;
+  else if (v === "progress")       screen = <ProgressScreen store={store} back={back} onReview={() => jump({ view:"review" })}/>;
+  else if (v === "search")         screen = <SearchScreen store={store} back={back} navigate={jump}/>;
+  else if (v === "mystuff")        screen = <MyStuffScreen store={store} back={back} navigate={jump} onReview={() => jump({ view:"review" })}/>;
 
   return (
     <LangContext.Provider value={{ uiLang, t }}>
     <AIContext.Provider value={{ openaiKey: ai.openaiKey, preferWhisper: ai.preferWhisper }}>
     <div style={s.app}>
       <div style={s.grain}/>
+      <UpdateBanner/>
       <HelpContext.Provider value={() => setShowHelp(true)}>
         <MenuContext.Provider value={() => setMenuOpen(true)}>
           <div style={{position:"relative",zIndex:1}}>{screen}</div>
@@ -5113,6 +5645,8 @@ const NAV = {
   voiceRowOn:{borderColor:"#f5c842",background:"rgba(245,200,66,0.08)"},
   radio:{width:20,height:20,flexShrink:0,borderRadius:20,border:"1.5px solid #6a5a3a",display:"flex",alignItems:"center",justifyContent:"center",color:"#f5c842",fontSize:12},
   radioOn:{borderColor:"#f5c842"},
+  updateBar:{position:"fixed",left:12,right:12,bottom:"calc(12px + env(safe-area-inset-bottom))",zIndex:10050,display:"flex",alignItems:"center",gap:12,background:"#2a1e0c",border:"1px solid #6a5320",borderRadius:12,padding:"12px 14px",boxShadow:"0 8px 24px rgba(0,0,0,0.5)",color:"#f0e0b0",fontSize:15},
+  updateBtn:{background:"#f5c842",color:"#1a1208",border:"none",borderRadius:8,padding:"8px 16px",fontFamily:"inherit",fontWeight:"bold",fontSize:15,cursor:"pointer",flexShrink:0},
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
