@@ -3341,8 +3341,14 @@ async function recognizeWhisper({ openaiKey, onResult, onError, onStart, onProce
   catch (e) { stream.getTracks().forEach(t => t.stop()); onError && onError("Could not start recording."); return { stop: () => {} }; }
 
   const chunks = [];
-  let ticker = null, autostop = null;
-  const cleanup = () => { if (ticker) clearInterval(ticker); if (autostop) clearTimeout(autostop); ticker = autostop = null; };
+  let ticker = null, autostop = null, vad = null, audioCtx = null;
+  const cleanup = () => {
+    if (ticker) clearInterval(ticker);
+    if (autostop) clearTimeout(autostop);
+    if (vad) clearInterval(vad);
+    if (audioCtx) { try { audioCtx.close(); } catch (e) {} }
+    ticker = autostop = vad = audioCtx = null;
+  };
   rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
   rec.onstop = async () => {
     cleanup();
@@ -3381,6 +3387,32 @@ async function recognizeWhisper({ openaiKey, onResult, onError, onStart, onProce
     const started = Date.now();
     if (onTick) { onTick(0); ticker = setInterval(() => onTick(Math.floor((Date.now() - started) / 1000)), 250); }
     autostop = setTimeout(safeStop, MAX_MS);
+    // Voice-activity detection: stop automatically once the speaker has talked and then fallen silent.
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) {
+        audioCtx = new AC();
+        const srcNode = audioCtx.createMediaStreamSource(stream);
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 2048;
+        srcNode.connect(analyser);
+        const buf = new Uint8Array(analyser.fftSize);
+        const SPEAK = 0.025;        // RMS threshold counted as speech
+        const SILENCE_MS = 1300;    // trailing silence that ends the take
+        const MIN_MS = 600;         // ignore the very start
+        let spoke = false, silence = 0, elapsed = 0;
+        vad = setInterval(() => {
+          analyser.getByteTimeDomainData(buf);
+          let sum = 0;
+          for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
+          const rms = Math.sqrt(sum / buf.length);
+          elapsed += 100;
+          if (rms > SPEAK) { spoke = true; silence = 0; }
+          else if (spoke) { silence += 100; }
+          if (spoke && silence >= SILENCE_MS && elapsed >= MIN_MS) safeStop();
+        }, 100);
+      }
+    } catch (e) { /* VAD unavailable — manual tap or the 20s cap still stop it */ }
   } catch (e) { cleanup(); stream.getTracks().forEach(t => t.stop()); onError && onError("Could not start the microphone."); }
   return { stop: () => { cleanup(); safeStop(); } };
 }
@@ -3409,7 +3441,23 @@ function MicButton({ expected, onResult, size = "small" }) {
     setError(msg);
     setTimeout(() => setError(null), 4500);
   };
-  const handleAudio = (url) => { setAudioUrl(prev => { if (prev) URL.revokeObjectURL(prev); return url; }); };
+  const handleAudio = (url) => {
+    setAudioUrl(prev => { if (prev) URL.revokeObjectURL(prev); return url; });
+    if (AUTO_ECHO) setTimeout(() => playClip(url, true), 250);
+  };
+
+  const playClip = (url, withNative) => {
+    if (!url) return;
+    try {
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      if (!audioRef.current) audioRef.current = new Audio();
+      const a = audioRef.current;
+      a.onended = null;
+      a.src = url;
+      if (withNative && expected) a.onended = () => { try { speak(expected); } catch (e) {} };
+      a.play().catch(() => {});
+    } catch (e) {}
+  };
 
   const start = async () => {
     setError(null);
@@ -3437,15 +3485,7 @@ function MicButton({ expected, onResult, size = "small" }) {
     if (!rec.whisper) setListening(false);
   };
 
-  const playBack = () => {
-    if (!audioUrl) return;
-    try {
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
-      if (!audioRef.current) audioRef.current = new Audio();
-      audioRef.current.src = audioUrl;
-      audioRef.current.play();
-    } catch (e) {}
-  };
+  const playBack = () => { playClip(audioUrl, false); };
 
   const baseStyle = size === "large" ? s.micBtnLarge : s.micBtn;
   const mmss = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`;
@@ -3465,7 +3505,7 @@ function MicButton({ expected, onResult, size = "small" }) {
       </button>
       {listening && rec.whisper && <span style={{ fontSize: 13, color: "#cf8a8a", fontVariantNumeric: "tabular-nums" }}>{mmss}</span>}
       {audioUrl && !listening && !processing && (
-        <button onClick={playBack} style={s.replayBtn} title={t("mic.hear")} aria-label={t("mic.hear")}>🔉</button>
+        <button onClick={playBack} style={s.replayBtn} title={t("mic.hear")} aria-label={t("mic.hear")}>🔉 {t("mic.hear")}</button>
       )}
       {error && <span style={s.micError}>{error}</span>}
     </span>
@@ -3640,6 +3680,8 @@ let TTS_VOICE_URI = (() => { try { return JSON.parse(localStorage.getItem("ttsVo
 function setTtsVoice(uri) { TTS_VOICE_URI = uri || ""; try { localStorage.setItem("ttsVoiceURI", JSON.stringify(TTS_VOICE_URI)); } catch (e) {} }
 let TTS_RATE = (() => { try { const v = JSON.parse(localStorage.getItem("ttsRate")); return (typeof v === "number" && v > 0) ? v : 0.8; } catch (e) { return 0.8; } })();
 function setTtsRate(r) { TTS_RATE = r; try { localStorage.setItem("ttsRate", JSON.stringify(r)); } catch (e) {} }
+let AUTO_ECHO = (() => { try { const v = JSON.parse(localStorage.getItem("autoEcho")); return v === null ? true : !!v; } catch (e) { return true; } })();
+function setAutoEcho(b) { AUTO_ECHO = !!b; try { localStorage.setItem("autoEcho", JSON.stringify(AUTO_ECHO)); } catch (e) {} }
 function isPolishVoice(v) { return v && v.lang && v.lang.toLowerCase().replace("_", "-").startsWith("pl"); }
 function getPolishVoices() { try { return (window.speechSynthesis.getVoices() || []).filter(isPolishVoice); } catch (e) { return []; } }
 function resolveVoice() {
@@ -5191,6 +5233,7 @@ const STRINGS = {
     "set.prefer":"Always use OpenAI for speech (instead of the browser engine)",
     "set.warn":"⚠ Anyone who can use this browser profile can read the key. Use a personal key, not a shared one.",
     "set.speed":"Audio speed", "speed.slow":"Slow", "speed.normal":"Normal", "speed.fast":"Faster",
+    "set.autoEcho":"Play my attempt back automatically", "set.autoEchoBlurb":"After you speak, hear your own recording, then the native version, without tapping.",
     "set.testKey":"Test key", "set.testing":"Testing…", "set.keyOk":"✓ Key works", "set.keyBad":"✗ Key rejected", "set.keyErr":"✗ Couldn't reach OpenAI",
     "set.backup":"Backup & restore",
     "set.backupBlurb":"Your saved items, custom sayings and progress live only in this browser. Export a backup you can keep or move to another device (your OpenAI key is never included).",
@@ -5298,6 +5341,7 @@ const STRINGS = {
     "set.prefer":"Zawsze używaj OpenAI do mowy (zamiast silnika przeglądarki)",
     "set.warn":"⚠ Każdy, kto ma dostęp do tego profilu przeglądarki, może odczytać klucz. Użyj klucza osobistego, nie współdzielonego.",
     "set.speed":"Prędkość dźwięku", "speed.slow":"Wolno", "speed.normal":"Normalnie", "speed.fast":"Szybciej",
+    "set.autoEcho":"Automatycznie odtwarzaj moją próbę", "set.autoEchoBlurb":"Po tym, jak powiesz, usłysz swoje nagranie, a potem wersję natywną — bez dotykania.",
     "set.testKey":"Testuj klucz", "set.testing":"Testowanie…", "set.keyOk":"✓ Klucz działa", "set.keyBad":"✗ Klucz odrzucony", "set.keyErr":"✗ Nie można połączyć z OpenAI",
     "set.backup":"Kopia zapasowa i przywracanie",
     "set.backupBlurb":"Zapisane pozycje, własne przysłowia i postępy są przechowywane tylko w tej przeglądarce. Wyeksportuj kopię, którą zachowasz lub przeniesiesz na inne urządzenie (klucz OpenAI nigdy nie jest dołączany).",
@@ -5335,7 +5379,7 @@ const STRINGS = {
 };
 
 // Ask OpenAI to turn a Polish proverb (or topic) into a structured saying object.
-const APP_VERSION = "1.11.0";
+const APP_VERSION = "1.12.0";
 // Keys included in a backup file (deliberately excludes the OpenAI key).
 const BACKUP_KEYS = ["bookmarks", "history", "wrongLog", "customSayings", "uiLang", "preferWhisper", "ttsVoiceURI", "ttsRate", "showWelcome"];
 
@@ -5448,6 +5492,7 @@ function SettingsScreen({ back, ai, setAi, uiLang, setUiLang }) {
   const [prefer, setPrefer] = useState(!!ai.preferWhisper);
   const [show, setShow] = useState(false);
   const [rate, setRate] = useState(TTS_RATE);
+  const [autoEcho, setAutoEchoState] = useState(AUTO_ECHO);
   const [keyStatus, setKeyStatus] = useState(null);   // null | "testing" | "ok" | "bad" | "err"
   const [importMsg, setImportMsg] = useState(null);   // null | "ok" | "bad"
   const fileRef = useRef(null);
@@ -5480,6 +5525,13 @@ function SettingsScreen({ back, ai, setAi, uiLang, setUiLang }) {
             <button onClick={() => chooseRate(0.8)} style={{...NAV.langBtn,...(rate>0.65&&rate<0.95?NAV.langBtnOn:{})}}>{t("speed.normal")}</button>
             <button onClick={() => chooseRate(1.0)} style={{...NAV.langBtn,...(rate>=0.95?NAV.langBtnOn:{})}}>{t("speed.fast")}</button>
           </div>
+          <button onClick={() => { const v = !autoEcho; setAutoEchoState(v); setAutoEcho(v); }} style={{...NAV.introToggle,borderTop:"1px solid #2a1e0c",marginTop:14,padding:"14px 2px 4px"}}>
+            <span style={{...NAV.checkbox,...(autoEcho?NAV.checkboxOn:{})}}>{autoEcho ? "✓" : ""}</span>
+            <span style={{flex:1,textAlign:"left"}}>
+              <span style={{display:"block",color:"#f0e0b0",fontSize:15}}>{t("set.autoEcho")}</span>
+              <span style={{display:"block",color:"#a29780",fontSize:13,marginTop:2,lineHeight:1.4}}>{t("set.autoEchoBlurb")}</span>
+            </span>
+          </button>
         </div>
         <div style={{...s.card,marginTop:14}}>
           <div style={{fontSize:18,color:"#f5e6a0",fontStyle:"italic",marginBottom:6}}>{t("set.ai")}</div>
@@ -6133,7 +6185,7 @@ const s = {
   // Speech recognition
   micBtn:{background:"rgba(245,200,66,0.08)",border:"1px solid #4a3520",borderRadius:6,fontSize:17,cursor:"pointer",padding:"4px 7px",lineHeight:1,flexShrink:0,marginTop:3,color:"#c0a040",transition:"all 0.15s"},
   micBtnLarge:{background:"rgba(245,200,66,0.12)",border:"1px solid #7a6020",borderRadius:10,fontSize:28,cursor:"pointer",padding:"14px 22px",lineHeight:1,color:"#f5c842",transition:"all 0.15s",minWidth:64,minHeight:54,display:"inline-flex",alignItems:"center",justifyContent:"center"},
-  replayBtn:{background:"rgba(120,180,230,0.10)",border:"1px solid #3a5060",borderRadius:6,fontSize:16,cursor:"pointer",padding:"4px 8px",lineHeight:1,flexShrink:0,color:"#8ab4d0",transition:"all 0.15s"},
+  replayBtn:{background:"rgba(120,180,230,0.16)",border:"1px solid #5a7d96",borderRadius:16,fontSize:14,cursor:"pointer",padding:"6px 12px",lineHeight:1,flexShrink:0,color:"#bcd6ea",fontFamily:"inherit",transition:"all 0.15s",whiteSpace:"nowrap"},
   micBtnActive:{background:"rgba(207,80,80,0.18)",borderColor:"#cf6f6f",color:"#e9a6a6",animation:"pulse 1.4s infinite"},
   micBtnError:{borderColor:"#cf6f6f",color:"#e9a6a6"},
   micError:{position:"absolute",top:"calc(100% + 4px)",left:"50%",transform:"translateX(-50%)",background:"rgba(80,30,30,0.95)",border:"1px solid #6a3a3a",borderRadius:6,padding:"5px 10px",fontSize:13,color:"#e0a0a0",whiteSpace:"nowrap",zIndex:50,pointerEvents:"none"},
