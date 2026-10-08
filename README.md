@@ -1,152 +1,82 @@
-# Wierszyki 🇵🇱
+# Wierszyki
 
-**A Polish-for-learners progressive web app.** Traditional nursery rhymes, proverbs, idioms and jokes — each one read aloud, explained in English, and turned into something you can practise speaking, review and quiz yourself on.
+A Polish-for-learners progressive web app of traditional nursery rhymes, proverbs, idioms and jokes, each read aloud, explained in English and turned into something to practise speaking, review and quiz.
 
-Wierszyki runs entirely in the browser, works offline once installed, and keeps all your progress on your own device.
+**Live app:** https://newbroman.github.io/Wiersyzki/
 
-**Current version:** 1.11.0
-
----
-
-## What it does
-
-Wierszyki bundles authentic Polish content with the learning tools to actually absorb it:
-
-- **Listen** to native-style text-to-speech with a Polish voice you pick yourself, at a speed you choose.
-- **Read along** with line-by-line Polish and English, plus vocabulary notes and cultural background.
-- **Speak** each line and get scored on how close you are — then **play your own attempt back** to compare.
-- **Review** with a spaced-repetition system that brings back what you miss sooner and what you know later.
-- **Quiz** yourself on rhymes (by speaking the answer) or on sayings, idioms and jokes (multiple choice).
-- **Track** a daily streak, mastery levels and quiz scores on a progress dashboard.
-
-Everything is bilingual: the **content** is always Polish-with-English, and the **interface** can switch between English and Polski.
-
----
-
-## Content
-
-| Section | What's inside |
-| --- | --- |
-| 📖 **Rhymes** | Traditional nursery rhymes and poems, with full line-by-line translation, vocabulary, comprehension questions and cultural notes. |
-| 💬 **Sayings** | Polish proverbs and folk wisdom, each with its meaning and the story behind it. |
-| 🗣️ **Idioms** | 24 everyday figurative phrases — literal translation, real meaning and closest English equivalent — grouped into five themes (Life & luck, Character & habits, Feelings, Talking & persuading, Situations & action). |
-| 😄 **Jokes** | *Kawały* organised by theme — Jaś, the doctor, highlanders, PRL-era humour. |
-
-> **A note on authenticity.** Content is drawn from genuine, attested sources. Where Polish-language explanations were drafted with machine assistance, they are flagged for native-speaker review before being treated as final.
-
----
+Current version: 1.12.0 (`APP_VERSION` in `index.html`). Note that the repository name is spelled `Wiersyzki`; the app is called Wierszyki.
 
 ## Features
 
-### Listening & speaking
-- **Polish text-to-speech** with on-device voice selection and a slow / normal / faster speed control.
-- **Hands-free autoplay** — plays each line Polish → English → Polish-slowly, no tapping needed.
-- **Pronunciation practice** via speech recognition, with a closeness score per line.
-- **Hear your attempt** — play back your own recording right next to the model audio.
+### Content
 
-### Speech recognition (two engines)
-- **Web Speech API** where available (Chrome, Edge, Safari).
-- **OpenAI Whisper fallback** for Firefox and other browsers, using your own API key.
+| Section | What is inside |
+| --- | --- |
+| Rhymes | Traditional nursery rhymes and poems with line-by-line translation, vocabulary, grammar, comprehension questions and cultural notes. Each rhyme opens in tabs: Rhyme, Vocab, Grammar, Practice, Quiz. |
+| Sayings | Polish proverbs and folk wisdom, each with its meaning and background. |
+| Idioms | 24 everyday figurative phrases with literal translation, real meaning and closest English equivalent, in five themes: Life & luck, Character & habits, Feelings, Talking & persuading, Situations & action. |
+| Jokes | *Kawały* organised by theme (Jaś, the doctor, highlanders, PRL-era humour). |
+| Quiz | Rhyme quiz (answered by speaking) and a multiple-choice quiz on sayings, idioms and jokes, with categories you can toggle. |
 
-### Learning system
-- **Review** — a Leitner spaced-repetition system over all vocabulary, sayings and idioms.
-- **Flashcards** — browse and flip the whole deck, filter by type, shuffle.
-- **Progress** — day streak, due / mastered / learning counts, a memory-strength bar, quiz history.
-- **Search** across every rhyme, saying, idiom and joke.
-- **My stuff** — your bookmarked items and custom sayings in one place.
+Content is drawn from attested sources (the manifest cites Wolne Lektury and Wikiźródła). Where Polish-language explanations were drafted with machine assistance, they are flagged for native-speaker review before being treated as final.
 
-### Quizzes
-- **Rhyme quiz** — questions about each rhyme, answered by speaking aloud.
-- **Sayings, idioms & jokes quiz** — multiple choice; match a phrase to its meaning, or a joke setup to its punchline. Toggle categories on and off.
+### Listening and speaking
 
-### Make it yours
-- **Add your own saying** — describe one and it's drafted into structured form (via OpenAI) for you to review and save.
-- **Interface language** toggle: English / Polski.
-- **Backup & restore** — export your saved items, custom sayings and progress to a JSON file, and restore on another device. (Your API key is never included.)
+- Polish text-to-speech with a voice you choose and a speed control.
+- Hands-free autoplay: each line Polish, then English, then Polish slowly.
+- Pronunciation practice with speech recognition and a closeness score per line.
+- "Hear your attempt": play back your own recording next to the model audio.
+- Two recognition engines: the browser Web Speech API where available, or OpenAI Whisper (`whisper-1`) with your own API key, used as the fallback for browsers without the Web Speech API (such as Firefox).
 
-### Progressive web app
-- **Installable** and **offline-first** via a service worker.
-- **Update prompt** — when a new version is deployed, the app offers a one-tap reload.
+### Learning tools
 
----
+- Review: a Leitner spaced-repetition system (six boxes, intervals of 0, 1, 3, 7, 21 and 60 days) over vocabulary, sayings and idioms.
+- Flashcards: tap to flip between Polish and English.
+- Progress: day streak, due and mastered counts, memory-strength bars and quiz history.
+- Search across all rhymes, sayings, idioms and jokes.
+- My stuff: bookmarked items and your own sayings.
+- Add your own saying: describe one and it is drafted into structured form via OpenAI (`gpt-4o-mini`) for you to review and save.
+- Interface language toggle, English or Polski (the content is always Polish with English).
+- Backup and restore of bookmarks, history, custom sayings and settings as a JSON file. The API key is not included.
 
-## Running it locally
+## Using it
 
-Wierszyki is a single static `index.html` plus a service worker — there's no build step.
+Open the live link in a browser. It is installable (Chrome, Edge, Safari "Add to Home Screen") and works offline once installed, because the service worker caches the app shell. When a new version is deployed, the app shows a "new version" prompt and reloads when you accept. The manifest also defines home-screen shortcuts for Rhymes, Sayings and Quiz.
 
-```bash
-git clone <your-repo-url>
-cd wierszyki
+The first load needs a network connection: React, ReactDOM and Babel standalone are loaded from cdnjs and the font from Google Fonts. Speech recognition needs either a browser with the Web Speech API (Chrome, Edge, Safari) or an OpenAI key.
 
-# Serve it (a plain server is enough; needed for the service worker)
-python3 -m http.server 8000
-# then open http://localhost:8000
-```
+### Data and privacy
 
-> Service workers require `http://localhost` or HTTPS — opening the file with `file://` won't register the worker.
-
-While developing, enable **DevTools → Application → Service Workers → "Update on reload"** so you always get the latest build.
-
----
-
-## Speech recognition & AI features (bring your own key)
-
-The Whisper fallback, the "add your own saying" generator and the key-test button all use the OpenAI API with **your own key**:
-
-- Add it in **Settings**; it's stored only in your browser's `localStorage`.
-- It is sent only to OpenAI, never to any other server.
-- It is deliberately **excluded** from backup files.
-- Use a personal key — anyone with access to your browser profile can read it.
-
-The Web Speech API engine needs no key. Offline TTS playback needs no key.
-
----
-
-## Data & privacy
-
-- All progress, bookmarks, custom content and settings live in **`localStorage` on your device** — there is no account and no backend.
-- Speech recognition with the Web Speech API may use the browser's cloud service; the Whisper engine sends audio to OpenAI for transcription.
-- Recorded audio for "hear your attempt" is kept only in memory for the current attempt and released when you record again.
-
----
+- Progress, bookmarks, custom content and settings are kept in `localStorage` on your device. There is no account and no backend.
+- Your OpenAI key (optional, entered in Settings) is stored only in your browser and sent only to OpenAI. It is excluded from backups.
+- The Web Speech API may use the browser vendor's cloud service; the Whisper engine sends audio to OpenAI for transcription.
 
 ## Project structure
 
+| File | Purpose |
+| --- | --- |
+| `index.html` | The whole app: React 18 with Babel standalone (no bundler), inline styles, all content and logic |
+| `sw.js` | Service worker: offline caching and the update prompt |
+| `manifest.json` | PWA manifest (name, icons, theme, shortcuts) |
+| `favicon.ico`, `icons/` | Icons |
+
+## Development
+
+There is no build step. Serve the folder with any static server (the service worker needs `http://localhost` or HTTPS, not `file://`):
+
+```bash
+python3 -m http.server 8000
+# open http://localhost:8000
 ```
-index.html        # The entire app — React 18 (via Babel-standalone), inline styles, all content & logic
-sw.js             # Service worker: offline caching + update handling
-manifest.json     # PWA manifest (name, icons, theme)
-icons/            # App icons
-```
 
-### Tech stack
-- **React 18** + **ReactDOM**, transpiled in-browser with **Babel standalone** (no bundler).
-- **Inline styles** throughout, single-file architecture.
-- **localStorage** for all persistence.
-- **Service worker** for offline use and update prompts.
-- **OpenAI API** (Whisper + GPT-4o-mini) for optional, opt-in features.
+In DevTools, enable Application > Service Workers > "Update on reload" so you always see the latest build.
 
----
+Release workflow: bump `CACHE_VERSION` in `sw.js` (currently `wierszyki-v9`) on every deploy. If the name is unchanged, installed copies keep serving the old build; changing it triggers the in-app update prompt. Also update `APP_VERSION` in `index.html`.
 
-## Deploying
+## Notes
 
-Any static host works — e.g. **GitHub Pages** or **Netlify Drop**.
+- Deployment is GitHub Pages from the repository root; ship `index.html`, `sw.js`, `manifest.json`, `favicon.ico` and `icons/` together.
+- Planned: a native-speaker verification pass over machine-assisted Polish explanations, resolving duplicate content entries, and more idioms, sayings and rhymes.
+- Traditional rhymes, proverbs and idioms are traditional or public-domain; the explanations and learning tools are original to this project.
 
-Ship these together: `index.html`, `sw.js`, `manifest.json`, and the `icons/` folder.
-
-> **Important:** bump `CACHE_VERSION` in `sw.js` on every release. The service worker is cache-versioned, so an unchanged name means installed copies keep serving the old build. Bumping it triggers the in-app "new version — Reload" prompt.
-
----
-
-## Roadmap
-
-- Native-speaker verification pass over machine-assisted Polish explanations.
-- Resolving duplicate content entries.
-- More idioms, sayings and rhymes.
-- Theme-based grouping and quizzes across more sections.
-
----
-
-## Credits
-
-Built by [newbroman](https://github.com/newbroman). Polish nursery rhymes, proverbs and idioms are traditional / public-domain; explanations and learning tools are original to this project.
+Built by Martin Hollingham.
